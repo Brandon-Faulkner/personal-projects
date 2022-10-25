@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+<head>
+    <title>Launchpad User</title>
+    <link href='https://fonts.googleapis.com/css?family=Open Sans' rel='stylesheet'>
+    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+</head>
+
+<body>
+    <div id="main" class="main">
+        <div id="owner" class="grid-dark-box">
+            <div class="grid-titles">
+                <div class="blue-line"></div>
+                <div class="titles">
+                    <h1>Project Owner</h1>
+                </div>
+            </div>
+            <div class="light-box">
+                <p id="project-owner-name">Project Owner Name</p>
+            </div>
+        </div>
+        <div id="sponsor" class="grid-dark-box">
+            <div class="grid-titles">
+                <div class="blue-line"></div>
+                <div class="titles">
+                    <h1>Sponsor</h1>
+                </div>
+            </div>
+            <div class="light-box">
+                <p id="sponor-name">Sponsor Name</p>
+            </div>
+        </div>
+        <div id="main" class="grid-main-box">
+            <div class="grid-titles">
+                <div class="blue-line"></div>
+                <div class="titles">
+                    <h2>Select one or more from the available options below that you would be
+                        willing to do for this project. If
+                        you plan on being a Donor/Pledger, enter in the amount you plan on giving below so we can update
+                        the
+                        leaderboard.</h2>
+                </div>
+            </div>
+            <div class="grid-name-amount">
+                <input type="text" id="name" class="name-box" placeholder="First & Last Name..." maxlength="32"
+                    pattern="[^a-zA-Z]+">
+                <input type="text" name="currency-field" id="currency-field" class="amount-box" maxlength="10"
+                    pattern="^\$\d{1,3}(,\d{3})*(\.\d+)?$" value="" data-type="currency" placeholder="$0">
+            </div>
+            <div id="prayer" class="border-box grid-radios">
+                <h1 class="titles" style="align-items: center;justify-content: center;margin: auto;">Prayer Partner</h1>
+                <div class="toggle">
+                    <input type="radio" name="prayerRadio" value="yes" id="prayerYes" />
+                    <label for="prayerYes">YES</label>
+                    <input type="radio" name="prayerRadio" value="no" id="prayerNo" checked="checked" />
+                    <label for="prayerNo">NO</label>
+                </div>
+            </div>
+            <div id="donor" class="border-box grid-radios">
+                <h1 class="titles" style="align-items: center;justify-content: center;margin: auto;">Donor/Pledger</h1>
+                <div class="toggle">
+                    <input type="radio" name="donorRadio" value="yes" id="donorYes" />
+                    <label for="donorYes">YES</label>
+                    <input type="radio" name="donorRadio" value="no" id="donorNo" checked="checked" />
+                    <label for="donorNo">NO</label>
+                </div>
+            </div>
+            <div id="team" class="border-box grid-radios">
+                <h1 class="titles" style="align-items: center;justify-content: center;margin: auto;">Team Member</h1>
+                <div class="toggle">
+                    <input type="radio" name="teamRadio" value="yes" id="teamYes" />
+                    <label for="teamYes">YES</label>
+                    <input type="radio" name="teamRadio" value="no" id="teamNo" checked="checked" />
+                    <label for="teamNo">NO</label>
+                </div>
+            </div>
+            <div id="btnHolder" class="grid-btn-holder">
+                <button id="btnQuestion" type="button" class="button">HAVE A QUESTION?</button>
+                <button id="btnSubmit" type="button" class="button">SUBMIT CHOICES</button>
+            </div>
+        </div>
+        <div id="main-overlay">
+            <div id="questions-box">
+                <h1 id="overlay-title">What Is On Your Mind?</h1>
+                <textarea id="question-text-box" placeholder="Let us know any questions you have..."></textarea>
+                <div id="overlay-buttons-holder">
+                    <button id="btnQuestionCancel" class="overlay-buttons cancel" type="button">CANCEL</button>
+                    <button id="btnQuestionSubmit" class="overlay-buttons submit" type="button">SUBMIT</button>
+                </div>
+            </div>
+            <div id="submit-option-box">
+                <h1 id="overlay-title">Option Not Selected</h1>
+                <div id="option-text-box">
+                    <h3>It looks like you didn't select from one of the available options to be apart of for this
+                        project. Before you submit, please make sure to select any option(s).</h3>
+                </div>
+                <div id="overlay-buttons-holder">
+                    <button id="btnOptionOk" class="overlay-buttons submit" type="button">GOT IT</button>
+                </div>
+            </div>
+            <div id="submit-amount-box">
+                <h1 id="overlay-title">Amount Is Empty</h1>
+                <div id="amount-text-box">
+                    <h3>It looks like you have selected to be a Donor/Pledger but you have not entered in the amount you
+                        plan to give or the amount is still at $0. The amount you enter is only used to update the
+                        leaderboard. We will be contacting you after LaunchPad to complete your donation. Please enter
+                        the amount you plan to give then press submit again.</h3>
+                </div>
+                <div id="overlay-buttons-holder">
+                    <button id="btnAmountOk" class="overlay-buttons submit" type="button">GOT IT</button>
+                </div>
+            </div>
+            <div id="submit-success-box">
+                <h1 id="overlay-title">Submission Successful</h1>
+                <div id="success-text-box">
+                    <h3>You have successfully submitted your name with your selected options on the current project!
+                        Check out the leaderboard and see if you can spot your name! If you selected to be a
+                        Donor/Pledger, you will not be giving today, but we will contact you after LaunchPad to do so!
+                    </h3>
+                </div>
+                <div id="overlay-buttons-holder">
+                    <button id="btnSuccessOk" class="overlay-buttons submit" type="button">GOT IT</button>
+                </div>
+            </div>
+            <div id="database-error-box">
+                <h1 id="overlay-title">Database Error</h1>
+                <div id="database-text-box">
+                    <h3>It seems that there was an issue connecting to the database. First, make sure you didn't lose
+                        internet connection then try reloading the page or submitting your data again. If it still gives
+                        you this error, try closing your browser and relaunching this page.
+                    </h3>
+                </div>
+                <div id="overlay-buttons-holder">
+                    <button id="btnDatabaseOk" class="overlay-buttons submit" type="button">GOT IT</button>
+                </div>
+            </div>
+        </div>
+        <div id="splash-screen-overlay">
+            <div id="loading-container" class="loading-container">
+                <div class="loading"></div>
+                <div id="loading-text">loading</div>
+            </div>
+            <div id="not-time-box">
+                <h1 id="overlay-title">Not Time For LaunchPad Yet!</h1>
+                <div id="not-time-text-box">
+                    <h3>Whether it be a matter of minutes, days, or months, it is not quite time for LaunchPad to begin!
+                        As soon as you are allowed to use this app, this message will fade away and the event will
+                        begin!
+                    </h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script type="module" src="script.js"></script>
+</body>
+
+</html>

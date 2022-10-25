@@ -1,0 +1,153 @@
+body {
+    background-color: rgb(45, 45, 45);
+    font-family: 'Open Sans';
+    height: 97.75vh;
+    margin: 10px;
+    overflow: hidden;
+}
+
+.main {
+    display: flex;
+    height: 98vh;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    overflow: hidden;
+}
+
+.grid-dark-box {
+    background-color: rgba(50, 50, 50, 1);
+    border-radius: 5px;
+    width: 49.75%;
+    display: grid;
+    grid-template-columns: 100%;
+    grid-template-rows: 40% 60%;
+}
+
+.grid-board-box {
+    opacity: 1;
+    transition: opacity .35s;
+    background-color: rgba(50, 50, 50, 1);
+    border-radius: 5px;
+    width: 49.75%;
+    display: grid;
+    grid-template-columns: 100%;
+    grid-template-rows: 18% 16.4% 16.4% 16.4% 16.4% 16.4%;
+}
+
+.grid-board-box.fade {
+    opacity: 0;
+}
+
+#donor-title, #prayer-title, #team-title {
+    margin: 5px 10px 0 10px;
+    background-color: transparent;
+    border-color: deepskyblue;
+    border-style: solid;
+    border-width: 4px;
+    border-radius: 10px;
+    height: 80%;
+}
+
+.names {
+    background-color: rgba(60, 60, 60, 0.75);
+    border-radius: 5px;
+    height: 90%;
+    margin: 0 10px 0 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#owner {
+    position: absolute;
+    top: 0%;
+    left: 0%;
+    height: 18.75%;
+}
+
+#sponsor {
+    position: absolute;
+    top: 20%;
+    left: 0%;
+    height: 18.75%;
+}
+
+#donor {
+    position: absolute;
+    bottom: 0%;
+    left: 0%;
+    height: 60%;
+}
+
+#prayer {
+    position: absolute;
+    top: 0%;
+    right: 0%;
+    height: 49.25%;
+}
+
+#team {
+    position: absolute;
+    bottom: 0%;
+    right: 0%;
+    height: 49.5%;
+}
+
+.blue-line {
+    display: inline-flex;
+    background: linear-gradient(180deg, rgba(60, 218, 248, 1) 35%, rgba(0, 131, 255, 1) 100%);
+    border-radius: 5px;
+    width: .5vw;
+    height: 75%;
+    margin: auto;
+}
+
+.light-box {
+    display: flex;
+    background-color: rgba(60, 60, 60, 0.75);
+    border-radius: 5px;
+    width: 98.5%;
+    height: auto;
+    max-height: 6vh;
+    align-items: center;
+    margin: auto;
+}
+
+.grid-titles {
+    display: grid;
+    grid-template-columns: 2.5% 97.5%;
+    grid-template-rows: 100%;
+    width: 98.75%;
+    height: 100%;
+    margin: auto;
+}
+
+.titles {
+    display: inline-flex;
+    align-items: center;
+    color: #fff;
+    font-style: italic;
+}
+
+h1 {
+    font-size: calc(1vh + 2vw);
+    color: #fff;
+    font-style: italic;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}
+
+h2 {
+    font-size: calc(1.25vh + 1.5vw);
+    color: #fff;
+}
+
+p {
+    font-size: calc(1vh + 2vw);
+    margin-left: 5px;
+    color: #fff;
+}
