@@ -56,111 +56,172 @@ onValue(connectedRef, (snapshot) => {
 }); */
 
 window.addEventListener('load', (event) => {
+  var mainGrid = document.getElementById('main-grid');
   var baptismLabel = document.getElementById("baptism-label");
   var baptismForm = document.getElementById("baptism-form");
   var baptismBtn = document.getElementById("btnBaptism");
-
   var joshuaLabel = document.getElementById("joshua-project-label");
   var joshuaForm = document.getElementById("jp-form");
   var joshuaBtn = document.getElementById("btnJoshua");
-
   var eventLabel = document.getElementById("events-label");
   var eventsForm = document.getElementById("events-form");
   var eventsBtn = document.getElementById("btnEvents");
 
+  var baptismGrid = document.getElementById('baptism-grid');
+  var baptismGoBack = document.getElementById('btnBaptismBack');
+
+  var joshuaGrid = document.getElementById('joshua-grid');
+  var joshuaGoBack = document.getElementById('btnJoshuaBack');
+
+  var eventsGrid = document.getElementById('events-grid');
+  var eventsGoBack = document.getElementById('btnEventsBack');
+
+  //******MAIN GRID******//
   var previousForm = null;
-  var currentForm = "baptism";
+  var currentForm = baptismForm;
 
   baptismLabel.addEventListener('click', function () {
     previousForm = currentForm;
-    currentForm = "baptism";
+    currentForm = baptismForm
     if (!baptismLabel.children[0].classList.contains('selected')) {
       //Take care of styling first
-      baptismLabel.children[0].classList.add('selected');
-      baptismLabel.children[0].children[0].classList = "fa fa-heart fa-label filled";
-
-      joshuaLabel.children[0].classList.remove('selected');
-      joshuaLabel.children[0].children[0].classList = "fa fa-user-o fa-label";
-
-      eventLabel.children[0].classList.remove('selected');
-      eventLabel.children[0].children[0].classList = "fa fa-bell-o fa-label";
+      Set_Icon_Style(baptismLabel, "fa-solid fa-heart fa-label filled", "add");
+      Set_Icon_Style(joshuaLabel, "fa-regular fa-user fa-label", "remove");
+      Set_Icon_Style(eventLabel, "fa-regular fa-bell fa-label", "remove");
 
       //Show the baptism form and hide the previous
-      baptismForm.style = "animation: fade-in .5s ease-in-out forwards;";
-      if (previousForm == "joshua") {
-        joshuaForm.style = "display: none;";
-      }
-      else {
-        eventsForm.style = "display:none;";
-      }
+      Show_Forms(currentForm, previousForm);
     }
   });
 
   joshuaLabel.addEventListener('click', function () {
     previousForm = currentForm;
-    currentForm = "joshua";
+    currentForm = joshuaForm;
     if (!joshuaLabel.children[0].classList.contains('selected')) {
       //Take care of styling first
-      baptismLabel.children[0].classList.remove('selected');
-      baptismLabel.children[0].children[0].classList = "fa fa-heart-o fa-label";
-
-      joshuaLabel.children[0].classList.add('selected');
-      joshuaLabel.children[0].children[0].classList = "fa fa-user fa-label filled";
-
-      eventLabel.children[0].classList.remove('selected');
-      eventLabel.children[0].children[0].classList = "fa fa-bell-o fa-label";
+      Set_Icon_Style(baptismLabel, "fa-regular fa-heart fa-label", "remove");
+      Set_Icon_Style(joshuaLabel, "fa-solid fa-user fa-label filled", "add");
+      Set_Icon_Style(eventLabel, "fa-regular fa-bell fa-label", "remove");
 
       //Show the joshua project form and hide the previous
-      joshuaForm.style = "animation: fade-in .5s ease-in-out forwards;";
-      if (previousForm == "baptism") {
-        baptismForm.style = "display: none;";
-      }
-      else {
-        eventsForm.style = "display:none;";
-      }
+      Show_Forms(currentForm, previousForm);
     }
   });
 
   eventLabel.addEventListener('click', function () {
     previousForm = currentForm;
-    currentForm = "events";
+    currentForm = eventsForm;
     if (!eventLabel.children[0].classList.contains('selected')) {
       //Take care of styling first
-      baptismLabel.children[0].classList.remove('selected');
-      baptismLabel.children[0].children[0].classList = "fa fa-heart-o fa-label";
-
-      joshuaLabel.children[0].classList.remove('selected');
-      joshuaLabel.children[0].children[0].classList = "fa fa-user-o fa-label";
-
-      eventLabel.children[0].classList.add('selected');
-      eventLabel.children[0].children[0].classList = "fa fa-bell fa-label filled";
+      Set_Icon_Style(baptismLabel, "fa-regular fa-heart fa-label", "remove");
+      Set_Icon_Style(joshuaLabel, "fa-regular fa-user fa-label", "remove");
+      Set_Icon_Style(eventLabel, "fa-solid fa-bell fa-label filled", "add");
 
       //Show the event registration form and hide the previous
-      eventsForm.style = "animation: fade-in .4s ease-in-out forwards;";
-      if (previousForm == "baptism") {
-        baptismForm.style = "display:none;";
-      }
-      else {
-        joshuaForm.style = "display:none;";
-      }
+      Show_Forms(currentForm, previousForm);
     }
   });
 
   baptismBtn.addEventListener('click', function () {
-    var layers = document.querySelectorAll(".left-layer");
-    for (const layer of layers) {
-      layer.classList.add("active");
-    }
+    var layers = Start_Layer_Anim("left");
+
+    Set_Grid_Animations(mainGrid, "fade-left");
+    Set_Grid_Animations(baptismGrid, "fade-in");
+
+    Switch_Form_Shown(mainGrid, baptismGrid, layers);
   });
 
   joshuaBtn.addEventListener('click', function () {
+    var layers = Start_Layer_Anim("right");
 
+    Set_Grid_Animations(mainGrid, "fade-right");
+    Set_Grid_Animations(joshuaGrid, "fade-in");
+
+    Switch_Form_Shown(mainGrid, joshuaGrid, layers);
   });
 
   eventsBtn.addEventListener('click', function () {
+    var layers = Start_Layer_Anim("bottom");
 
+    Set_Grid_Animations(mainGrid, "fade-up");
+    Set_Grid_Animations(eventsGrid, "fade-in");
+
+    Switch_Form_Shown(mainGrid, eventsGrid, layers);
+  });
+  //******END MAIN GRID ******//
+
+  //******BAPTISM GRID ******//
+  baptismGoBack.addEventListener('click', function () {
+    var layers = Start_Layer_Anim("right");
+
+    Set_Grid_Animations(baptismGrid, "fade-right");
+    Set_Grid_Animations(mainGrid, "fade-in");
+
+    Switch_Form_Shown(baptismGrid, mainGrid, layers);
+  });
+  //******JOSHUA GRID ******//
+  joshuaGoBack.addEventListener('click', function () {
+    var layers = Start_Layer_Anim("left");
+
+    Set_Grid_Animations(joshuaGrid, "fade-left");
+    Set_Grid_Animations(mainGrid, "fade-in");
+
+    Switch_Form_Shown(joshuaGrid, mainGrid, layers);
+  });
+  //******EVENT GRID ******//
+  eventsGoBack.addEventListener('click', function () {
+    var layers = Start_Layer_Anim("top");
+
+    Set_Grid_Animations(eventsGrid, "fade-down");
+    Set_Grid_Animations(mainGrid, "fade-in");
+
+    Switch_Form_Shown(eventsGrid, mainGrid, layers);
   });
 });
+
+//FUNCTIONS
+function Set_Icon_Style(label, changedClass, addOrRemove) {
+  if(addOrRemove == "add"){
+    label.children[0].classList.add('selected');
+  }
+  else{
+    label.children[0].classList.remove('selected');
+  }  
+  label.children[0].children[0].classList = changedClass;
+}
+
+function Show_Forms(curr, prev, other) {
+  curr.style = "animation: fade-in .5s ease-in-out forwards;";
+  prev.style.display = "none";
+}
+
+function Start_Layer_Anim(direction) {
+  var layers = document.querySelectorAll("."+direction+"-layer");
+  for (const layer of layers) {
+    layer.classList.remove("done");
+    layer.classList.add("active");
+  }
+
+  return layers;
+}
+
+function Set_Grid_Animations(elem, fadeType) {
+  elem.style.animation = 'none';
+  elem.offsetHeight;
+  elem.style.animation = null;
+  elem.style = "animation: " + fadeType + " .8s ease-in-out forwards;";
+}
+
+function Switch_Form_Shown(hide, show, layers) {
+  setTimeout(() => {
+    hide.className = "hidden";
+    show.className = "shown";
+    for (const layer of layers) {
+      layer.classList.add("done");
+      layer.classList.remove("active");
+    }
+  }, 1125);
+}
 
 //GO HERE FOR PAGE TRANSITIONS
 //https://codepen.io/mburakerman/pen/roJmaZ
