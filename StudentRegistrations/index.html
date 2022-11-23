@@ -17,7 +17,6 @@
             <div class="top-layer top-layer--2"></div>
             <div class="top-layer top-layer--3"></div>
             <div class="top-layer top-layer--4"></div>
-            <div class="top-layer top-layer--5"></div>
             <div class="bottom-layer"></div>
             <div class="bottom-layer bottom-layer--2"></div>
             <div class="bottom-layer bottom-layer--3"></div>
@@ -31,7 +30,7 @@
             <div class="right-layer right-layer--3"></div>
             <div class="right-layer right-layer--4"></div>
         </div>
-        <div id="main-grid" class="shown">
+        <div id="main-grid">
             <div id="section-labels" class="section-labels">
                 <div id="baptism-label">
                     <div id="baptism-label-contents" class="label-contents selected">
@@ -81,8 +80,9 @@
                                 Click the button below to get in line to be baptised!</p>
                         </div>
                     </div>
-                    <div id="form-button" class="form-button">
-                        <button id="btnBaptism" type="button" class="button"><i class="fa-solid fa-circle-chevron-left"></i>
+                    <div id="form-button">
+                        <button id="btnBaptism" type="button" class="button"><i
+                                class="fa-solid fa-circle-chevron-left"></i>
                             BAPTIZE ME!</button>
                     </div>
                 </div>
@@ -99,7 +99,7 @@
                                 Click the button below to fill out an application to join The Joshua Project!</p>
                         </div>
                     </div>
-                    <div id="form-button" class="form-button">
+                    <div id="form-button">
                         <button id="btnJoshua" type="button" class="button">I WANT IN! <i
                                 class="fa-solid fa-circle-chevron-right"></i></button>
                     </div>
@@ -120,43 +120,123 @@
                                 Click the button below to see what we mean!</p>
                         </div>
                     </div>
-                    <div id="form-button" class="form-button">
-                        <button id="btnEvents" type="button" class="button"><i class="fa-solid fa-circle-chevron-down"></i>
+                    <div id="form-button">
+                        <button id="btnEvents" type="button" class="button"><i
+                                class="fa-solid fa-circle-chevron-down"></i>
                             SHOW ME!</button>
                     </div>
                 </div>
             </div>
         </div>
         <div id="baptism-grid" class="hidden">
-            <a id="baptism-link" class="links" href="https://canachurch.churchcenter.com/people/forms/337640" data-open-in-church-center-modal="true">
+            <a id="baptism-link" class="links" href="https://canachurch.churchcenter.com/people/forms/337640"
+                data-open-in-church-center-modal="true">
                 <i class="fa-solid fa-church" style="font-size: calc(64px + 10vh);align-self: end;"></i>
                 Click Here to Sign Up to Be Baptized!
             </a>
-            <div id="baptism-button" class="form-button">
-                <button id="btnBaptismBack" type="button" class="button"><i class="fa fa-home"></i>
+            <div id="baptism-button">
+                <button id="btnBaptismBack" type="button" class="button back-button-font"><i class="fa fa-home"></i>
                     GO BACK</button>
             </div>
         </div>
         <div id="joshua-grid" class="hidden">
-            <a id="joshua-link" class="links" href="https://canachurch.churchcenter.com/people/forms/337640" data-open-in-church-center-modal="true">
-                <i class="fa-solid fa-church" style="font-size: calc(64px + 10vh);align-self: end;"></i>
-                Click Here to Sign Up to Be Baptized!
+            <a id="joshua-link" class="links" href="https://canachurch.churchcenter.com/people/forms/105233"
+                data-open-in-church-center-modal="true">
+                <i class="fa-solid fa-handshake-angle" style="font-size: calc(64px + 10vh);align-self: end;"></i>
+                Click Here to Sign Up to Be in the Joshua Project!
             </a>
-            <div id="joshua-button" class="form-button">
-                <button id="btnJoshuaBack" type="button" class="button"><i class="fa fa-home"></i>
+            <div id="joshua-button">
+                <button id="btnJoshuaBack" type="button" class="button back-button-font"><i class="fa fa-home"></i>
                     GO BACK</button>
             </div>
         </div>
         <div id="events-grid" class="hidden">
-            <div id="events-button" class="form-button">
-                <button id="btnEventsBack" type="button" class="button"><i class="fa fa-home"></i>
+            <div id="events-main">
+
+            </div>
+            <div id="events-button" style="display: flex;">
+                <button id="btnEventsBack" type="button" class="button back-button-font"><i class="fa fa-home"></i>
                     GO BACK</button>
+            </div>
+        </div>
+        <div id="events-activity-grid" class="hidden">
+            <div id="events-activity-main" class="event-form-style">
+                <span>Plan on coming? Give us your name and let us know if you will be there or not!</span>
+                <div id="image-border">
+                    <img id="activity-image" class="activity-image">
+                </div>
+                <div id="activity-date-cost" class="date-cost-grid">
+                    <div id="activity-date" class="dates">
+                        <span>- Dates -</span>
+                        <p>Date Goes Here</p>
+                    </div>
+                    <div id="activity-cost" class="costs">
+                        <span>- Cost -</span>
+                        <p>Cost Goes Here</p>
+                    </div>
+                </div>
+                <div id="activity-name-choice" class="name-choice-grid">
+                    <input type="text" id="activity-name" class="name-box" placeholder="First & Last Name..."
+                        maxlength="32" pattern="[^a-zA-Z]+">
+                    <select id="activity-choice" class="choice-dropdown">
+                        <option value="Default" disabled selected>Will you be there?</option>
+                        <option value="Yes">I will</option>
+                        <option value="No">I will not</option>
+                    </select>
+                </div>
+                <div id="events-activity-buttons" class="event-buttons-grid">
+                    <button id="btnEventsActivityBack" type="button" class="button activity-buttons"><i
+                            class="fa fa-home"></i>
+                        GO BACK</button>
+                    <button id="btnEventsActivitySubmit" type="button" class="button activity-buttons"><i
+                            class="fa fa-check"></i>
+                        SUBMIT</button>
+                </div>
+            </div>
+        </div>
+        <div id="events-event-grid" class="hidden">
+            <div id="events-event-main" class="event-form-style">
+                <span>Interested? Fill out the information below and have your parents do the rest!</span>
+                <div id="image-border">
+                    <img id="event-image" class="activity-image">
+                </div>
+                <div id="event-date-cost" class="date-cost-grid">
+                    <div id="event-date" class="dates">
+                        <span>- Dates -</span>
+                        <p>Date Goes Here</p>
+                    </div>
+                    <div id="event-cost" class="costs">
+                        <span>- Cost -</span>
+                        <p>Cost Goes Here</p>
+                    </div>
+                </div>
+                <div id="event-name-parent" class="name-parent-grid">
+                    <input type="text" id="event-name" class="name-box" placeholder="First & Last Name..."
+                        maxlength="32" pattern="[^a-zA-Z]+">
+                    <input type="text" id="event-email" class="name-box" placeholder="Parent Email..."
+                        maxlength="32" pattern="[^a-zA-Z]+">
+                        <input type="text" id="event-phone" class="name-box" placeholder="Parent Phone..."
+                        maxlength="32" pattern="[^a-zA-Z]+">
+                </div>
+                <div id="events-event-buttons" class="event-buttons-grid">
+                    <button id="btnEventsEventBack" type="button" class="button activity-buttons"><i
+                            class="fa fa-home"></i>
+                        GO BACK</button>
+                    <button id="btnEventsEventSubmit" type="button" class="button activity-buttons"><i
+                            class="fa fa-check"></i>
+                        SUBMIT</button>
+                </div>
             </div>
         </div>
         <div id="logo">
             <img src="Images/CSMWhite.png" alt="CSM Students">
         </div>
-        
+        <div id="loading-overlay" class="overlay hidden">
+            <div id="loading-container" class="loading-container">
+                <div class="loading"></div>
+                <div id="loading-text">loading</div>
+            </div>
+        </div>
     </div>
     <script type="module" src="script.js"></script>
 </body>
