@@ -15,8 +15,5 @@
   "bugs": {
     "url": "https://github.com/Brandon-Faulkner/personal-projects/issues"
   },
-  "homepage": "https://github.com/Brandon-Faulkner/personal-projects#readme",
-  "dependencies": {
-    "bcrypt": "^5.1.0"
-  }
+  "homepage": "https://github.com/Brandon-Faulkner/personal-projects#readme"
 }

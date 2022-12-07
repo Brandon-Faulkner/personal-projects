@@ -4,11 +4,12 @@
 //GO HERE FOR OLD ICONS
 //https://fontawesome.com/v4/icons/
 
-
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-app.js";
 import { getDatabase, ref as ref_db, get, onValue, child, push, set } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-database.js";
 import { getStorage, ref as ref_st, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-storage.js";
+
+import bcrypt from "../node_modules/bcryptjs/dist/bcrypt.js";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -161,6 +162,7 @@ window.addEventListener('load', (event) => {
     Set_Grid_Animations(mainGrid, "fade-up");
     Set_Logo_Animations(logo, "fade-up", 1125);
     Set_Grid_Animations(eventsGrid, "fade-in");
+    Load_Events();
 
     Switch_Form_Shown(mainGrid, eventsGrid, layers);
   });
@@ -226,50 +228,52 @@ window.addEventListener('load', (event) => {
     this.value = this.value.replace(/[0123456789,./\\/-=+/';"\]\[{}/()!@#$%^&*`~_<>?:|/]/g, "");
   });
 
-  //Load events from db
-  onValue(ref_db(database, "Event Info"), (snapshot) => {
-    //Show the loading icon
-    Set_Loading_Active(loading, "hidden");
-    //Clear old events first
-    while (eventsContainer.firstChild) {
-      eventsContainer.removeChild(eventsContainer.lastChild);
-    }
+  function Load_Events() {
+    //Load events from db
+    get(ref_db(database, "Event Info")).then((snapshot) => {
+      //Show the loading icon
+      Set_Loading_Active(loading, "hidden");
+      //Clear old events first
+      while (eventsContainer.firstChild) {
+        eventsContainer.removeChild(eventsContainer.lastChild);
+      }
 
-    snapshot.forEach((child) => {
-      var newEvent = document.createElement("div");
-      newEvent.className = "db-events";
-      newEvent.setAttribute("id", child.key);
-      newEvent.setAttribute("data-cost", child.child("Cost").val());
-      newEvent.setAttribute("data-date", child.child("Date").val());
-      newEvent.setAttribute("data-image", child.child("Image").val());
-      newEvent.setAttribute("data-is-event", child.child("IsEvent").val());
-      newEvent.addEventListener("click", Event_Click_Listener);
+      snapshot.forEach((child) => {
+        var newEvent = document.createElement("div");
+        newEvent.className = "db-events";
+        newEvent.setAttribute("id", child.key);
+        newEvent.setAttribute("data-cost", child.child("Cost").val());
+        newEvent.setAttribute("data-date", child.child("Date").val());
+        newEvent.setAttribute("data-image", child.child("Image").val());
+        newEvent.setAttribute("data-is-event", child.child("IsEvent").val());
+        newEvent.addEventListener("click", Event_Click_Listener);
 
-      var imageDiv = document.createElement("div");
-      imageDiv.className = "db-img-holder";
-      var eventImage = document.createElement("img");
-      getDownloadURL(ref_st(storage, child.child("Image").val()))
-        .then((url) => {
-          eventImage.setAttribute('src', url);
-          eventImage.style = "border-radius:10%; width:100%; height:100%;";
-        })
-        .catch((error) => {
-          // Handle any errors
-          alert(error);
-        });
+        var imageDiv = document.createElement("div");
+        imageDiv.className = "db-img-holder";
+        var eventImage = document.createElement("img");
+        getDownloadURL(ref_st(storage, child.child("Image").val()))
+          .then((url) => {
+            eventImage.setAttribute('src', url);
+            eventImage.style = "border-radius:10%; width:100%; height:100%;";
+          })
+          .catch((error) => {
+            // Handle any errors
+            alert(error);
+          });
 
-      var eventTitle = document.createElement("span");
-      eventTitle.innerHTML = child.key;
+        var eventTitle = document.createElement("span");
+        eventTitle.innerHTML = child.key;
 
-      imageDiv.appendChild(eventImage);
-      newEvent.appendChild(imageDiv);
-      newEvent.appendChild(eventTitle);
-      eventsContainer.appendChild(newEvent);
+        imageDiv.appendChild(eventImage);
+        newEvent.appendChild(imageDiv);
+        newEvent.appendChild(eventTitle);
+        eventsContainer.appendChild(newEvent);
+      });
+
+      //Hide loading icon
+      Set_Loading_Active(loading, "shown");
     });
-
-    //Hide loading icon
-    Set_Loading_Active(loading, "shown");
-  });
+  }
 
   const body = document.querySelector("body");
   const modal = document.querySelector(".modal");
@@ -292,8 +296,23 @@ window.addEventListener('load', (event) => {
   logo.addEventListener('click', function () {
     if (!mainGrid.classList.contains("hidden")) {
       openModal();
+      Secure_Password("acekgm123");
     }
   });
+
+  //PASSWORD FUNCTIONS -------------------------------------------
+  
+  function Secure_Password(textPassword) {
+    //Use salt to hash password
+    
+    /*bcrypt.genSalt(10, (err, salt) => {
+      alert(salt);
+      bcrypt.hash(textPassword, salt, function (err, hash) {
+        //Store hash in db
+        alert(hash);
+      });
+    });*/
+  }
 
 
 
