@@ -1,0 +1,22 @@
+{
+  "name": "student-registrations",
+  "version": "1.0.0",
+  "description": "A web app that allows students to sign up to be baptized, join joshua project, or let us or there parents know that they want to go to an event.",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Brandon-Faulkner/personal-projects.git"
+  },
+  "author": "Brandon Faulkner",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Brandon-Faulkner/personal-projects/issues"
+  },
+  "homepage": "https://github.com/Brandon-Faulkner/personal-projects#readme",
+  "dependencies": {
+    "bcrypt": "^5.1.0"
+  }
+}

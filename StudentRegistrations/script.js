@@ -85,8 +85,9 @@ window.addEventListener('load', (event) => {
   var eventsEventGoBack = document.getElementById('btnEventsEventBack');
   var eventsEventSubmit = document.getElementById('btnEventsEventSubmit');
 
-  var logo = document.getElementById('logo');
+  var logo = document.getElementById('logo-img');
   var loading = document.getElementById('loading-overlay');
+  var loginScreenGrid = document.getElementById('login-screen-grid');
 
   //******MAIN GRID******//
   var previousForm = null;
@@ -270,9 +271,27 @@ window.addEventListener('load', (event) => {
     Set_Loading_Active(loading, "shown");
   });
 
+  const body = document.querySelector("body");
+  const modal = document.querySelector(".modal");
+  const closeButton = document.querySelector(".close-button");
+  let isOpened = false;
+
+  const openModal = () => {
+    modal.classList.add("is-open");
+    body.style.overflow = "hidden";
+  };
+
+  const closeModal = () => {
+    modal.classList.remove("is-open");
+    body.style.overflow = "initial";
+  };
+
+  //modalButton.addEventListener("click", openModal);
+  closeButton.addEventListener("click", closeModal);
+
   logo.addEventListener('click', function () {
-    if(!mainGrid.classList.contains("hidden")){
-      
+    if (!mainGrid.classList.contains("hidden")) {
+      openModal();
     }
   });
 
@@ -281,7 +300,22 @@ window.addEventListener('load', (event) => {
 
 
 
+
+
   //FUNCTIONS ----------------------------------------------------
+  function Set_Login_Screen(elem, currentState) {
+    if (currentState === "hidden") {
+      Set_Grid_Animations(elem, "fade-in");
+      elem.classList.remove("hidden");
+    }
+    else {
+      Set_Grid_Animations(elem, "fade-out");
+      setTimeout(() => {
+        elem.classList.add("hidden");
+      }, 900);
+    }
+  }
+
   function Set_Icon_Style(label, changedClass, addOrRemove) {
     if (addOrRemove == "add") {
       label.children[0].classList.add('selected');
