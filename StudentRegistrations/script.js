@@ -8,8 +8,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-app.js";
 import { getDatabase, ref as ref_db, get, onValue, child, push, set } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-database.js";
 import { getStorage, ref as ref_st, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-storage.js";
-
-import bcrypt from "../node_modules/bcryptjs/dist/bcrypt.js";
+import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-auth.js";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -29,6 +28,8 @@ const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 // Initialize Storage
 const storage = getStorage(app);
+// Initialize Auth
+const auth = getAuth(app);
 
 /*//Enable loading icon until Firebase is connected when on event page
 const connectedRef = ref(database, ".info/connected");
@@ -89,6 +90,7 @@ window.addEventListener('load', (event) => {
   var logo = document.getElementById('logo-img');
   var loading = document.getElementById('loading-overlay');
   var loginScreenGrid = document.getElementById('login-screen-grid');
+  var isLoggedIn = false;
 
   //******MAIN GRID******//
   var previousForm = null;
@@ -278,6 +280,9 @@ window.addEventListener('load', (event) => {
   const body = document.querySelector("body");
   const modal = document.querySelector(".modal");
   const closeButton = document.querySelector(".close-button");
+  const loginButton = document.querySelector(".input-button");
+  const adminEmail = document.getElementById("email");
+  const adminPassword = document.getElementById("password");
   let isOpened = false;
 
   const openModal = () => {
@@ -296,30 +301,19 @@ window.addEventListener('load', (event) => {
   logo.addEventListener('click', function () {
     if (!mainGrid.classList.contains("hidden")) {
       openModal();
-      Secure_Password("acekgm123");
     }
   });
 
-  //PASSWORD FUNCTIONS -------------------------------------------
-  
-  function Secure_Password(textPassword) {
-    //Use salt to hash password
-    
-    /*bcrypt.genSalt(10, (err, salt) => {
-      alert(salt);
-      bcrypt.hash(textPassword, salt, function (err, hash) {
-        //Store hash in db
-        alert(hash);
-      });
-    });*/
-  }
-
-
-
-
-
-
-
+  loginButton.addEventListener('click', function () {
+    signInWithEmailAndPassword(auth, adminEmail.value, adminPassword.value).then((userCredential) => {
+      //Signed in
+      const user = userCredential.user;
+    }).catch((error) => {
+      //Login error
+      const errorCode = error.code;
+      const errorMessage = error.message;
+    });
+  });
 
   //FUNCTIONS ----------------------------------------------------
   function Set_Login_Screen(elem, currentState) {
