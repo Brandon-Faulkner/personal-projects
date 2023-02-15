@@ -170,7 +170,7 @@ span {
 
 .name-parent-grid {
   grid-template-columns: 100%;
-  grid-template-rows: 33.3% 33.3% 33.3%;
+  grid-template-rows: 100%;
   display: grid;
   background-color: rgba(34,39,44,255);
   border-radius: 30px;
@@ -188,18 +188,127 @@ span {
   margin: auto;
 }
 
-.name-box {
-  font-size: calc(16px + 2vw);
-  display: flex;
+.transition, form .question label, form .question input[type="text"] {
+  -moz-transition: all 0.25s cubic-bezier(0.53, 0.01, 0.35, 1.5);
+  -o-transition: all 0.25s cubic-bezier(0.53, 0.01, 0.35, 1.5);
+  -webkit-transition: all 0.25s cubic-bezier(0.53, 0.01, 0.35, 1.5);
+  transition: all 0.25s cubic-bezier(0.53, 0.01, 0.35, 1.5);
+}
+
+* {
+  font-family: Helvetica, sans-serif;
+  font-weight: light;
+  -webkit-font-smoothing: antialiased;
+}
+
+form {
+  position: relative;
+  display: inline-block;
+  box-sizing: border-box;
+  border-radius: 40px;
+  align-self: center;
+}
+
+form .question {
+  position: relative;
+  /*padding: 10px 0;*/
+}
+form .question:first-of-type {
+  padding-top: 0;
+}
+form .question:last-of-type {
+  padding-bottom: 0;
+}
+form .question label {
+  transform-origin: left center;
   color: #fff;
-  background-color: rgba(60, 60, 60, 0.75);
-  border-radius: 5px;
-  margin: auto;
+  font-weight: 100;
+  letter-spacing: 0.01em;
+  font-size: 17px;
+  box-sizing: border-box;
+  padding: 10px 15px;
+  display: block;
+  position: absolute;
+  margin-top: -40px;
+  z-index: 2;
+  pointer-events: none;
+  margin-left: 5%;
+  text-transform: uppercase;
+  font-style: italic;
+  -moz-transform: translate(5px, -35px) scale(0.6);
+  -ms-transform: translate(5px, -35px) scale(0.6);
+  -webkit-transform: translate(5px, -35px) scale(0.6);
+  transform: translate(5px, -35px) scale(0.6);
+}
+form .question input[type="text"] {
+  appearance: none;
+  border: 1px solid rgba(32,64,83,255);
+  line-height: 0;
+  font-size: 17px;
   width: 90%;
+  height: 90%;
+  display: block;
+  box-sizing: border-box;
+  padding: 8px 15px;
+  border-radius: 60px;
+  color: #fff;
+  background-color: rgba(32,64,83,255);
+  font-weight: 100;
+  letter-spacing: 0.01em;
+  position: relative;
+  z-index: 1;
+  margin-left: 5%;
+  margin-bottom: 1%;
+  margin-top: 30px;
+}
+
+.invalid {
+  background-color: red !important;
+}
+
+.valid {
+  background-color: green !important;
+}
+
+/*form .question input[type="text"]:focus {
+  outline: none;
+  background: #fff;
+  color: #fff;
+  margin-top: 30px;
+}
+form .question input[type="text"]:valid {
+  margin-top: 30px;
+}
+form .question input[type="text"]:focus ~ label {
+  -moz-transform: translate(0, -35px);
+  -ms-transform: translate(0, -35px);
+  -webkit-transform: translate(0, -35px);
+  transform: translate(0, -35px);
+}
+form .question input[type="text"]:valid ~ label {
+  text-transform: uppercase;
+  font-style: italic;
+  -moz-transform: translate(5px, -35px) scale(0.6);
+  -ms-transform: translate(5px, -35px) scale(0.6);
+  -webkit-transform: translate(5px, -35px) scale(0.6);
+  transform: translate(5px, -35px) scale(0.6);
+}*/
+
+::-webkit-input-placeholder {
+  font-style: italic;
+}
+:-moz-placeholder {
+  font-style: italic;  
+}
+::-moz-placeholder {
+  font-style: italic;  
+}
+:-ms-input-placeholder {  
+  font-style: italic; 
 }
 
 .choice-dropdown {
-  background-color: rgba(60, 60, 60, .75);
+  background-color: rgba(32,64,83,255);
   width: 90%;
   height: 60%;
   margin: auto;
@@ -226,7 +335,8 @@ span {
   height: 100%;
   width: 95%;
   grid-template-columns: 100%;
-  grid-template-rows: 10% 35% 20% 22.5% 10%;
+  /*grid-template-rows: 10% 35% 20% 22.5% 10%;*/
+  grid-template-rows: 8% 30% 15% 35% 10%;
   border-radius: 10px;
   background-image: linear-gradient(135deg, rgba(40,91,122,255) 0%, rgba(13,107,69,255) 100%);
 }
@@ -976,21 +1086,29 @@ img {
   opacity: 0;
   pointer-events: none;
   transition-duration: 0.3s;
-  background: #fff;
+  background: rgba(32,64,83,255);
   transform: translateY(100px) scale(0.4);
 }
 .modal-title {
   font-size: 26px;
   margin: 0;
   font-weight: 400;
-  color: #55311c;
+  color: #fff;
+}
+.modal-desc-div {
+  background-color: rgba(255,255,255,.1);
+  border-radius: 10px;
+  padding: 10px;
+  margin: 5px;
 }
 .modal-desc {
-  margin: 6px 0 30px 0;
+  /*margin: 6px 0 30px 0;*/
+  color: #fff;
+  text-align: center;
 }
 .modal-left {
   padding: 60px 30px 20px;
-  background: #fff;
+  background: rgba(32,64,83,255);
   flex: 1.5;
   transition-duration: 0.5s;
   transform: translateY(80px);
@@ -1024,7 +1142,7 @@ img {
   align-items: center;
 }
 .modal-buttons a {
-  color: rgba(51, 51, 51, 0.6);
+  color: #fff;
   font-size: 14px;
 }
 .input-button {
@@ -1033,13 +1151,20 @@ img {
   border: 0;
   color: #fff;
   border-radius: 4px;
-  background: #8c7569;
+  background: #191e23;
   font-family: "Nunito", sans-serif;
-  transition: 0.3s;
+  transition: 0.4s;
   cursor: pointer;
 }
 .input-button:hover {
-  background: #55311c;
+  background: #fff;
+  color: #191e23;
+  transform: scale(1.15);
+}
+
+.input-button:active {
+  background: #fff;
+  transform: scale(0.9);
 }
 
 .input-label {
@@ -1048,7 +1173,7 @@ img {
   font-family: "Nunito", sans-serif;
   font-weight: 600;
   letter-spacing: 0.7px;
-  color: #8c7569;
+  color: #fff;
   transition: 0.3s;
 }
 
@@ -1056,7 +1181,7 @@ img {
   display: flex;
   flex-direction: column;
   padding: 10px 10px 8px;
-  border: 1px solid #ddd;
+  border: 2px solid #191e23;
   border-radius: 4px;
   margin-bottom: 20px;
   transition: 0.3s;
@@ -1081,10 +1206,7 @@ img {
   opacity: 1;
 }
 .input-block:focus-within {
-  border-color: #8c7569;
-}
-.input-block:focus-within .input-label {
-  color: rgba(140, 117, 105, 0.8);
+  border-color: #fff;
 }
 
 .icon-button {
@@ -1099,6 +1221,18 @@ img {
   padding: 0;
   cursor: pointer;
   font-size: xx-large;
+  color: #fff;
+  transition-duration: .4s;
+}
+
+.icon-button:hover {
+  color: #191e23;
+  transform: scale(1.25);
+}
+
+.icon-button:active {
+  
+  transform: scale(0.9);
 }
 
 @media (max-width: 750px) {
@@ -1109,5 +1243,27 @@ img {
   .modal-right {
     display: none;
   }
+}
+
+@keyframes shake {
+  0% { transform: translate(2px, 1px) rotate(0deg); }
+  10% { transform: translate(-1px, -2px) rotate(-1deg); }
+  20% { transform: translate(-3px, 0px) rotate(1deg); }
+  30% { transform: translate(0px, 2px) rotate(0deg); }
+  40% { transform: translate(1px, -1px) rotate(1deg); }
+  50% { transform: translate(-1px, 2px) rotate(-1deg); }
+  60% { transform: translate(-3px, 1px) rotate(0deg); }
+  70% { transform: translate(2px, 1px) rotate(-1deg); }
+  80% { transform: translate(-1px, -1px) rotate(1deg); }
+  90% { transform: translate(2px, 2px) rotate(0deg); }
+  100% { transform: translate(1px, -2px) rotate(-1deg); }
+}
+
+.shake {
+  animation-name: shake;
+  animation-duration: .5s;
+  transform-origin: 50% 50%;
+  animation-iteration-count: 1;
+  border-color: red;
 }
 /*********************/

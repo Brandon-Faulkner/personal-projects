@@ -31,21 +31,6 @@ const storage = getStorage(app);
 // Initialize Auth
 const auth = getAuth(app);
 
-/*//Enable loading icon until Firebase is connected when on event page
-const connectedRef = ref(database, ".info/connected");
-const loadingContainer = document.getElementById("loading-container");
-
-onValue(connectedRef, (snapshot) => {
-
-  if (snapshot.val() === true) {
-    //Stop loading
-  }
-  else
-  {
-    //Keep loading
-  }
-}); */
-
 window.addEventListener('load', (event) => {
   var mainGrid = document.getElementById('main-grid');
   var baptismLabel = document.getElementById("baptism-label");
@@ -76,6 +61,7 @@ window.addEventListener('load', (event) => {
   var activityChoice = document.getElementById('activity-choice');
   var eventsActivityGoBack = document.getElementById('btnEventsActivityBack');
   var eventsActivitySubmit = document.getElementById('btnEventsActivitySubmit');
+  var selectedActivity;
 
   var eventsEventGrid = document.getElementById('events-event-grid');
   var eventsEventImg = document.getElementById('event-image');
@@ -91,6 +77,9 @@ window.addEventListener('load', (event) => {
   var loading = document.getElementById('loading-overlay');
   var loginScreenGrid = document.getElementById('login-screen-grid');
   var isLoggedIn = false;
+
+  //Input box validation variables********************************
+  var emailGood = { value: false }, eventNameGood = { value: false }, activityNameGood = { value: false }, phoneGood = { value: false };
 
   //******MAIN GRID******//
   var previousForm = null;
@@ -226,6 +215,33 @@ window.addEventListener('load', (event) => {
 
   //******END GO BACK BTNS******//
 
+  //******SUBMIT BTNS******//
+  eventsEventSubmit.addEventListener('click', function () {
+    if (emailGood.value == true && phoneGood.value == true && eventNameGood.value == true) {
+      //Send text and email
+      openSubmitModal("Submission Successful", "We have just notified the parent you provided information for! Now all you have to do is sit back and relax while they do the rest!");
+    } else {
+      //Show error popup
+      openSubmitModal("Error With Submission", "Please make sure to check that all three inputs are green. If there are any that are red, make sure you fix those and try again.");
+    }
+  });
+
+  eventsActivitySubmit.addEventListener('click', function () {
+    if (activityNameGood.value == true && activityChoice.value != "Default") {
+      //Save to database
+      if (activityChoice.value === "Yes") {
+        push(child(ref_db(database), 'Event Info/' + selectedActivity + "/Will Go/"), activityNameInput.value);
+      } else {
+        push(child(ref_db(database), 'Event Info/' + selectedActivity + "/Won't Go/"), activityNameInput.value);
+      }
+      openSubmitModal("Submission Successful", "Thank you for letting us know whether you will be at this activity or not! We have recorded your response and we look forward to seeing you there if you will be there!");
+    } else {
+      //Show error popup
+      openSubmitModal("Error With Submission", "Please make sure that you have entered your name correctly and that you have selected whether or not you will be there.");
+    }
+  });
+  //******END SUBMIT BTNS******//
+
   activityNameInput.addEventListener('input', function () {
     this.value = this.value.replace(/[0123456789,./\\/-=+/';"\]\[{}/()!@#$%^&*`~_<>?:|/]/g, "");
   });
@@ -259,7 +275,7 @@ window.addEventListener('load', (event) => {
             eventImage.style = "border-radius:10%; width:100%; height:100%;";
           })
           .catch((error) => {
-            // Handle any errors
+            // Show any errors
             alert(error);
           });
 
@@ -278,11 +294,18 @@ window.addEventListener('load', (event) => {
   }
 
   const body = document.querySelector("body");
-  const modal = document.querySelector(".modal");
-  const closeButton = document.querySelector(".close-button");
-  const loginButton = document.querySelector(".input-button");
+  const modal = document.getElementById("adminModal");
+  const submitModal = document.getElementById("submitModal");
+  const submitTitle = document.getElementById("submitTitle");
+  const submitDesc = document.getElementById("submitDesc");
+  const emailBlock = document.getElementById("email-block");
+  const passwordBlock = document.getElementById("password-block");
+  const closeButton = document.getElementById("adminCloseButton");
+  const submitCloseButton = document.getElementById("submitCloseButton");
+  const loginButton = document.getElementById("loginButton");
   const adminEmail = document.getElementById("email");
   const adminPassword = document.getElementById("password");
+
   let isOpened = false;
 
   const openModal = () => {
@@ -290,13 +313,25 @@ window.addEventListener('load', (event) => {
     body.style.overflow = "hidden";
   };
 
+  const openSubmitModal = (title, desc) => {
+    submitTitle.textContent = title;
+    submitDesc.textContent = desc;
+    submitModal.classList.add("is-open");
+    body.style.overflow = "hidden";
+  }
+
   const closeModal = () => {
     modal.classList.remove("is-open");
     body.style.overflow = "initial";
   };
 
-  //modalButton.addEventListener("click", openModal);
+  const closeSubmitModal = () => {
+    submitModal.classList.remove("is-open");
+    body.style.overflow = "initial";
+  };
+
   closeButton.addEventListener("click", closeModal);
+  submitCloseButton.addEventListener("click", closeSubmitModal);
 
   logo.addEventListener('click', function () {
     if (!mainGrid.classList.contains("hidden")) {
@@ -311,7 +346,22 @@ window.addEventListener('load', (event) => {
     }).catch((error) => {
       //Login error
       const errorCode = error.code;
-      const errorMessage = error.message;
+      switch (errorCode) {
+        case "auth/invalid-email":
+          emailBlock.classList.add("shake");
+          setTimeout(() => {
+            emailBlock.classList.remove("shake");
+          }, 1000);
+          break;
+        case "auth/wrong-password":
+          passwordBlock.classList.add("shake");
+          setTimeout(() => {
+            passwordBlock.classList.remove("shake");
+          }, 1000);
+          break;
+        default:
+          break;
+      }
     });
   });
 
@@ -381,7 +431,7 @@ window.addEventListener('load', (event) => {
         setTimeout(() => {
           elem.classList.add("hidden");
         }, 900)
-      }, 4000);
+      }, 3000);
     }
   }
 
@@ -398,11 +448,11 @@ window.addEventListener('load', (event) => {
 
   function Event_Click_Listener() {
     if (this.getAttribute('data-is-event') === "false") {
+      selectedActivity = this.getAttribute("id");
       eventsActivityImg.setAttribute("src", this.firstChild.firstChild.getAttribute('src'));
       eventsActivityDate.children[1].textContent = this.getAttribute("data-date");
       eventsActivityCost.children[1].textContent = this.getAttribute("data-cost");
-      activityNameInput.textContent = null;
-      activityChoice.value = "Default";
+      Clear_Input(activityChoice, activityNameInput, null, null);
 
       var layers = Start_Layer_Anim("left");
 
@@ -415,9 +465,7 @@ window.addEventListener('load', (event) => {
       eventsEventImg.setAttribute("src", this.firstChild.firstChild.getAttribute('src'));
       eventsEventDate.children[1].textContent = this.getAttribute("data-date");
       eventsEventCost.children[1].textContent = this.getAttribute("data-cost");
-      eventNameInput.textContent = null;
-      eventEmailInput.textContent = null;
-      eventPhoneInput.textContent = null;
+      Clear_Input(null, eventNameInput, eventEmailInput, eventPhoneInput);
 
       var layers = Start_Layer_Anim("right");
 
@@ -428,4 +476,53 @@ window.addEventListener('load', (event) => {
       Switch_Form_Shown(eventsGrid, eventsEventGrid, layers);
     }
   }
+
+  function Clear_Input(selection,text1,text2,text3) {
+    if(selection != null) {
+      selection.value = "Default";
+    }
+    if (text1 != null) {
+      text1.value = "";
+      text1.classList.remove("valid");
+      text1.classList.remove("invalid");
+    }
+    if (text2 != null) {
+      text2.value = "";
+      text2.classList.remove("valid");
+      text2.classList.remove("invalid");
+    }
+    if (text3 != null) {
+      text3.value = "";
+      text3.classList.remove("valid");
+      text3.classList.remove("invalid");
+    }
+  }
+
+  //Used for phone, name, and email
+  function setInputFilter(textbox, inputFilter, isValid,) {
+    ["input", "keydown", "keyup", "mousedown", "mouseup", "select", "contextmenu", "drop", "focusout"].forEach(function (event) {
+      textbox.addEventListener(event, function (e) {
+        if (this.value.match(inputFilter)) {
+          isValid.value = true;
+          textbox.classList.add("valid");
+          textbox.classList.remove("invalid");
+        }
+        else if (textbox.value == "") {
+          isValid.value = false;
+          textbox.classList.remove("valid");
+          textbox.classList.remove("invalid");
+        }
+        else {
+          isValid.value = false;
+          textbox.classList.remove("valid");
+          textbox.classList.add("invalid");
+        }
+      });
+    });
+  }
+
+  setInputFilter(eventPhoneInput, /^[0-9]{10}$/, phoneGood);
+  setInputFilter(eventNameInput, /^[a-zA-Z]+ [a-zA-Z]+$/, eventNameGood);
+  setInputFilter(activityNameInput, /^[a-zA-Z]+ [a-zA-Z]+$/, activityNameGood);
+  setInputFilter(eventEmailInput, /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/, emailGood);
 });

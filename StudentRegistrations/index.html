@@ -176,12 +176,16 @@
                     </div>
                 </div>
                 <div id="activity-name-choice" class="name-choice-grid">
-                    <input type="text" id="activity-name" class="name-box" placeholder="First & Last Name..."
-                        maxlength="32" pattern="[^a-zA-Z]+">
+                    <form>
+                        <div class="question">
+                            <input id="activity-name" type="text" required maxlength="40" placeholder="Ex: John Doe" />
+                            <label>First & Last Name</label>
+                        </div>
+                    </form>
                     <select id="activity-choice" class="choice-dropdown">
                         <option value="Default" disabled selected>Will you be there?</option>
-                        <option value="Yes">I will</option>
-                        <option value="No">I will not</option>
+                        <option value="Yes">I will be there :)</option>
+                        <option value="No">I will not be there :(</option>
                     </select>
                 </div>
                 <div id="events-activity-buttons" class="event-buttons-grid">
@@ -211,12 +215,21 @@
                     </div>
                 </div>
                 <div id="event-name-parent" class="name-parent-grid">
-                    <input type="text" id="event-name" class="name-box" placeholder="First & Last Name..."
-                        maxlength="32" pattern="[^a-zA-Z]+">
-                    <input type="text" id="event-email" class="name-box" placeholder="Parent Email..." maxlength="32"
-                        pattern="[^a-zA-Z]+">
-                    <input type="text" id="event-phone" class="name-box" placeholder="Parent Phone..." maxlength="32"
-                        pattern="[^a-zA-Z]+">
+                    <form>
+                        <div class="question">
+                            <input id="event-name" type="text" required maxlength="40" placeholder="Ex: John Doe" />
+                            <label>First & Last Name</label>
+                        </div>
+                        <div class="question">
+                            <input id="event-email" type="text" required maxlength="40"
+                                placeholder="Ex: email@gmail.com" />
+                            <label>Parent Email</label>
+                        </div>
+                        <div class="question">
+                            <input id="event-phone" type="text" required maxlength="10" placeholder="Ex: 8171234567" />
+                            <label>Parent Phone</label>
+                        </div>
+                    </form>
                 </div>
                 <div id="events-event-buttons" class="event-buttons-grid">
                     <button id="btnEventsEventBack" type="button" class="button activity-buttons"><i
@@ -237,27 +250,38 @@
                 <div id="loading-text">loading events</div>
             </div>
         </div>
-        <div class="modal">
+        <div class="modal" id="adminModal">
             <div class="modal-container">
                 <div class="modal-left">
                     <h1 class="modal-title">Admin Login</h1>
                     <p class="modal-desc"></p>
-                    <div class="input-block">
+                    <div id="email-block" class="input-block">
                         <label for="email" class="input-label">Email</label>
                         <input type="email" name="email" id="email" placeholder="Email">
                     </div>
-                    <div class="input-block">
+                    <div id="password-block" class="input-block">
                         <label for="password" class="input-label">Password</label>
                         <input type="password" name="password" id="password" placeholder="Password">
                     </div>
                     <div class="modal-buttons">
                         <a href="" class="">Forgot your password?</a>
-                        <button class="input-button">Login</button>
+                        <button class="input-button" id="loginButton">Login</button>
                     </div>
                 </div>
-                <button class="icon-button close-button">
+                <button class="icon-button close-button" id="adminCloseButton">
                     <i class="fa-regular fa-circle-xmark"></i>
-                    
+
+                </button>
+            </div>
+        </div>
+        <div class="modal" id="submitModal">
+            <div class="modal-container">
+                <div class="modal-left">
+                    <h1 class="modal-title" id="submitTitle">Default Title</h1>
+                    <div class="modal-desc-div"><p class="modal-desc" id="submitDesc"></p></div>  
+                </div>
+                <button class="icon-button close-button" id="submitCloseButton">
+                    <i class="fa-regular fa-circle-xmark"></i>
                 </button>
             </div>
         </div>
