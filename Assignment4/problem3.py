@@ -22,4 +22,3 @@ basis = A[:dim, :].T
 #Print
 print("Dimension of the set:", dim)
 print("Basis for the set:\n", basis)
-
