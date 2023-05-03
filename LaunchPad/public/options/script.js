@@ -5,14 +5,12 @@ import { getDatabase, ref, onValue, get, child, update } from "https://www.gstat
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyCWRKzFbIfeg-tkp-yDM4KGqfMl5qYTJA4",
-  authDomain: "ministry-in-a-box.firebaseapp.com",
-  databaseURL: "https://ministry-in-a-box-default-rtdb.firebaseio.com",
-  projectId: "ministry-in-a-box",
-  storageBucket: "ministry-in-a-box.appspot.com",
-  messagingSenderId: "527584792499",
-  appId: "1:527584792499:web:3d579c5928383a9051c5c6",
-  measurementId: "G-3VEQTDFJEQ"
+  apiKey: "AIzaSyCkhBqKXXHQcgk9QYS7TTCY9I1kjx_bowk",
+  authDomain: "cana-launchpad.firebaseapp.com",
+  projectId: "cana-launchpad",
+  storageBucket: "cana-launchpad.appspot.com",
+  messagingSenderId: "47186518351",
+  appId: "1:47186518351:web:d40c2d357ead5636b8653a"
 };
 
 // Initialize Firebase

@@ -1,0 +1,23 @@
+{
+  "database": {
+    "rules": "database.rules.json"
+  },
+  "hosting": [
+    {
+      "target": "leaderboard",
+      "public": "public/leaderboard"
+    },
+    {
+      "target": "options",
+      "public": "public/options"
+    },
+    {
+      "target": "questions",
+      "public": "public/questions"
+    },
+    {
+      "target": "user",
+      "public": "public/user"
+    }
+  ]
+}
