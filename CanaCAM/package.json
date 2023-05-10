@@ -1,0 +1,14 @@
+{
+  "name": "canacam",
+  "version": "1.0.0",
+  "description": "CAM or Continous Access Model, is a direction Pastor Kevin wants to implement with Cana. I am tasked with making it function through this web app",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Brandon Faulkner",
+  "license": "ISC",
+  "dependencies": {
+    "firebase": "^9.21.0"
+  }
+}

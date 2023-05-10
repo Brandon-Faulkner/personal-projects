@@ -1,0 +1,19 @@
+body {
+  background-color: rgb(45, 45, 45);
+  font-family: 'Open Sans';
+  height: 97.75vh;
+  margin: 10px;
+  overflow: hidden;
+}
+
+.main {
+  display: grid;
+  height: 100%;
+  grid-template-columns: 100%;
+  grid-template-rows: 15% 15% 70%;
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  overflow: hidden;
+}
