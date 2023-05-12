@@ -16,3 +16,8 @@ const firebaseConfig = {
 // Initialize Firebase and Database
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
+
+
+//#region EVENT CALENDER
+
+//#endregion EVENT CALENDER

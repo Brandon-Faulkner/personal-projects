@@ -10,13 +10,118 @@
 
 <body>
     <div id="main" class="main">
-        <div class="main-square">
-            <div class="square-header">
-                <h2>Week One</h2>
-                <img class="main-image">
-            </div>          
+        <div class="main-tabs anim-scale">
+            <input type="radio" name="main-tabs" checked id="tab1" class="tab-content-first">
+            <label for="tab1"><i class=""></i>1</label>
+
+            <input type="radio" name="main-tabs" id="tab2" class="tab-content-2">
+            <label for="tab2"><i class=""></i>2</label>
+
+            <input type="radio" name="main-tabs" id="tab3" class="tab-content-3">
+            <label for="tab3"><i class=""></i>3</label>
+
+            <input type="radio" name="main-tabs" id="tab4" class="tab-content-last">
+            <label for="tab4"><i class=""></i>4</label>
+
+            <ul>
+                <li class="tab-content tab-content-first">
+                    <div class="tab-content tab-grids">
+                        <div id="tab1-intro">
+                            <h2>NAME OF FAMILY HOUSE?</h2>
+                            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+                                ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+                                ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
+                                reprehenderit in
+                                voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
+                                cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                            </p>
+                        </div>
+                        <img src="https://images.megapixl.com/4506/45061133.jpg" class="main-image">
+                    </div>
+                    <div class="container">
+                        <h2>Event Days</h2>
+                        <ul class="responsive-table">
+                          <li class="table-header">
+                            <div class="col col-1">Day of Week</div>
+                            <div class="col col-2">Date</div>
+                            <div class="col col-3">Status</div>
+                            <div class="col col-4">Action</div>
+                          </li>
+                          <li class="table-row">
+                            <div class="col col-1" data-label="Day">Monday</div>
+                            <div class="col col-2" data-label="Date">08/15/23</div>
+                            <div class="col col-3" data-label="Status">Not Going</div>
+                            <div class="col col-4" data-label="Action">Rsvp button</div>
+                          </li>
+                          <li class="table-row">
+                            <div class="col col-1" data-label="Day">Thursday</div>
+                            <div class="col col-2" data-label="Date">08/18/23</div>
+                            <div class="col col-3" data-label="Status">Not Going</div>
+                            <div class="col col-4" data-label="Action">Rsvp button</div>
+                          </li>
+                          <li class="table-row">
+                            <div class="col col-1" data-label="Day">Saturday</div>
+                            <div class="col col-2" data-label="Date">08/20/23</div>
+                            <div class="col col-3" data-label="Status">Not Going</div>
+                            <div class="col col-4" data-label="Action">Rsvp button</div>
+                          </li>
+                        </ul>
+                      </div>
+                </li>
+
+                <li class="tab-content tab-content-2">
+                    <div class="tab-content tab-content-intro">
+                        <div id="tab2-intro">
+                            <h2>NAME OF FAMILY HOUSE?</h2>
+                            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+                                ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+                                ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
+                                reprehenderit in
+                                voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
+                                cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                            </p>
+                        </div>
+                        <img src="https://images.megapixl.com/4506/45061133.jpg" class="main-image">
+                    </div>
+                </li>
+
+                <li class="tab-content tab-content-3">
+                    <div class="tab-content tab-content-intro">
+                        <div id="tab3-intro">
+                            <h2>NAME OF FAMILY HOUSE?</h2>
+                            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+                                ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+                                ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
+                                reprehenderit in
+                                voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
+                                cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                            </p>
+                        </div>
+                        <img src="https://images.megapixl.com/4506/45061133.jpg" class="main-image">
+                    </div>
+                </li>
+
+                <li class="tab-content tab-content-last">
+                    <div class="tab-content tab-content-intro">
+                        <div id="tab4-intro">
+                            <h2>NAME OF FAMILY HOUSE?</h2>
+                            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+                                ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation
+                                ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
+                                reprehenderit in
+                                voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat
+                                cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+                            </p>
+                        </div>
+                        <img src="https://images.megapixl.com/4506/45061133.jpg" class="main-image">
+                    </div>
+                </li>
+            </ul>
         </div>
     </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script type="module" src="script.js"></script>
 </body>
 
