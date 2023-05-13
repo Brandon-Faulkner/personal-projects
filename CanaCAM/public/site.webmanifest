@@ -1,0 +1,28 @@
+{
+    "name": "Cana Continuous Access Ministry by Brandon Faulkner",
+    "short_name": "Cana C.A.M.",
+    "icons": [
+        {
+            "src": "Resources/android-chrome-96x96.png",
+            "sizes": "96x96",
+            "type": "image/png"
+        },
+        {
+            "src": "Resources/splash-icon.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        },
+        {
+            "src": "Resources/maskable-icon.png",
+            "sizes": "248x248",
+            "type": "image/png",
+            "purpose": "maskable"
+        }     
+    ],
+    "theme_color": "#00aa63",
+    "background_color": "#2d2d2d",
+    "start_url": "https://cana-cam.web.app",
+    "scope": "./",
+    "display": "standalone",
+    "orientation": "portrait"
+}
