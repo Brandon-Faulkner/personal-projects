@@ -3,6 +3,7 @@
   --check: #4F29F0;
   --disabled: #C3C8DE;
   --background: #2d2d2d;
+  --accent: #00aa63;
 }
 
 body,
@@ -27,14 +28,14 @@ html {
   right: 0;
   bottom: 0;
   position: fixed;
-
+  overflow: overlay;
 }
 
-/*h2 {
+h2 {
   color: var(--text);
   font-size: calc(2vw + 1vh);
   text-transform: uppercase;
-}*/
+}
 
 p {
   color: var(--text);
@@ -105,6 +106,7 @@ p {
 /*#endregion LOGIN SCREEN*/
 
 /*#region TAB FUNCTIONALITY*/
+/*
 .main-tabs {
   width: 90%;
   height: 90%;
@@ -198,7 +200,7 @@ p {
   -webkit-transform: scale(1, 1);
   -webkit-transform: rotate(0deg);
 }
-
+*/
 .tab-content {
   height: 100%;
   width: 100%;
@@ -218,6 +220,7 @@ p {
 /*#endregion TAB FUNCTIONALITY*/
 
 /*#region TAB STYLES*/
+/*
 .main-tabs>label {
   padding: 0 20px;
   background: #e5e5e5;
@@ -266,7 +269,7 @@ p {
 .main-tabs>ul>li {
   height: 100%;
 }
-
+*/
 /*#endregion TAB STYLES*/
 
 /*#region TAB RESPONSIVENESS*/
@@ -277,7 +280,7 @@ p {
     align-items: baseline;
   }
 
-  .main-tabs {
+  /*.main-tabs {
     font-size: inherit;
     text-align: left;
   }
@@ -286,7 +289,7 @@ p {
     margin-right: 0;
   }
 
-  /*.main-tabs>input:checked+label {
+  .main-tabs>input:checked+label {
     margin-bottom: 5px;
     padding-bottom: 0;
     border-radius: 5px;
@@ -300,6 +303,7 @@ p {
 /*#endregion TAB RESPONSIVENESS*/
 
 /*#region TAB ANIM EFFECTS*/
+/*
 .anim-scale>ul>li {
   transform: scale(0.1, 0.1);
   -webkit-transform: scale(0.1, 0.1);
@@ -325,20 +329,21 @@ p {
 .anim-left>ul>li {
   left: -80px;
 }
-
+*/
 /*#endregion TAB ANIM EFFECTS*/
 
 /*#region EVENT CALENDER*/
-ul {
+.event-ul {
   list-style: none;
   padding-inline-start: 0;
 }
 
-.container {
+.event-container {
   max-width: 1000px;
   height: 100%;
   width: 100%;
   display: inline-grid;
+  text-align: center;
 }
 
 .responsive-table li {
@@ -350,7 +355,7 @@ ul {
 }
 
 .responsive-table .table-header {
-  background-color: var(--background);
+  background-color: var(--accent);
   color: var(--text);
   font-size: 14px;
   text-transform: uppercase;
@@ -358,7 +363,7 @@ ul {
 }
 
 .responsive-table .table-row {
-  background-color: #ffffff;
+  background-color: var(--text);
   box-shadow: 0px 0px 9px 0px rgba(0, 0, 0, 0.1);
 }
 
@@ -406,7 +411,7 @@ ul {
 
 /*#endregion EVENT CALENDER*/
 
-/*#region NAV BAR*/
+/*#region PAGE TABS*/
 .tabs {
   position: relative;
   background: none;
@@ -421,14 +426,14 @@ ul {
   display: none;
 }
 
-.tabs .content section h2,
+.tabs .content section h1,
 .tabs ul li label {
   color: var(--text);
   font-size: calc(1vw + 0.75vh);
   text-transform: uppercase;
 }
 
-.tabs ul {
+.tabs-ul {
   list-style-type: none;
   padding-left: 0;
   display: flex;
@@ -443,7 +448,7 @@ ul {
   margin: auto
 }
 
-.tabs ul li {
+.tabs-ul li {
   box-sizing: border-box;
   flex: 1;
   width: 25%;
@@ -451,7 +456,7 @@ ul {
   text-align: center;
 }
 
-.tabs ul li label {
+.tabs-ul li label {
   transition: all 0.3s ease-in-out;
   color: #2d2d2d85;
   padding: 5px auto;
@@ -468,11 +473,11 @@ ul {
   user-select: none;
 }
 
-.tabs ul li label br {
+.tabs-ul li label br {
   display: none;
 }
 
-.tabs ul li label svg {
+.tabs-ul li label svg {
   fill: #2d2d2d85;
   height: 1.2em;
   vertical-align: top;
@@ -480,16 +485,16 @@ ul {
   transition: all 0.2s ease-in-out;
 }
 
-.tabs ul li label:hover,
-.tabs ul li label:focus,
-.tabs ul li label:active {
+.tabs-ul li label:hover,
+.tabs-ul li label:focus,
+.tabs-ul li label:active {
   outline: 0;
   color: #ffffff8a;
 }
 
-.tabs ul li label:hover svg,
-.tabs ul li label:focus svg,
-.tabs ul li label:active svg {
+.tabs-ul li label:hover svg,
+.tabs-ul li label:focus svg,
+.tabs-ul li label:active svg {
   fill: #ffffff8a;
 }
 
@@ -528,12 +533,12 @@ ul {
   line-height: 1.4;
 }
 
-.tabs .content section h2 {
+.tabs .content section h1 {
   color: #00aa63;
   display: none;
 }
 
-.tabs .content section h2::after {
+.tabs .content section h1::after {
   content: "";
   position: relative;
   display: block;
@@ -638,26 +643,26 @@ ul {
 }
 
 @media (max-width: 1000px) {
-  .tabs ul li label {
+  .tabs-ul li label {
     white-space: initial;
   }
 
-  .tabs ul li label br {
+  .tabs-ul li label br {
     display: initial;
   }
 
-  .tabs ul li label svg {
+  .tabs-ul li label svg {
     height: 1.5em;
   }
 }
 
 @media (max-width: 600px) {
-  .tabs ul li label {
+  .tabs-ul li label {
     padding: 5px;
     border-radius: 5px;
   }
 
-  .tabs ul li label span {
+  .tabs-ul li label span {
     display: none;
   }
 
@@ -669,9 +674,9 @@ ul {
     margin-top: 20px;
   }
 
-  .tabs .content section h2 {
+  .tabs .content section h1 {
     display: block;
   }
 }
 
-/*#endregion NAV BAR*/
+/*#endregion PAGE TABS*/
