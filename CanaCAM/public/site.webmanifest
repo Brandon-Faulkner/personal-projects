@@ -3,17 +3,17 @@
     "short_name": "Cana C.A.M.",
     "icons": [
         {
-            "src": "Resources/android-chrome-96x96.png",
+            "src": "Resources/Icons/android-chrome-96x96.png",
             "sizes": "96x96",
             "type": "image/png"
         },
         {
-            "src": "Resources/splash-icon.png",
+            "src": "Resources/Icons/splash-icon.png",
             "sizes": "512x512",
             "type": "image/png"
         },
         {
-            "src": "Resources/maskable-icon.png",
+            "src": "Resources/Icons/maskable-icon.png",
             "sizes": "248x248",
             "type": "image/png",
             "purpose": "maskable"
