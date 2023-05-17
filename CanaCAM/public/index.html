@@ -24,65 +24,73 @@
 </head>
 
 <body>
-  <!-- <div id="login" class="login">
-        <div class="content">
-            <ul class="nav nav-pills" role="tablist">
-              <li class="nav-item">
-                <a class="nav-link active" data-toggle="pill" href="#login">Login</a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" data-toggle="pill" href="#regis">Register</a>
-              </li>
-            </ul>
-            <div class="login-content">
-              <div id="login" class="container tab-pane active">
-                <form>
-                  <div class="form-group">
-                    <label for="exampleFormControlInput1">Email address</label>
-                    <input type="email" class="form-control is-valid" id="exampleFormControlInput1" placeholder="name@example.com">
-                    <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
-                  </div>
-                  <div class="form-group">
-                    <label for="exampleInputPassword1">Password</label>
-                    <input type="password" class="form-control is-valid" id="exampleInputPassword1" placeholder="Password">
-                    <small id="emailHelp" class="form-text text-muted">Password incorrect.</small>
-                  </div>
-                  <button type="submit" class="btn btn-primary">Submit</button>
-                </form>
-              </div>
-              <div id="regis" class="container tab-pane fade">
-                <form>
-                  <div class="form-group">
-                    <label for="InputName">Full Name</label>
-                    <input type="text" class="form-control is-valid" id="InputName" placeholder="Full Name">
-                    <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
-                  </div>
-                  <div class="form-group">
-                    <label for="InputUsername">Username</label>
-                    <input type="text" class="form-control is-valid" id="InputUsername" placeholder="Username">
-                    <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
-                  </div>
-                  <div class="form-group">
-                    <label for="exampleFormControlInput2">Email address</label>
-                    <input type="email" class="form-control is-valid" id="exampleFormControlInput2" placeholder="name@example.com">
-                    <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
-                  </div>
-                  <div class="form-group">
-                    <label for="exampleInputPassword2">Password</label>
-                    <input type="password" class="form-control is-invalid" id="exampleInputPassword2" placeholder="Password">
-                    <small id="emailHelp" class="form-text text-muted">Password incorrect.</small>
-                  </div>
-                  <div class="form-group">
-                    <label for="exampleInputPasswordVer">Verify Password</label>
-                    <input type="password" class="form-control is-invalid" id="exampleInputPasswordVer" placeholder="Password">
-                  </div>
-                  <button type="submit" class="btn btn-primary">Submit</button>
-                </form>
-              </div>
+  <div id="login-page" class="login-page show-page">
+    <div id="login-wrapper" class="login-wrapper">
+      <button id="login-close-btn" class="login-close-button">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
+          <path
+            d="M 25 3 C 12.86158 3 3 12.86158 3 25 C 3 37.13842 12.86158 47 25 47 C 37.13842 47 47 37.13842 47 25 C 47 12.86158 37.13842 3 25 3 z M 25 5 C 36.05754 5 45 13.94246 45 25 C 45 36.05754 36.05754 45 25 45 C 13.94246 45 5 36.05754 5 25 C 5 13.94246 13.94246 5 25 5 z M 16.990234 15.990234 A 1.0001 1.0001 0 0 0 16.292969 17.707031 L 23.585938 25 L 16.292969 32.292969 A 1.0001 1.0001 0 1 0 17.707031 33.707031 L 25 26.414062 L 32.292969 33.707031 A 1.0001 1.0001 0 1 0 33.707031 32.292969 L 26.414062 25 L 33.707031 17.707031 A 1.0001 1.0001 0 0 0 32.980469 15.990234 A 1.0001 1.0001 0 0 0 32.292969 16.292969 L 25 23.585938 L 17.707031 16.292969 A 1.0001 1.0001 0 0 0 16.990234 15.990234 z">
+          </path>
+        </svg>
+      </button>
+      <div class="login-title-text">
+        <div class="login-title login">Login Form</div>
+        <div class="login-title signup">Signup Form</div>
+      </div>
+      <div class="login-form-container">
+        <div class="slide-controls">
+          <input type="radio" name="slide" id="login" checked>
+          <input type="radio" name="slide" id="signup">
+          <label for="login" class="slide login">Login</label>
+          <label for="signup" class="slide signup">Signup</label>
+          <div class="slider-tab"></div>
+        </div>
+        <div class="login-form-inner">
+          <form action="" class="login" id="login-form-content">
+            <div class="field">
+              <input id="login-email" type="text" placeholder="Email Address" required>
             </div>
-          </div>
-    </div> -->
-  <div id="main" class="main">
+            <div class="field">
+              <input id="login-password" type="password" placeholder="Password" required>
+            </div>
+            <div class="pass-link"><a href="#">Forgot password?</a></div>
+            <div class="field btn">
+              <div class="btn-layer"></div>
+              <input id="login-button" type="submit" value="Login">
+            </div>
+            <div class="signup-link">Not a member? <a>Signup now</a></div>
+          </form>
+          <form action="" class="signup hide" id="signup-form-content">
+            <div class="field">
+              <input id="signup-name" type="text" placeholder="First & Last Name" required>
+            </div>
+            <div class="field">
+              <input id="signup-phone" type="tel" placeholder="Phone Number" required>
+            </div>
+            <div class="field">
+              <input id="signup-email" type="text" placeholder="Email Address" required>
+            </div>
+            <div class="field">
+              <input id="signup-password" type="password" placeholder="Password" required>
+            </div>
+            <div class="field">
+              <input id="signup-confirm-pass" type="password" placeholder="Confirm password" required>
+            </div>
+            <div class="field file-upload-wrapper" data-text="Upload Profile Picture">
+              <input id="signup-img" type="file" accept=".jpg,.jpeg,.png" value="" required>
+            </div>
+            <div class="field btn">
+              <div class="btn-layer"></div>
+              <input id="signup-button" type="submit" value="Signup">
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <div id="main-page" class="main-page">
     <div class="tabs">
       <input type="radio" id="tab-planning" name="tab-control">
       <input type="radio" id="tab-overview" name="tab-control" checked>
@@ -111,7 +119,7 @@
         <div class="indicator"></div>
       </div>
       <div class="content">
-        <section>
+        <section id="planning-section">
           <h1>Planning</h1>
           <div class="tab-content tab-grids">
             <div id="tab-planning-intro">
@@ -123,48 +131,60 @@
             <img src="Resources/Images/default-family.jpg" class="main-image">
           </div>
           <div class="week-select-grid">
-            <h2>Select a Week:</h2>
+            <select id="host-selection" data-menu>
+              <option selected>Brandon & Kennedy</option>
+              <option>Kevin & Tracy</option>
+              <option>Joel & Andrea</option>
+            </select>
             <select id="week-selection" data-menu>
               <option selected>Current Week</option>
               <option>Next Week</option>
               <option>Future Week</option>
             </select>
           </div>
-          <div id="current-week" class="event-container">
+          <div id="current-week" class="event-container" name="planning-container">
             <ul class="responsive-table event-ul">
               <li class="table-header">
-                <div class="col col-1">Day of Week</div>
-                <div class="col col-2">Date</div>
-                <div class="col col-3">Status</div>
-                <div class="col col-4">Action</div>
+                <div class="col">Day/Time</div>
+                <div class="col">Location</div>
+                <div class="col">Status</div>
+                <div class="col">Guests</div>
+                <div class="col">Action</div>
               </li>
               <li class="table-row">
-                <div class="col col-1" data-label="Day">Monday</div>
-                <div class="col col-2" data-label="Date">08/15/23</div>
-                <div class="col col-3" data-label="Status">Not Going</div>
-                <div class="col col-4" data-label="Action">
-                  <button id="rsvp-button" name="rsvp-button"></button>
+                <div class="col" data-label="Day/Time">Monday / 6:00PM</div>
+                <div class="col" data-label="Location">House Address</div>
+                <div class="col" data-label="Status">Not Going</div>
+                <div class="col" data-label="Guests">
+                  <div class="counter">
+                    <span id="guest-down" class="down">-</span>
+                    <input type="text" value="0" disabled>
+                    <span id="guest-up" class="up">+</span>
+                  </div>
+                </div>
+                <div class="col" data-label="Action">
+                  <button class="rsvp-button"></button>
                 </div>
               </li>
               <li class="table-row">
-                <div class="col col-1" data-label="Day">Thursday</div>
-                <div class="col col-2" data-label="Date">08/18/23</div>
-                <div class="col col-3" data-label="Status">Not Going</div>
-                <div class="col col-4" data-label="Action">
-                  <button id="rsvp-button" name="rsvp-button"></button>
+                <div class="col" data-label="Day">Thursday</div>
+                <div class="col" data-label="Date">08/18/23</div>
+                <div class="col" data-label="Status">Not Going</div>
+                <div class="col" data-label="Action">
+                  <button class="rsvp-button"></button>
                 </div>
               </li>
               <li class="table-row">
-                <div class="col col-1" data-label="Day">Saturday</div>
-                <div class="col col-2" data-label="Date">08/20/23</div>
-                <div class="col col-3" data-label="Status">Not Going</div>
-                <div class="col col-4" data-label="Action">
-                  <button id="rsvp-button" name="rsvp-button"></button>
+                <div class="col" data-label="Day">Saturday</div>
+                <div class="col" data-label="Date">08/20/23</div>
+                <div class="col" data-label="Status">Not Going</div>
+                <div class="col" data-label="Action">
+                  <button class="rsvp-button"></button>
                 </div>
               </li>
             </ul>
           </div>
-          <div id="next-week" class="event-container">
+          <div id="next-week" class="event-container" name="planning-container">
             <ul class="responsive-table event-ul">
               <li class="table-header">
                 <div class="col col-1">Day of Week</div>
@@ -177,7 +197,7 @@
                 <div class="col col-2" data-label="Date">08/15/23</div>
                 <div class="col col-3" data-label="Status">Not Going</div>
                 <div class="col col-4" data-label="Action">
-                  <button id="rsvp-button" name="rsvp-button"></button>
+                  <button class="rsvp-button"></button>
                 </div>
               </li>
               <li class="table-row">
@@ -185,7 +205,7 @@
                 <div class="col col-2" data-label="Date">08/18/23</div>
                 <div class="col col-3" data-label="Status">Not Going</div>
                 <div class="col col-4" data-label="Action">
-                  <button id="rsvp-button" name="rsvp-button"></button>
+                  <button class="rsvp-button"></button>
                 </div>
               </li>
               <li class="table-row">
@@ -193,12 +213,12 @@
                 <div class="col col-2" data-label="Date">08/20/23</div>
                 <div class="col col-3" data-label="Status">Not Going</div>
                 <div class="col col-4" data-label="Action">
-                  <button id="rsvp-button" name="rsvp-button"></button>
+                  <button class="rsvp-button"></button>
                 </div>
               </li>
             </ul>
           </div>
-          <div id="future-week" class="event-container">
+          <div id="future-week" class="event-container" name="planning-container">
             <ul class="responsive-table event-ul">
               <li class="table-header">
                 <div class="col col-1">Day of Week</div>
@@ -211,7 +231,7 @@
                 <div class="col col-2" data-label="Date">08/15/23</div>
                 <div class="col col-3" data-label="Status">Not Going</div>
                 <div class="col col-4" data-label="Action">
-                  <button id="rsvp-button" name="rsvp-button"></button>
+                  <button class="rsvp-button"></button>
                 </div>
               </li>
               <li class="table-row">
@@ -219,7 +239,7 @@
                 <div class="col col-2" data-label="Date">08/18/23</div>
                 <div class="col col-3" data-label="Status">Not Going</div>
                 <div class="col col-4" data-label="Action">
-                  <button id="rsvp-button" name="rsvp-button"></button>
+                  <button class="rsvp-button"></button>
                 </div>
               </li>
               <li class="table-row">
@@ -227,19 +247,153 @@
                 <div class="col col-2" data-label="Date">08/20/23</div>
                 <div class="col col-3" data-label="Status">Not Going</div>
                 <div class="col col-4" data-label="Action">
-                  <button id="rsvp-button" name="rsvp-button"></button>
+                  <button class="rsvp-button"></button>
                 </div>
               </li>
             </ul>
           </div>
         </section>
-        <section style="color:var(--text);">
+        <section id="overview-section">
           <h1>Overview</h1>
-          Lorem ipsum dolor sit amet, consectetur adipisicing elit. Autem quas adipisci a accusantium eius ut
-          voluptatibus
-          ad impedit nulla, ipsa qui. Quasi temporibus eos commodi aliquid impedit amet, similique nulla.
+          <p>This is a description of how this page works and maybe about the planning one.</p>
+          <div class="week-select-grid week-select-grid-overview">
+            <select id="week-selection" data-menu>
+              <option selected>Current Week</option>
+              <option>Next Week</option>
+              <option>Future Week</option>
+            </select>
+          </div>
+          <div id="current-week" class="event-container" name="overview-container">
+            <ul class="responsive-table event-ul">
+              <li class="overview-days">
+                <h2>Monday</h2>
+              <li class="table-header">
+                <div class="col col-1">Time</div>
+                <div class="col col-2">General Location</div>
+                <div class="col col-3">Host</div>
+              </li>
+              <li class="table-row clickable-row">
+                <div class="col col-1" data-label="Time">6:00 PM</div>
+                <div class="col col-2" data-label="General Location">Alvarado</div>
+                <div class="col col-3" data-label="Host">Brandon & Kennedy</div>
+              </li>
+              </li>
+              <li class="overview-days">
+                <h2>Thursday</h2>
+              <li class="table-header">
+                <div class="col col-1">Time</div>
+                <div class="col col-2">General Location</div>
+                <div class="col col-3">Host</div>
+              </li>
+              <li class="table-row clickable-row">
+                <div class="col col-1" data-label="Time">7:00 PM</div>
+                <div class="col col-2" data-label="General Location">Burleson</div>
+                <div class="col col-3" data-label="Host">Brandon & Kennedy</div>
+              </li>
+              </li>
+              <li class="overview-days">
+                <h2>Saturday</h2>
+              <li class="table-header">
+                <div class="col col-1">Time</div>
+                <div class="col col-2">General Location</div>
+                <div class="col col-3">Host</div>
+              </li>
+              <li class="table-row clickable-row">
+                <div class="col col-1" data-label="Time">8:00 PM</div>
+                <div class="col col-2" data-label="General Location">Fort Worth</div>
+                <div class="col col-3" data-label="Host">Brandon & Kennedy</div>
+              </li>
+              </li>
+            </ul>
+          </div>
+          <div id="next-week" class="event-container" name="overview-container">
+            <ul class="responsive-table event-ul">
+              <li class="overview-days">
+                <h2>Monday</h2>
+              <li class="table-header">
+                <div class="col col-1">Time</div>
+                <div class="col col-2">General Location</div>
+                <div class="col col-3">Host</div>
+              </li>
+              <li class="table-row clickable-row">
+                <div class="col col-1" data-label="Time">6:00 PM</div>
+                <div class="col col-2" data-label="General Location">Alvarado</div>
+                <div class="col col-3" data-label="Host">Brandon & Kennedy</div>
+              </li>
+              </li>
+              <li class="overview-days">
+                <h2>Thursday</h2>
+              <li class="table-header">
+                <div class="col col-1">Time</div>
+                <div class="col col-2">General Location</div>
+                <div class="col col-3">Host</div>
+              </li>
+              <li class="table-row clickable-row">
+                <div class="col col-1" data-label="Time">7:00 PM</div>
+                <div class="col col-2" data-label="General Location">Burleson</div>
+                <div class="col col-3" data-label="Host">Brandon & Kennedy</div>
+              </li>
+              </li>
+              <li class="overview-days">
+                <h2>Saturday</h2>
+              <li class="table-header">
+                <div class="col col-1">Time</div>
+                <div class="col col-2">General Location</div>
+                <div class="col col-3">Host</div>
+              </li>
+              <li class="table-row clickable-row">
+                <div class="col col-1" data-label="Time">8:00 PM</div>
+                <div class="col col-2" data-label="General Location">Fort Worth</div>
+                <div class="col col-3" data-label="Host">Brandon & Kennedy</div>
+              </li>
+              </li>
+            </ul>
+          </div>
+          <div id="future-week" class="event-container" name="overview-container">
+            <ul class="responsive-table event-ul">
+              <li class="overview-days">
+                <h2>Monday</h2>
+              <li class="table-header">
+                <div class="col col-1">Time</div>
+                <div class="col col-2">General Location</div>
+                <div class="col col-3">Host</div>
+              </li>
+              <li class="table-row clickable-row">
+                <div class="col col-1" data-label="Time">6:00 PM</div>
+                <div class="col col-2" data-label="General Location">Alvarado</div>
+                <div class="col col-3" data-label="Host">Brandon & Kennedy</div>
+              </li>
+              </li>
+              <li class="overview-days">
+                <h2>Thursday</h2>
+              <li class="table-header">
+                <div class="col col-1">Time</div>
+                <div class="col col-2">General Location</div>
+                <div class="col col-3">Host</div>
+              </li>
+              <li class="table-row clickable-row">
+                <div class="col col-1" data-label="Time">7:00 PM</div>
+                <div class="col col-2" data-label="General Location">Burleson</div>
+                <div class="col col-3" data-label="Host">Brandon & Kennedy</div>
+              </li>
+              </li>
+              <li class="overview-days">
+                <h2>Saturday</h2>
+              <li class="table-header">
+                <div class="col col-1">Time</div>
+                <div class="col col-2">General Location</div>
+                <div class="col col-3">Host</div>
+              </li>
+              <li class="table-row clickable-row">
+                <div class="col col-1" data-label="Time">8:00 PM</div>
+                <div class="col col-2" data-label="General Location">Fort Worth</div>
+                <div class="col col-3" data-label="Host">Brandon & Kennedy</div>
+              </li>
+              </li>
+            </ul>
+          </div>
         </section>
-        <section style="color:var(--text);">
+        <section id="profile-section">
           <h1>Profile</h1>
           Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quam nemo ducimus eius, magnam error quisquam sunt
           voluptate labore, excepturi numquam! Alias libero optio sed harum debitis! Veniam, quia in eum.
