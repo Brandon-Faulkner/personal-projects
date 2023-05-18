@@ -34,8 +34,8 @@ const firebaseConfig = {
 // Initialize Firebase, Database and Authentication
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
-const groupRef = ref_db(database, "Groups");
-const userRef = ref_db(database, "Users");
+const groupRef = ref_db(database, "Groups/");
+const userRef = ref_db(database, "Users/");
 const storage = getStorage(app);
 const auth = getAuth(app);
 
@@ -63,7 +63,13 @@ const signupButon = document.getElementById('signup-button');
 const mainScreen = document.getElementById('main-page');
 const tabPlanning = document.getElementById('tab-planning');
 const planningSection = document.getElementById('planning-section');
+const planCurrWeek = document.getElementById('plan-current-week');
+const planNextWeek = document.getElementById('plan-next-week');
+const planFutureWeek = document.getElementById('plan-future-week');
 const overviewSection = document.getElementById('overview-section');
+const overviewCurrWeek = document.getElementById('overview-current-week');
+const overviewNextWeek = document.getElementById('overview-next-week');
+const overviewFutureWeek = document.getElementById('overview-future-week');
 const profileSection = document.getElementById('profile-section');
 
 //#region Authentication Functions
@@ -72,6 +78,7 @@ onAuthStateChanged(auth, (user) => {
   if (user) {
     // Signed in
     if (user?.isAnonymous) {
+      OverviewSetup(groupRef);
       tabPlanning.addEventListener('click', function () {
         loginScreen.classList.add('show');
         mainScreen.classList.add('disable-click');
@@ -133,8 +140,10 @@ function SignInEmailAndPassword(auth, email, password) {
 signupToggleBtn.addEventListener('click', function () {
   loginForm.style.marginLeft = "-50%";
   loginText.style.marginLeft = "-50%";
-  signupForm.classList.remove("hide");
-  signupForm.classList.add("show");
+  setTimeout(() => {
+    signupForm.classList.remove("hide");
+    signupForm.classList.add("show");
+  }, 250);
 });
 loginToggleBtn.addEventListener('click', function () {
   loginForm.style.marginLeft = "0%";
@@ -185,8 +194,12 @@ function validateEmail(email) {
 }
 
 function validatePassword(password, confirmPass) {
+  if (password === confirmPass) {
 
-
+    return true;
+  } else {
+    return false;
+  }
 }
 
 signupImg.addEventListener('change', function () {
@@ -196,7 +209,122 @@ signupImg.addEventListener('change', function () {
 //#endregion Login Functions
 
 //#region Overview Setup
+function OverviewSetup(groupRef) {
+  onValue(groupRef, (snapshot) => {
+    var currWeekArr = [], nextWeekArr = [], futureWeekArr = [];
 
+    snapshot.forEach((childSnapshot) => {
+      //Group Num, Host and Gen location
+      const groupKey = childSnapshot.key;
+      const hostName = childSnapshot.child("Hosts").val();
+      const genLocation = childSnapshot.child("Location").val();
+
+      //Get the Day and times for each week
+      childSnapshot.child("Weeks").child("Current Week").forEach((day) => {
+        const currWeekDay = { day: day.key, time: day.val(), host: hostName, location: genLocation };
+        currWeekArr.unshift(currWeekDay);
+      });
+      childSnapshot.child("Weeks").child("Next Week").forEach((day) => {
+        const nextWeekDay = { day: day.key, time: day.val(), host: hostName, location: genLocation };
+        nextWeekArr.unshift(nextWeekDay);
+      });
+      childSnapshot.child("Weeks").child("Future Week").forEach((day) => {
+        const futureWeekDay = { day: day.key, time: day.val(), host: hostName, location: genLocation };
+        futureWeekArr.unshift(futureWeekDay);
+      });
+
+      //Clear current elements in the lists
+      overviewCurrWeek.replaceChildren();
+      overviewNextWeek.replaceChildren();
+      overviewFutureWeek.replaceChildren();
+
+      //Create unique arrays for each week to determine all unique days
+      var uniqCurr = [...new Set(currWeekArr.map(item => item.day))]; DaySorter(uniqCurr, true);
+      var uniqNext = [...new Set(nextWeekArr.map(item => item.day))]; DaySorter(uniqNext, true);
+      var uniqFuture = [...new Set(futureWeekArr.map(item => item.day))]; DaySorter(uniqFuture, true);
+
+      //Sort the week arrays by day and then time
+      DaySorter(currWeekArr); TimeSorter(currWeekArr);
+      DaySorter(nextWeekArr); TimeSorter(nextWeekArr);
+      DaySorter(futureWeekArr); TimeSorter(futureWeekArr);
+
+      //Create elements for the lists from each array
+      uniqCurr.forEach((elem) => {
+        CreateOverviewTableHeader(elem, overviewCurrWeek);
+        CreateOverviewTableRow(currWeekArr, elem, overviewCurrWeek);
+      });
+      uniqNext.forEach((elem) => {
+        CreateOverviewTableHeader(elem, overviewNextWeek);
+        CreateOverviewTableRow(nextWeekArr, elem,overviewNextWeek);
+      });
+      uniqFuture.forEach((elem) => {
+        CreateOverviewTableHeader(elem, overviewFutureWeek);
+        CreateOverviewTableRow(futureWeekArr, elem, overviewFutureWeek);
+      });
+    });
+
+
+  });
+}
+
+function DaySorter(weekArr, isUniq) {
+  const sorter = { "Monday": 1, "Tuesday": 2, "Wednesday": 3, "Thursday": 4, "Friday": 5, "Saturday": 6, "Sunday": 7 };
+  weekArr.sort(function sortByDay(a, b) {
+    var day1, day2;
+    if (!isUniq) {
+      day1 = a.day; day2 = b.day;
+    } else {
+      day1 = a; day2 = b;
+    }
+    return sorter[day1] - sorter[day2];
+  });
+}
+
+function TimeSorter(weekArr) {
+  const getNumber = n => +n.replace(/:/g, '');
+  weekArr.sort(function sortByTime(a, b) {
+    var time1 = getNumber(a.time); var time2 = getNumber(b.time);
+    return time1 - time2;
+  })
+}
+
+function CreateOverviewTableHeader(day, parentElem) {
+  var wrapper = document.createElement('li');
+  wrapper.classList.add('overview-days');
+
+  var dayHeader = document.createElement('h2'); dayHeader.textContent = day;
+  wrapper.appendChild(dayHeader);
+  parentElem.appendChild(wrapper);
+
+  var tableHeader = document.createElement('li');
+  tableHeader.classList.add('table-header');
+  var headerDiv1 = document.createElement('div'); headerDiv1.className = "col col-1"; headerDiv1.textContent = "Time"; tableHeader.appendChild(headerDiv1);
+  var headerDiv2 = document.createElement('div'); headerDiv2.className = "col col-2"; headerDiv2.textContent = "General Location"; tableHeader.appendChild(headerDiv2);
+  var headerDiv3 = document.createElement('div'); headerDiv3.className = "col col-3"; headerDiv3.textContent = "Host"; tableHeader.appendChild(headerDiv3);
+  parentElem.appendChild(tableHeader);
+}
+
+function CreateOverviewTableRow(array, day, parentElem) {
+  array.forEach((elem) => {
+    if (elem.day === day) {
+      var row = document.createElement('li');
+      row.className = "table-row clickable-row";
+
+      var col1 = document.createElement('div'); col1.className = "col col-1"; col1.setAttribute('data-label', "Time"); col1.textContent = elem.time; row.appendChild(col1);
+      var col2 = document.createElement('div'); col2.className = "col col-2"; col2.setAttribute('data-label', "General Location"); col2.textContent = elem.location; row.appendChild(col2);
+      var col3 = document.createElement('div'); col3.className = "col col-3"; col3.setAttribute('data-label', "Host"); col3.textContent = elem.host; row.appendChild(col3);
+
+      parentElem.appendChild(row);
+    }
+  });
+
+}
+document.addEventListener('click', function (e) {
+  e.stopPropagation();
+  if (e.target.closest('.clickable-row')) {
+    tabPlanning.click();
+  }
+});
 //#endregion Overview Setup
 
 //#endregion Initial Setup

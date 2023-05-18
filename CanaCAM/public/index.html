@@ -89,7 +89,6 @@
     </div>
   </div>
 
-
   <div id="main-page" class="main-page">
     <div class="tabs">
       <input type="radio" id="tab-planning" name="tab-control">
@@ -136,14 +135,14 @@
               <option>Kevin & Tracy</option>
               <option>Joel & Andrea</option>
             </select>
-            <select id="week-selection" data-menu>
+            <select id="plan-week-selection" data-menu>
               <option selected>Current Week</option>
               <option>Next Week</option>
               <option>Future Week</option>
             </select>
           </div>
-          <div id="current-week" class="event-container" name="planning-container">
-            <ul class="responsive-table event-ul">
+          <div class="event-container" name="planning-container">
+            <ul id="plan-current-week" class="responsive-table event-ul">
               <li class="table-header">
                 <div class="col">Day/Time</div>
                 <div class="col">Location</div>
@@ -158,7 +157,7 @@
                 <div class="col" data-label="Guests">
                   <div class="counter">
                     <span id="guest-down" class="down">-</span>
-                    <input type="text" value="0" disabled>
+                    <input id="counter-input" type="text" value="0" disabled>
                     <span id="guest-up" class="up">+</span>
                   </div>
                 </div>
@@ -184,8 +183,8 @@
               </li>
             </ul>
           </div>
-          <div id="next-week" class="event-container" name="planning-container">
-            <ul class="responsive-table event-ul">
+          <div class="event-container" name="planning-container">
+            <ul id="plan-next-week" class="responsive-table event-ul">
               <li class="table-header">
                 <div class="col col-1">Day of Week</div>
                 <div class="col col-2">Date</div>
@@ -218,8 +217,8 @@
               </li>
             </ul>
           </div>
-          <div id="future-week" class="event-container" name="planning-container">
-            <ul class="responsive-table event-ul">
+          <div class="event-container" name="planning-container">
+            <ul id="plan-future-week" class="responsive-table event-ul">
               <li class="table-header">
                 <div class="col col-1">Day of Week</div>
                 <div class="col col-2">Date</div>
@@ -257,14 +256,14 @@
           <h1>Overview</h1>
           <p>This is a description of how this page works and maybe about the planning one.</p>
           <div class="week-select-grid week-select-grid-overview">
-            <select id="week-selection" data-menu>
+            <select id="over-week-selection" data-menu>
               <option selected>Current Week</option>
               <option>Next Week</option>
               <option>Future Week</option>
             </select>
           </div>
-          <div id="current-week" class="event-container" name="overview-container">
-            <ul class="responsive-table event-ul">
+          <div class="event-container" name="overview-container">
+            <ul id="overview-current-week" class="responsive-table event-ul">
               <li class="overview-days">
                 <h2>Monday</h2>
               <li class="table-header">
@@ -306,8 +305,8 @@
               </li>
             </ul>
           </div>
-          <div id="next-week" class="event-container" name="overview-container">
-            <ul class="responsive-table event-ul">
+          <div class="event-container" name="overview-container">
+            <ul id="overview-next-week" class="responsive-table event-ul">
               <li class="overview-days">
                 <h2>Monday</h2>
               <li class="table-header">
@@ -349,8 +348,8 @@
               </li>
             </ul>
           </div>
-          <div id="future-week" class="event-container" name="overview-container">
-            <ul class="responsive-table event-ul">
+          <div class="event-container" name="overview-container">
+            <ul id="overview-future-week" class="responsive-table event-ul">
               <li class="overview-days">
                 <h2>Monday</h2>
               <li class="table-header">
@@ -399,6 +398,13 @@
           voluptate labore, excepturi numquam! Alias libero optio sed harum debitis! Veniam, quia in eum.
         </section>
       </div>
+    </div>
+    <div class="loader" style="display: none;">
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
+      <div class="dot"></div>
     </div>
   </div>
 
