@@ -65,7 +65,7 @@ html {
 }
 
 .hide {
-  display: none;
+  display: none !important;
 }
 
 .disable-click {
@@ -453,6 +453,16 @@ form .btn input[type="submit"]{
 .tab-grids {
   grid-template-columns: 50% 50%;
   grid-template-rows: 100%;
+}
+
+#tab-planning-intro {
+  padding-top: 10px;
+}
+
+.tab-planning-p {
+  display: inline-flex;
+  text-align: left;
+  align-items: center;
 }
 
 .tabs input[name=tab-control] {
@@ -897,15 +907,6 @@ form .btn input[type="submit"]{
   padding: 0 !important;
 }
 
-.rsvp-button {
-  width: 75px;
-  height: 100%;
-  background-color: var(--blue);
-  color: var(--white);
-  border: none;
-  border-radius: var(--border-radius);
-}
-
 .responsive-table li {
   border-radius: var(--border-radius);
   padding: 25px 30px;
@@ -939,7 +940,8 @@ form .btn input[type="submit"]{
 
 /*#endregion EVENT CALENDER*/
 
-/*#region RSVP BUTTON*/
+/*#region BUTTONS*/
+/*Rsvp Button*/
 .rsvp-button {
   outline: none;
   height: 40px;
@@ -1024,6 +1026,50 @@ form .btn input[type="submit"]{
   }
 }
 
+/*Contact Button*/
+.contact-button {
+  outline: none;
+  height: 40px;
+  text-align: center;
+  width: 100px;
+  border-radius: 40px;
+  background: var(--blue);
+  border: 2px solid var(--blue);
+  color: var(--white);
+  letter-spacing: 1px;
+  text-shadow: 0;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.contact-button:hover {
+  color: var(--blue);
+  background: var(--white);
+}
+
+.contact-button:active {
+  letter-spacing: 2px;
+  color: var(--white);
+  background: var(--blue);
+}
+
+.contact-button:after {
+  content: "Contact";
+}
+
+.contact-onClick {
+  width: 40px;
+  border-color: #bbbbbb;
+  border-width: 3px;
+  font-size: 0;
+  background: var(--white);
+  border-left-color: var(--blue);
+  -webkit-animation: rotating 2s 0.25s linear infinite;
+  animation: rotating 2s 0.25s linear infinite;
+}
+
 /*Guest Button*/
 .counter {
   width: 90px;
@@ -1055,7 +1101,7 @@ form .btn input[type="submit"]{
   user-select: none;
 }
 
-/*#endregion RSVP BUTTON*/
+/*#endregion BUTTONS*/
 
 
 

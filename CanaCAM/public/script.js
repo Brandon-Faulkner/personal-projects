@@ -35,11 +35,13 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 const groupRef = ref_db(database, "Groups/");
+const planRef = ref_db(database, "Personal/");
 const userRef = ref_db(database, "Users/");
 const storage = getStorage(app);
 const auth = getAuth(app);
 
 // Main Elements used before & after login
+const loader = document.getElementById('loader');
 const loginScreen = document.getElementById('login-page');
 const loginCloseBtn = document.getElementById('login-close-btn');
 const loginText = document.querySelector(".login-title-text .login");
@@ -62,15 +64,20 @@ const signupButon = document.getElementById('signup-button');
 
 const mainScreen = document.getElementById('main-page');
 const tabPlanning = document.getElementById('tab-planning');
-const planningSection = document.getElementById('planning-section');
+const planningIntro = document.getElementById('tab-planning-intro');
+const hostSelection = document.getElementById('host-selection');
+//const planWeekSelection = document.getElementById('plan-week-selection');
 const planCurrWeek = document.getElementById('plan-current-week');
 const planNextWeek = document.getElementById('plan-next-week');
 const planFutureWeek = document.getElementById('plan-future-week');
-const overviewSection = document.getElementById('overview-section');
+//const overviewWeekSelection = document.getElementById('over-week-selection');
 const overviewCurrWeek = document.getElementById('overview-current-week');
 const overviewNextWeek = document.getElementById('overview-next-week');
 const overviewFutureWeek = document.getElementById('overview-future-week');
 const profileSection = document.getElementById('profile-section');
+
+//Arrays to hold the data of each week
+var currWeekArr = [], nextWeekArr = [], futureWeekArr = [];
 
 //#region Authentication Functions
 // When the Auth state changes
@@ -211,7 +218,13 @@ signupImg.addEventListener('change', function () {
 //#region Overview Setup
 function OverviewSetup(groupRef) {
   onValue(groupRef, (snapshot) => {
-    var currWeekArr = [], nextWeekArr = [], futureWeekArr = [];
+    //Clear arrays to not have duplicate data
+    currWeekArr = []; nextWeekArr = []; futureWeekArr = [];
+
+    //Show loading indicator
+    if (loader.classList.contains('hide')) {
+      loader.classList.remove('hide');
+    }
 
     snapshot.forEach((childSnapshot) => {
       //Group Num, Host and Gen location
@@ -221,15 +234,15 @@ function OverviewSetup(groupRef) {
 
       //Get the Day and times for each week
       childSnapshot.child("Weeks").child("Current Week").forEach((day) => {
-        const currWeekDay = { day: day.key, time: day.val(), host: hostName, location: genLocation };
+        const currWeekDay = { group: groupKey, day: day.key, time: day.val(), host: hostName, location: genLocation, address: null, email: null, phone: null };
         currWeekArr.unshift(currWeekDay);
       });
       childSnapshot.child("Weeks").child("Next Week").forEach((day) => {
-        const nextWeekDay = { day: day.key, time: day.val(), host: hostName, location: genLocation };
+        const nextWeekDay = { group: groupKey, day: day.key, time: day.val(), host: hostName, location: genLocation, address: null, email: null, phone: null };
         nextWeekArr.unshift(nextWeekDay);
       });
       childSnapshot.child("Weeks").child("Future Week").forEach((day) => {
-        const futureWeekDay = { day: day.key, time: day.val(), host: hostName, location: genLocation };
+        const futureWeekDay = { group: groupKey, day: day.key, time: day.val(), host: hostName, location: genLocation, address: null, email: null, phone: null};
         futureWeekArr.unshift(futureWeekDay);
       });
 
@@ -255,7 +268,7 @@ function OverviewSetup(groupRef) {
       });
       uniqNext.forEach((elem) => {
         CreateOverviewTableHeader(elem, overviewNextWeek);
-        CreateOverviewTableRow(nextWeekArr, elem,overviewNextWeek);
+        CreateOverviewTableRow(nextWeekArr, elem, overviewNextWeek);
       });
       uniqFuture.forEach((elem) => {
         CreateOverviewTableHeader(elem, overviewFutureWeek);
@@ -263,7 +276,10 @@ function OverviewSetup(groupRef) {
       });
     });
 
-
+    //Remove loading indicator
+    if (!loader.classList.contains('hide')) {
+      loader.classList.add('hide');
+    }
   });
 }
 
@@ -284,7 +300,7 @@ function TimeSorter(weekArr) {
   const getNumber = n => +n.replace(/:/g, '');
   weekArr.sort(function sortByTime(a, b) {
     var time1 = getNumber(a.time); var time2 = getNumber(b.time);
-    return time1 - time2;
+    return time2 - time1;
   })
 }
 
@@ -319,6 +335,7 @@ function CreateOverviewTableRow(array, day, parentElem) {
   });
 
 }
+
 document.addEventListener('click', function (e) {
   e.stopPropagation();
   if (e.target.closest('.clickable-row')) {
@@ -326,6 +343,67 @@ document.addEventListener('click', function (e) {
   }
 });
 //#endregion Overview Setup
+
+//#region Planning Setup
+function PlanningSetup(planRef, isAnonymous) {
+  if (isAnonymous) {
+
+  } else {
+    onValue(planRef, (snapshot) => {
+      //Show loading indicator
+      if(loader.classList.contains('hide')) {
+        loader.classList.remove('hide');
+      }
+
+      snapshot.forEach((childSnapshot) => {
+        const groupKey = childSnapshot.key;
+        const address = childSnapshot.child("Address").val();
+        const email = childSnapshot.child("Email").val();
+        const phone = childSnapshot.child("Phone").val();
+
+        //Update each array with the new data
+        currWeekArr.forEach((elem) => {
+          if (elem.group === groupKey) {
+            elem.address = address;
+            elem.email =  email;
+            elem.phone = phone;
+          }
+        });
+        nextWeekArr.forEach((elem) => {
+          if (elem.group === groupKey) {
+            elem.address = address;
+            elem.email =  email;
+            elem.phone = phone;
+          }
+        });
+        futureWeekArr.forEach((elem) => {
+          if (elem.group === groupKey) {
+            elem.address = address;
+            elem.email =  email;
+            elem.phone = phone;
+          }
+        });
+
+        //Clear the current elements in the lists
+        planCurrWeek.replaceChildren();
+        planNextWeek.replaceChildren();
+        planFutureWeek.replaceChildren();
+
+
+      });
+    });
+  }
+}
+
+function CreatePlanningTableHeader(day, parentElem) {
+  var wrapper = document.createElement('li');
+  wrapper.classList.add('table-header');
+  //TODOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+}
+function CreatePlanningTableRow(array, day, parentElem) {
+  
+}
+//#endregion Planning Setup
 
 //#endregion Initial Setup
 
