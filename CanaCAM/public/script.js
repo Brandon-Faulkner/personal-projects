@@ -1,4 +1,3 @@
-//#region Initial Setup
 // Ensure that the browser supports the service worker API
 if (navigator.serviceWorker) {
   // Start registration process on every page load
@@ -40,6 +39,9 @@ const userRef = ref_db(database, "Users/");
 const storage = getStorage(app);
 const auth = getAuth(app);
 
+//#region Initial Setup
+window.addEventListener('load', () => {
+
 // Main Elements used before & after login
 const loader = document.getElementById('loader');
 const loginScreen = document.getElementById('login-page');
@@ -70,7 +72,7 @@ const planningImg = document.getElementById('main-image');
 const contactBtn = document.getElementById('contact-button');
 const planningWeekSelectParent = document.getElementById('plan-week-select-grid');
 const hostSelection = document.getElementById('host-selection');
-//const planWeekSelection = document.getElementById('plan-week-selection');
+const planWeekSelection = document.getElementById('plan-week-selection');
 const planCurrWeek = document.getElementById('plan-current-week');
 const planNextWeek = document.getElementById('plan-next-week');
 const planFutureWeek = document.getElementById('plan-future-week');
@@ -93,19 +95,17 @@ onAuthStateChanged(auth, (user) => {
     if (user?.isAnonymous) {
       OverviewSetup(groupRef, true);
 
-      tabPlanning.addEventListener('click', function () {
-        loginScreen.classList.add('show');
-        mainScreen.classList.add('disable-click');
-      });
-      loginCloseBtn.addEventListener('click', function () {
-        loginScreen.classList.remove('show');
-        mainScreen.classList.remove('disable-click');
-      });
+      //Add listeners
+      tabPlanning.addEventListener('click', ShowLogin);
+      loginCloseBtn.addEventListener('click', ShowLogin);
     }
     //Signed in with Account
     else {
       OverviewSetup(groupRef, false);
 
+      //Remove listeners
+      tabPlanning.removeEventListener('click', ShowLogin);
+      loginCloseBtn.removeEventListener('click', ShowLogin);
     }
 
   } else {
@@ -113,6 +113,17 @@ onAuthStateChanged(auth, (user) => {
     AnonymousSignIn(auth);
   }
 });
+
+function ShowLogin() {
+  if (!loginScreen.classList.contains('show')) {
+    loginScreen.classList.add('show');
+    mainScreen.classList.add('disable-click');
+  }
+  else {
+    loginScreen.classList.remove('show');
+    mainScreen.classList.remove('disable-click');
+  }
+}
 
 // Sign user in Anonymously if not already logged in
 function AnonymousSignIn(auth) {
@@ -370,6 +381,7 @@ function PlanningSetup(planRef, groupID, isAnonymous) {
     planNextWeek.replaceChildren();
     planFutureWeek.replaceChildren();
   } else {
+    loginScreen.classList.remove('show');
     planningBlocked.classList.add('hide');
     planningIntro.parentElement.classList.remove('hide');
     planningWeekSelectParent.classList.remove('hide');
@@ -412,19 +424,19 @@ function PlanningSetup(planRef, groupID, isAnonymous) {
       //Create elements for the lists from each array
       CreatePlanningTableHeader(planCurrWeek);
       currWeekArr.forEach((elem) => {
-        if (elem.group === groupKey) {       
+        if (elem.group === groupKey) {
           CreatePlanningTableRow(elem, groupInfoArr, elem.group, planCurrWeek);
         }
       });
       CreatePlanningTableHeader(planNextWeek);
       nextWeekArr.forEach((elem) => {
-        if (elem.group === groupKey) {   
+        if (elem.group === groupKey) {
           CreatePlanningTableRow(elem, groupInfoArr, elem.group, planNextWeek);
         }
       });
       CreatePlanningTableHeader(planFutureWeek);
       futureWeekArr.forEach((elem) => {
-        if (elem.group === groupKey) {        
+        if (elem.group === groupKey) {
           CreatePlanningTableRow(elem, groupInfoArr, elem.group, planFutureWeek);
         }
       });
@@ -547,7 +559,9 @@ document.addEventListener('click', function (e) {
     selected.removeAttribute('selected');
     var clicked = select.querySelectorAll('option')[index]; clicked.setAttribute('selected', '');
     menu.classList.add(index > Array.prototype.indexOf.call(select.querySelectorAll('option'), selected) ? 'tilt-down' : 'tilt-up');
-
+    
+    planWeekSelection.options[1].removeAttribute('selected');
+    planWeekSelection.options[index].setAttribute('selected', '');
     // Switch Event Containers based on selection
     showEventContainers(clicked.textContent, "planning-container");
     showEventContainers(clicked.textContent, "overview-container");
@@ -644,3 +658,5 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 //#endregion Guest & RSVP Button
 
+
+});
