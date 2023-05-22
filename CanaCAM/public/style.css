@@ -61,7 +61,7 @@ html {
 }
 
 .show {
-  display: inline-grid;
+  display: inline-grid !important;
 }
 
 .hide {
@@ -84,7 +84,7 @@ p {
   font-size: calc(.5vw + 1vh);
 }
 
-.main-image {
+.planning-image {
   height: auto;
   max-width: 90%;
   max-height: 90%;
@@ -107,6 +107,14 @@ p {
   justify-content: center;
   align-items: center;
   background: var(--background);
+  opacity: 1;
+}
+.fadeIn {
+  animation: fadeIn .025s linear forwards;
+}
+.fadeOut {
+  animation: fadeOut .2s linear forwards;
+  pointer-events: none;
 }
 .dot {
   width: 10px;
@@ -175,6 +183,22 @@ p {
   }
   100% {
     transform: scale(1);
+  }
+}
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  } 
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  } 
+  100% {
+    opacity: 0;
   }
 }
 /*#endregion LOADING*/
@@ -571,8 +595,8 @@ form .btn input[type="submit"]{
   animation-name: content;
   -webkit-animation-direction: normal;
   animation-direction: normal;
-  -webkit-animation-duration: 0.3s;
-  animation-duration: 0.3s;
+  -webkit-animation-duration: 0.5s;
+  animation-duration: 0.5s;
   -webkit-animation-timing-function: ease-in-out;
   animation-timing-function: ease-in-out;
   -webkit-animation-iteration-count: 1;
@@ -895,8 +919,8 @@ form .btn input[type="submit"]{
   animation-name: content;
   -webkit-animation-direction: normal;
   animation-direction: normal;
-  -webkit-animation-duration: 0.3s;
-  animation-duration: 0.3s;
+  -webkit-animation-duration: 0.5s;
+  animation-duration: .5s;
   -webkit-animation-timing-function: ease-in-out;
   animation-timing-function: ease-in-out;
   -webkit-animation-iteration-count: 1;
@@ -1170,7 +1194,7 @@ form .btn input[type="submit"]{
     transform: scaleY(-1);
   }
 
-  .main-image {
+  .planning-image {
     transform: scaleY(-1);
   }
 
