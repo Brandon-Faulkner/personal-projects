@@ -34,15 +34,15 @@
         </svg>
       </button>
       <div class="login-title-text">
-        <div class="login-title login">Login Form</div>
-        <div class="login-title signup">Signup Form</div>
+        <div class="login-title login">Welcome Back!</div>
+        <div class="login-title signup">Join Now!</div>
       </div>
       <div class="login-form-container">
         <div class="slide-controls">
           <input type="radio" name="slide" id="login" checked>
           <input type="radio" name="slide" id="signup">
-          <label for="login" class="slide login">Login</label>
-          <label for="signup" class="slide signup">Signup</label>
+          <label for="login" class="slide login">Log In</label>
+          <label for="signup" class="slide signup">Sign Up</label>
           <div class="slider-tab"></div>
         </div>
         <div class="login-form-inner">
@@ -56,9 +56,9 @@
             <div class="pass-link"><a href="#">Forgot password?</a></div>
             <div class="field btn">
               <div class="btn-layer"></div>
-              <input id="login-button" type="submit" value="Login">
+              <input id="login-button" type="submit" value="Log In">
             </div>
-            <div class="signup-link">Not a member? <a>Signup now</a></div>
+            <div class="signup-link">Not a member? <a>Sign Up now</a></div>
           </form>
           <form action="" class="signup hide" id="signup-form-content">
             <div class="field">
@@ -81,7 +81,7 @@
             </div>
             <div class="field btn">
               <div class="btn-layer"></div>
-              <input id="signup-button" type="submit" value="Signup">
+              <input id="signup-button" type="submit" value="Sign Up">
             </div>
           </form>
         </div>
@@ -121,283 +121,126 @@
         <section id="planning-section">
           <h1>Planning</h1>
           <h2 id="planning-blocked">You must be logged in to RSVP to the days you want to attend!</h2>
-          <div class="tab-content tab-grids">
-            <div id="tab-planning-intro">
-              <h2>Brandon & Kennedy's House</h2>
-              <div class="tab-planning-p">
-                <p>This is a description that talks about whateva ya want. Talk about the family, the house, the plans
-                  that they have. Doesn't matta. Also doesn't have to be here if not needed.        
-                </p>
+          <div class="event-container">
+            <ul id="tab-planning-intro" class="responsive-table event-ul">
+              <li class="planning-header">
+                <img id="planning-image" alt="Host Family" src="" class="planning-image">
+                <h2>Host Name's House</h2>
+                <p>Default Description of Hosts</p>
                 <button id="contact-button" class="contact-button"></button>
-              </div>
-              
-            </div>
-            <img id="planning-image" alt="Host Family" src="" class="planning-image">       
+              </li>
+            </ul>
           </div>
           <div id="plan-week-select-grid" class="week-select-grid">
-            <select id="host-selection" data-menu>
-            </select>
-            <select id="plan-week-selection" data-menu>
-              <option selected>Current Week</option>
-              <option>Next Week</option>
-              <option>Future Week</option>
-            </select>
+            <div class="select-menu" style="--t: 0px;">
+              <select id="host-selection" data-menu="">
+              </select>
+              <div class="button"><em></em>
+                <ul>
+                </ul>
+              </div>
+              <ul>
+              </ul>
+            </div>
+            <div class="select-menu" style="--t: 0px;">
+              <select id="plan-week-selection" data-menu="">
+                <option selected="">Current Week</option>
+                <option>Next Week</option>
+                <option>Future Week</option>
+              </select>
+              <div class="button"><em></em>
+                <ul>
+                  <li>Current Week</li>
+                  <li>Next Week</li>
+                  <li>Future Week</li>
+                </ul>
+              </div>
+              <ul>
+                <li>Current Week</li>
+                <li>Next Week</li>
+                <li>Future Week</li>
+              </ul>
+            </div>
           </div>
           <div class="event-container" name="planning-container">
             <ul id="plan-current-week" class="responsive-table event-ul">
-              <li class="table-header">
-                <div class="col">Day/Time</div>
-                <div class="col">Location</div>
-                <div class="col">Status</div>
-                <div class="col">Guests</div>
-                <div class="col">Action</div>
-              </li>
-              <li class="table-row">
-                <div class="col" data-label="Day/Time">Monday / 6:00PM</div>
-                <div class="col" data-label="Location">House Address</div>
-                <div class="col" data-label="Status">Not Going</div>
-                <div class="col" data-label="Guests">
-                  <div class="counter">
-                    <span id="guest-down" class="down">-</span>
-                    <input id="counter-input" type="text" value="0" disabled>
-                    <span id="guest-up" class="up">+</span>
-                  </div>
-                </div>
-                <div class="col" data-label="Action">
-                  <button class="rsvp-button"></button>
-                </div>
-              </li>
-              <li class="table-row">
-                <div class="col" data-label="Day">Thursday</div>
-                <div class="col" data-label="Date">08/18/23</div>
-                <div class="col" data-label="Status">Not Going</div>
-                <div class="col" data-label="Action">
-                  <button class="rsvp-button"></button>
-                </div>
-              </li>
-              <li class="table-row">
-                <div class="col" data-label="Day">Saturday</div>
-                <div class="col" data-label="Date">08/20/23</div>
-                <div class="col" data-label="Status">Not Going</div>
-                <div class="col" data-label="Action">
-                  <button class="rsvp-button"></button>
-                </div>
-              </li>
             </ul>
           </div>
           <div class="event-container" name="planning-container">
             <ul id="plan-next-week" class="responsive-table event-ul">
-              <li class="table-header">
-                <div class="col col-1">Day of Week</div>
-                <div class="col col-2">Date</div>
-                <div class="col col-3">Status</div>
-                <div class="col col-4">Action</div>
-              </li>
-              <li class="table-row">
-                <div class="col col-1" data-label="Day">Monday</div>
-                <div class="col col-2" data-label="Date">08/15/23</div>
-                <div class="col col-3" data-label="Status">Not Going</div>
-                <div class="col col-4" data-label="Action">
-                  <button class="rsvp-button"></button>
-                </div>
-              </li>
-              <li class="table-row">
-                <div class="col col-1" data-label="Day">Thursday</div>
-                <div class="col col-2" data-label="Date">08/18/23</div>
-                <div class="col col-3" data-label="Status">Not Going</div>
-                <div class="col col-4" data-label="Action">
-                  <button class="rsvp-button"></button>
-                </div>
-              </li>
-              <li class="table-row">
-                <div class="col col-1" data-label="Day">Saturday</div>
-                <div class="col col-2" data-label="Date">08/20/23</div>
-                <div class="col col-3" data-label="Status">Not Going</div>
-                <div class="col col-4" data-label="Action">
-                  <button class="rsvp-button"></button>
-                </div>
-              </li>
             </ul>
           </div>
           <div class="event-container" name="planning-container">
             <ul id="plan-future-week" class="responsive-table event-ul">
-              <li class="table-header">
-                <div class="col col-1">Day of Week</div>
-                <div class="col col-2">Date</div>
-                <div class="col col-3">Status</div>
-                <div class="col col-4">Action</div>
-              </li>
-              <li class="table-row">
-                <div class="col col-1" data-label="Day">Monday</div>
-                <div class="col col-2" data-label="Date">08/15/23</div>
-                <div class="col col-3" data-label="Status">Not Going</div>
-                <div class="col col-4" data-label="Action">
-                  <button class="rsvp-button"></button>
-                </div>
-              </li>
-              <li class="table-row">
-                <div class="col col-1" data-label="Day">Thursday</div>
-                <div class="col col-2" data-label="Date">08/18/23</div>
-                <div class="col col-3" data-label="Status">Not Going</div>
-                <div class="col col-4" data-label="Action">
-                  <button class="rsvp-button"></button>
-                </div>
-              </li>
-              <li class="table-row">
-                <div class="col col-1" data-label="Day">Saturday</div>
-                <div class="col col-2" data-label="Date">08/20/23</div>
-                <div class="col col-3" data-label="Status">Not Going</div>
-                <div class="col col-4" data-label="Action">
-                  <button class="rsvp-button"></button>
-                </div>
-              </li>
             </ul>
-          </div>         
+          </div>
         </section>
         <section id="overview-section">
           <h1>Overview</h1>
           <p>This is a description of how this page works and maybe about the planning one.</p>
           <div class="week-select-grid week-select-grid-overview">
-            <select id="over-week-selection" data-menu>
-              <option selected>Current Week</option>
-              <option>Next Week</option>
-              <option>Future Week</option>
-            </select>
+            <div class="select-menu" style="--t: 0px;">
+              <select id="over-week-selection" data-menu="">
+                <option selected="">Current Week</option>
+                <option>Next Week</option>
+                <option>Future Week</option>
+              </select>
+              <div class="button"><em></em>
+                <ul>
+                  <li>Current Week</li>
+                  <li>Next Week</li>
+                  <li>Future Week</li>
+                </ul>
+              </div>
+              <ul>
+                <li>Current Week</li>
+                <li>Next Week</li>
+                <li>Future Week</li>
+              </ul>
+            </div>
           </div>
           <div class="event-container" name="overview-container">
             <ul id="overview-current-week" class="responsive-table event-ul">
-              <li class="overview-days">
-                <h2>Monday</h2>
-              <li class="table-header">
-                <div class="col col-1">Time</div>
-                <div class="col col-2">General Location</div>
-                <div class="col col-3">Host</div>
-              </li>
-              <li class="table-row clickable-row">
-                <div class="col col-1" data-label="Time">6:00 PM</div>
-                <div class="col col-2" data-label="General Location">Alvarado</div>
-                <div class="col col-3" data-label="Host">Brandon & Kennedy</div>
-              </li>
-              </li>
-              <li class="overview-days">
-                <h2>Thursday</h2>
-              <li class="table-header">
-                <div class="col col-1">Time</div>
-                <div class="col col-2">General Location</div>
-                <div class="col col-3">Host</div>
-              </li>
-              <li class="table-row clickable-row">
-                <div class="col col-1" data-label="Time">7:00 PM</div>
-                <div class="col col-2" data-label="General Location">Burleson</div>
-                <div class="col col-3" data-label="Host">Brandon & Kennedy</div>
-              </li>
-              </li>
-              <li class="overview-days">
-                <h2>Saturday</h2>
-              <li class="table-header">
-                <div class="col col-1">Time</div>
-                <div class="col col-2">General Location</div>
-                <div class="col col-3">Host</div>
-              </li>
-              <li class="table-row clickable-row">
-                <div class="col col-1" data-label="Time">8:00 PM</div>
-                <div class="col col-2" data-label="General Location">Fort Worth</div>
-                <div class="col col-3" data-label="Host">Brandon & Kennedy</div>
-              </li>
-              </li>
+
             </ul>
           </div>
           <div class="event-container" name="overview-container">
             <ul id="overview-next-week" class="responsive-table event-ul">
-              <li class="overview-days">
-                <h2>Monday</h2>
-              <li class="table-header">
-                <div class="col col-1">Time</div>
-                <div class="col col-2">General Location</div>
-                <div class="col col-3">Host</div>
-              </li>
-              <li class="table-row clickable-row">
-                <div class="col col-1" data-label="Time">6:00 PM</div>
-                <div class="col col-2" data-label="General Location">Alvarado</div>
-                <div class="col col-3" data-label="Host">Brandon & Kennedy</div>
-              </li>
-              </li>
-              <li class="overview-days">
-                <h2>Thursday</h2>
-              <li class="table-header">
-                <div class="col col-1">Time</div>
-                <div class="col col-2">General Location</div>
-                <div class="col col-3">Host</div>
-              </li>
-              <li class="table-row clickable-row">
-                <div class="col col-1" data-label="Time">7:00 PM</div>
-                <div class="col col-2" data-label="General Location">Burleson</div>
-                <div class="col col-3" data-label="Host">Brandon & Kennedy</div>
-              </li>
-              </li>
-              <li class="overview-days">
-                <h2>Saturday</h2>
-              <li class="table-header">
-                <div class="col col-1">Time</div>
-                <div class="col col-2">General Location</div>
-                <div class="col col-3">Host</div>
-              </li>
-              <li class="table-row clickable-row">
-                <div class="col col-1" data-label="Time">8:00 PM</div>
-                <div class="col col-2" data-label="General Location">Fort Worth</div>
-                <div class="col col-3" data-label="Host">Brandon & Kennedy</div>
-              </li>
-              </li>
             </ul>
           </div>
           <div class="event-container" name="overview-container">
             <ul id="overview-future-week" class="responsive-table event-ul">
-              <li class="overview-days">
-                <h2>Monday</h2>
-              <li class="table-header">
-                <div class="col col-1">Time</div>
-                <div class="col col-2">General Location</div>
-                <div class="col col-3">Host</div>
-              </li>
-              <li class="table-row clickable-row">
-                <div class="col col-1" data-label="Time">6:00 PM</div>
-                <div class="col col-2" data-label="General Location">Alvarado</div>
-                <div class="col col-3" data-label="Host">Brandon & Kennedy</div>
-              </li>
-              </li>
-              <li class="overview-days">
-                <h2>Thursday</h2>
-              <li class="table-header">
-                <div class="col col-1">Time</div>
-                <div class="col col-2">General Location</div>
-                <div class="col col-3">Host</div>
-              </li>
-              <li class="table-row clickable-row">
-                <div class="col col-1" data-label="Time">7:00 PM</div>
-                <div class="col col-2" data-label="General Location">Burleson</div>
-                <div class="col col-3" data-label="Host">Brandon & Kennedy</div>
-              </li>
-              </li>
-              <li class="overview-days">
-                <h2>Saturday</h2>
-              <li class="table-header">
-                <div class="col col-1">Time</div>
-                <div class="col col-2">General Location</div>
-                <div class="col col-3">Host</div>
-              </li>
-              <li class="table-row clickable-row">
-                <div class="col col-1" data-label="Time">8:00 PM</div>
-                <div class="col col-2" data-label="General Location">Fort Worth</div>
-                <div class="col col-3" data-label="Host">Brandon & Kennedy</div>
-              </li>
-              </li>
             </ul>
           </div>
         </section>
         <section id="profile-section">
           <h1>Profile</h1>
-          Lorem ipsum dolor sit amet, consectetur adipisicing elit. Quam nemo ducimus eius, magnam error quisquam sunt
-          voluptate labore, excepturi numquam! Alias libero optio sed harum debitis! Veniam, quia in eum.
+          <h2 id="profile-blocked">You must log in or sign up to view your profile!</h2>
+          <div class="event-container show" name="profile-container">
+            <ul id="profile-info" class="responsive-table event-ul">
+              <li class="profile-header">
+                <div class="profile-col">
+                  <img
+                    src="https://marketplace.canva.com/EAFEits4-uw/1/0/800w/canva-boy-cartoon-gamer-animated-twitch-profile-photo-r0bPCSjUqg0.jpg"
+                    class="profile-image">
+                </div>
+                <div class="profile-col">
+                  <h3>Brandon Faulkner</h3>
+                </div>
+                <div class="profile-col">
+                  <button id="signout-button" class="signout-button"></button>
+                </div>
+              </li>
+              <li class="profile-row">
+                <h2>Your Information</h2>
+                <h3 data-label="Name:" class="prof-info">Brandon Faulkner</h3>
+                <h3 data-label="Email:" class="prof-info">brandon@canachurch.com</h3>
+                <h3 data-label="Phone:" class="prof-info">817-774-1165</h3>
+                <h3 data-label="Days RSVP'd:" class="prof-info">5</h3>
+                <button class="editinfo-button"></button>
+              </li>
+            </ul>
+          </div>
         </section>
       </div>
     </div>

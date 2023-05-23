@@ -17,7 +17,7 @@ if (navigator.serviceWorker) {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-app.js";
 import { getDatabase, ref as ref_db, onValue, child, push, set } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-database.js";
 import { getStorage, ref as ref_st, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-storage.js";
-import { getAuth, onAuthStateChanged, signInAnonymously, signInWithEmailAndPassword, EmailAuthProvider, linkWithCredential } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signInAnonymously, signInWithEmailAndPassword, EmailAuthProvider, linkWithCredential, signOut } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-auth.js";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -62,9 +62,10 @@ window.addEventListener('load', () => {
   const signupEmail = document.getElementById('signup-email');
   const signupPassword = document.getElementById('signup-password');
   const signupConfirmPass = document.getElementById('signup-confirm-pass');
-  const signupButon = document.getElementById('signup-button');
+  const signupButton = document.getElementById('signup-button');
 
   const mainScreen = document.getElementById('main-page');
+
   const tabPlanning = document.getElementById('tab-planning');
   const planningBlocked = document.getElementById('planning-blocked');
   const planningIntro = document.getElementById('tab-planning-intro');
@@ -76,17 +77,21 @@ window.addEventListener('load', () => {
   const planCurrWeek = document.getElementById('plan-current-week');
   const planNextWeek = document.getElementById('plan-next-week');
   const planFutureWeek = document.getElementById('plan-future-week');
+
   const overviewWeekSelection = document.getElementById('over-week-selection');
   const overviewCurrWeek = document.getElementById('overview-current-week');
   const overviewNextWeek = document.getElementById('overview-next-week');
   const overviewFutureWeek = document.getElementById('overview-future-week');
+
   const profileSection = document.getElementById('profile-section');
+  const profileBlocked = document.getElementById('profile-blocked');
+  const signOutBtn = document.getElementById('signout-button');
 
   //Arrays to hold the data of each week
   var currWeekArr = [], nextWeekArr = [], futureWeekArr = [];
   //Arrays to hold group information
   var groupInfoArr = [], hostNameArr = [];
-  var user;
+  var userAcc;
 
   function Loading(show) {
     if (show) {
@@ -109,7 +114,6 @@ window.addEventListener('load', () => {
   //#endregion Variables
 
   //#region Authentication Functions
-  // When the Auth state changes
   onAuthStateChanged(auth, (user) => {
     user = user;
     if (user) {
@@ -148,7 +152,6 @@ window.addEventListener('load', () => {
     }
   }
 
-  // Sign user in Anonymously if not already logged in
   function AnonymousSignIn(auth) {
     signInAnonymously(auth)
       .then(() => {
@@ -159,7 +162,6 @@ window.addEventListener('load', () => {
       });
   }
 
-  // Upgrade Anonymous to an account
   function UpgradeAnonymous(auth, credential) {
     linkWithCredential(auth.currentUser, credential)
       .then((usercred) => {
@@ -170,18 +172,45 @@ window.addEventListener('load', () => {
       });
   }
 
-  // Sign user in with Email and Password
   function SignInEmailAndPassword(auth, email, password) {
     signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
         // Signed in 
-        const user = userCredential.user;
-        console.log("Signed in with Email: " + user);
+        userAcc = userCredential.user;
+        loginText.textContent = "Welcome Back!";
       })
       .catch((error) => {
-        console.log(error.code + ": " + error.message);
-        return false;
+        // Unsuccessful Sign In
+        loginText.textContent = "Log In Failed";
+        loginText.classList.add('login-error');
+
+        switch (error.code) {
+          case 'auth/invalid-email':
+            loginEmail.classList.add('login-error');
+            break;
+          case 'auth/wrong-password':
+            loginPassword.classList.add('login-error');
+            break;
+          default:
+            loginEmail.classList.add('login-error');
+            loginPassword.classList.add('login-error');
+            break;
+        }
+
+        setTimeout(() => {
+          loginText.classList.remove('login-error');
+          loginEmail.classList.remove('login-error');
+          loginPassword.classList.remove('login-error');
+        }, 5000);
       });
+  }
+
+  function SignOutUser(auth) {
+    signOut(auth).then(() => {
+
+    }).catch((error) => {
+
+    });
   }
   //#endregion Authentication Functions
 
@@ -206,17 +235,10 @@ window.addEventListener('load', () => {
 
   loginButton.addEventListener('click', function (e) {
     e.preventDefault();
-    var email = loginEmail.value;
-    var password = loginPassword.value;
-
-    if (SignInEmailAndPassword(auth, email, password)) {
-      // Successful sign in
-    } else {
-      // Unsuccessful sign in
-    }
+    SignInEmailAndPassword(auth, loginEmail.value, loginPassword.value);
   });
 
-  signupButon.addEventListener('click', function (e) {
+  signupButton.addEventListener('click', function (e) {
     e.preventDefault();
     var name = signupName.value;
     var phone = signupPhone.value;
@@ -239,8 +261,11 @@ window.addEventListener('load', () => {
   });
 
   signupLink.addEventListener('click', function () {
-    signupBtn.click();
-    return false;
+    signupToggleBtn.click();
+  });
+
+  signOutBtn.addEventListener('click', function () {
+    SignOutUser(auth);
   });
 
   function validateEmail(email) {
@@ -267,7 +292,7 @@ window.addEventListener('load', () => {
   function OverviewSetup(groupRef, isAnonymous) {
     onValue(groupRef, (snapshot) => {
       //Clear arrays to not have duplicate data
-      currWeekArr = []; nextWeekArr = []; futureWeekArr = [];
+      currWeekArr = []; nextWeekArr = []; futureWeekArr = []; hostNameArr = [];
 
       Loading(true);
 
@@ -378,9 +403,9 @@ window.addEventListener('load', () => {
         var row = document.createElement('li');
         row.className = "table-row clickable-row";
 
-        var col1 = document.createElement('div'); col1.className = "col"; col1.setAttribute('data-label', "Time"); col1.textContent = elem.time; row.appendChild(col1);
-        var col2 = document.createElement('div'); col2.className = "col"; col2.setAttribute('data-label', "General Location"); col2.textContent = elem.location; row.appendChild(col2);
-        var col3 = document.createElement('div'); col3.className = "col"; col3.setAttribute('data-label', "Host"); col3.textContent = elem.host; row.appendChild(col3);
+        var col1 = document.createElement('div'); col1.className = "col"; col1.setAttribute('data-label', "Time:"); col1.textContent = elem.time; row.appendChild(col1);
+        var col2 = document.createElement('div'); col2.className = "col"; col2.setAttribute('data-label', "General Location:"); col2.textContent = elem.location; row.appendChild(col2);
+        var col3 = document.createElement('div'); col3.className = "col"; col3.setAttribute('data-label', "Host:"); col3.textContent = elem.host; row.appendChild(col3);
 
         parentElem.appendChild(row);
       }
@@ -392,6 +417,7 @@ window.addEventListener('load', () => {
   function PlanningSetup(planRef, isAnonymous, groupID) {
     if (isAnonymous) {
       planningBlocked.classList.remove('hide');
+      profileBlocked.classList.remove('hide');
       planningIntro.parentElement.classList.add('hide');
       planningWeekSelectParent.classList.add('hide');
       planCurrWeek.replaceChildren();
@@ -400,10 +426,11 @@ window.addEventListener('load', () => {
       Loading(false);
     } else {
       loginScreen.classList.remove('show');
+      mainScreen.classList.remove('disable-click');
       planningBlocked.classList.add('hide');
+      profileBlocked.classList.add('hide');
       planningIntro.parentElement.classList.remove('hide');
       planningWeekSelectParent.classList.remove('hide');
-
       Loading(true);
 
       onValue(planRef, (snapshot) => {
@@ -464,9 +491,9 @@ window.addEventListener('load', () => {
   }
 
   function UpdatePlanningIntro(hostNameArr, groupInfoArr, groupID, parentElem) {
-    parentElem.children[0].textContent = hostNameArr.find(h => h.group === groupID).host;
-    parentElem.children[1].children[0].textContent = groupInfoArr.find(g => g.group === groupID).description;
-    parentElem.children[1].children[1].setAttribute("data-groupID", groupID);
+    parentElem.children[0].children[1].textContent = hostNameArr.find(h => h.group === groupID).host;
+    parentElem.children[0].children[2].textContent = groupInfoArr.find(g => g.group === groupID).description;
+    parentElem.children[0].children[3].setAttribute("data-groupID", groupID);
 
     planningImg.setAttribute('src', groupInfoArr.find(g => g.group === groupID).image);
   }
@@ -486,18 +513,18 @@ window.addEventListener('load', () => {
     var row = document.createElement('li');
     row.className = "table-row";
 
-    var col1 = document.createElement('div'); col1.className = "col"; col1.setAttribute('data-label', "Day/Time"); col1.textContent = elem.day + "/" + elem.time; row.appendChild(col1);
-    var col2 = document.createElement('div'); col2.className = "col"; col2.setAttribute('data-label', "Address"); col2.textContent = groupInfoArr.find(g => g.group === groupID).address; row.appendChild(col2);
-    var col3 = document.createElement('div'); col3.className = "col"; col3.setAttribute('data-label', "Status"); col3.textContent = "Not Going"; row.appendChild(col3);
+    var col1 = document.createElement('div'); col1.className = "col"; col1.setAttribute('data-label', "Day/Time:"); col1.textContent = elem.day + "/" + elem.time; row.appendChild(col1);
+    var col2 = document.createElement('div'); col2.className = "col"; col2.setAttribute('data-label', "Address:"); col2.textContent = groupInfoArr.find(g => g.group === groupID).address; row.appendChild(col2);
+    var col3 = document.createElement('div'); col3.className = "col"; col3.setAttribute('data-label', "Status:"); col3.textContent = "Not Going"; row.appendChild(col3);
 
-    var col4 = document.createElement('div'); col4.className = "col"; col4.setAttribute('data-label', "Guests");
+    var col4 = document.createElement('div'); col4.className = "col"; col4.setAttribute('data-label', "Guests:");
     var counter = document.createElement('div'); counter.className = "counter";
     var minus = document.createElement('span'); minus.className = "guest-down"; minus.textContent = "-"; counter.appendChild(minus);
     var counterInput = document.createElement('input'); counterInput.setAttribute("id", "counter-input-" + Math.floor(Math.random() * 100000)); counterInput.setAttribute("type", "text"); counterInput.value = 0; counterInput.disabled = true; counter.appendChild(counterInput);
     var plus = document.createElement('span'); plus.className = "guest-up"; plus.textContent = "+"; counter.appendChild(plus);
     col4.appendChild(counter); row.appendChild(col4);
 
-    var col5 = document.createElement('div'); col5.className = "col"; col5.setAttribute('data-label', "Action");
+    var col5 = document.createElement('div'); col5.className = "col"; col5.setAttribute('data-label', "Action:");
     var rsvp = document.createElement('button'); rsvp.className = "rsvp-button";
     col5.appendChild(rsvp); row.appendChild(col5);
 
@@ -505,46 +532,49 @@ window.addEventListener('load', () => {
   }
   //#endregion Planning Setup
 
+  //#region Profile Setup
+  function ProfileSetup(userRef, auth) {
+    
+  }
+
+  function CreateProfileHeader(parentElem) {
+    
+  }
+
+  function CreatProfileInfoRow([parentElem]) {
+    
+  }
+  //#endregion Profile Setup
+
   //#region Week Menu Dropdown
-  function SetupDropdowns(select, isHost, hostNameArr) {
+  function SetupDropdowns(select, isHost, optionsArr) { 
+    let menu = select.parentNode,
+      button = menu.children[1],
+      btnList = button.children[1],
+      selectList = menu.children[2];
+
     //Create options in host dropdown
     if (isHost) {
-      for (let index = hostNameArr.length - 1; index >= 0; index--) {
-        if (index === hostNameArr.length) {
-          select.add(new Option(hostNameArr[index].host, true));
-        } else {
-          select.add(new Option(hostNameArr[index].host));
-        }
+      select.replaceChildren(); btnList.replaceChildren(); selectList.replaceChildren();
+
+      for (let index = optionsArr.length - 1; index >= 0; index--) {
+        select.add(new Option(optionsArr[index].host));
+        var li1 = document.createElement('li');
+        li1.textContent = optionsArr[index].host;
+        var li2 = document.createElement('li');
+        li2.textContent = optionsArr[index].host;
+        btnList.appendChild(li1);
+        selectList.appendChild(li2);
       }
     }
 
-    let options = select.querySelectorAll('option'),
-      menu = document.createElement('div'),
-      button = document.createElement('div'),
-      list = document.createElement('ul'),
-      arrow = document.createElement('em');
-
-    menu.classList.add('select-menu');
-    button.classList.add('button');
-
-    options.forEach(function (option) {
-      let li = document.createElement('li');
-      li.textContent = option.textContent;
-      list.appendChild(li);
-    });
-
+    select.selectedIndex = "0";
     menu.style.setProperty('--t', select.selectedIndex * -41 + 'px');
-    select.parentNode.insertBefore(menu, select);
-    menu.appendChild(select);
-    button.appendChild(list);
-    menu.appendChild(button);
-    button.insertBefore(arrow, list);
-    menu.appendChild(list.cloneNode(true));
 
     // Show the first container from the first option in lists
     if (!isHost) {
-      ShowEventContainers(list.childNodes[0].textContent, "planning-container");
-      ShowEventContainers(list.childNodes[0].textContent, "overview-container");
+      ShowEventContainers("Current Week", "planning-container");
+      ShowEventContainers("Current Week", "overview-container");
     }
   }
   //#endregion
@@ -626,7 +656,7 @@ window.addEventListener('load', () => {
       menu.classList.add(index > Array.prototype.indexOf.call(select.querySelectorAll('option'), selected) ? 'tilt-down' : 'tilt-up');
 
       if (menu === hostSelection.parentNode) {
-        PlanningSetup(planRef, user?.isAnonymous, hostNameArr.find(h => h.host === clicked.textContent).group);
+        PlanningSetup(planRef, userAcc?.isAnonymous, hostNameArr.find(h => h.host === clicked.textContent).group);
       }
 
       setTimeout(function () {
@@ -637,10 +667,15 @@ window.addEventListener('load', () => {
 
   function ShowEventContainers(clickedWeek, containerName) {
     var eventContainers = document.getElementsByName(containerName);
+    var containerArr = Array.from(eventContainers);
 
-    eventContainers[0].classList.remove('show', 'hide');
-    eventContainers[1].classList.remove('show', 'hide');
-    eventContainers[2].classList.remove('show', 'hide');
+    containerArr.forEach(elem => {
+      elem.classList.remove('show', 'hide');
+    });
+
+    if (containerName === "planning-container") {
+      planningIntro.parentElement.classList.add('show');
+    }
 
     switch (clickedWeek) {
       case "Current Week":
