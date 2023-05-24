@@ -15,8 +15,8 @@ if (navigator.serviceWorker) {
 
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-app.js";
-import { getDatabase, ref as ref_db, onValue, child, push, set } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-database.js";
-import { getStorage, ref as ref_st, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-storage.js";
+import { getDatabase, ref as ref_db, onValue, child, set } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-database.js";
+import { getStorage, ref as ref_st, getDownloadURL, uploadBytes } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-storage.js";
 import { getAuth, onAuthStateChanged, signInAnonymously, signInWithEmailAndPassword, EmailAuthProvider, linkWithCredential, signOut } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-auth.js";
 
 // Your web app's Firebase configuration
@@ -38,10 +38,9 @@ window.addEventListener('load', () => {
   const database = getDatabase(app);
   const groupRef = ref_db(database, "Groups/");
   const planRef = ref_db(database, "GroupsInfo/");
-  const userRef = ref_db(database, "Users/");
   const storage = getStorage(app);
   const auth = getAuth(app);
-  
+
   // Main Elements used before & after login
   const loader = document.getElementById('loader');
   const loginScreen = document.getElementById('login-page');
@@ -83,15 +82,16 @@ window.addEventListener('load', () => {
   const overviewNextWeek = document.getElementById('overview-next-week');
   const overviewFutureWeek = document.getElementById('overview-future-week');
 
+  const tabProfile = document.getElementById('tab-profile');
   const profileSection = document.getElementById('profile-section');
   const profileBlocked = document.getElementById('profile-blocked');
+  const profileInfo = document.getElementById('profile-info');
   const signOutBtn = document.getElementById('signout-button');
 
   //Arrays to hold the data of each week
   var currWeekArr = [], nextWeekArr = [], futureWeekArr = [];
   //Arrays to hold group information
   var groupInfoArr = [], hostNameArr = [];
-  var userAcc;
 
   function Loading(show) {
     if (show) {
@@ -115,26 +115,25 @@ window.addEventListener('load', () => {
 
   //#region Authentication Functions
   onAuthStateChanged(auth, (user) => {
-    user = user;
     if (user) {
       // Signed in Anonymously
       if (user?.isAnonymous) {
-        OverviewSetup(groupRef, true);
+        OverviewSetup(groupRef, user?.isAnonymous);
 
         //Add listeners
         tabPlanning.addEventListener('click', ShowLogin);
+        tabProfile.addEventListener('click', ShowLogin);
         loginCloseBtn.addEventListener('click', ShowLogin);
       }
-      //Signed in with Account
       else {
-        console.log(user);
-        OverviewSetup(groupRef, false);
+        //Signed in with Account
+        OverviewSetup(groupRef, user?.isAnonymous);
 
         //Remove listeners
         tabPlanning.removeEventListener('click', ShowLogin);
+        tabProfile.removeEventListener('click', ShowLogin);
         loginCloseBtn.removeEventListener('click', ShowLogin);
       }
-
     } else {
       // Signed out
       AnonymousSignIn(auth);
@@ -162,11 +161,30 @@ window.addEventListener('load', () => {
       });
   }
 
-  function UpgradeAnonymous(auth, credential) {
+  function UpgradeAnonymous(auth, credential, img, imgName, name, phone) {
     linkWithCredential(auth.currentUser, credential)
       .then((usercred) => {
-        const user = usercred.user;
-        console.log("Anonymous account successfully upgraded", user);
+        //Upload user data to db
+        set(ref_db(database, 'Users/' + usercred.user.uid), {
+          Image: imgName,
+          Name: name,
+          Phone: phone
+        });
+
+        //Upload prof pic to storage
+        const userStoreRef = ref_st(storage, "Users/" + usercred.user.uid + "/" + imgName);
+        uploadBytes(userStoreRef, img)
+          .then((snapshot) => {
+            console.log("Image upload good");
+          });
+
+        //Signed in with Account
+        OverviewSetup(groupRef, usercred.user?.isAnonymous);
+
+        //Remove listeners
+        tabPlanning.removeEventListener('click', ShowLogin);
+        tabProfile.removeEventListener('click', ShowLogin);
+        loginCloseBtn.removeEventListener('click', ShowLogin);
       }).catch((error) => {
         console.log("Error upgrading anonymous account", error);
       });
@@ -176,7 +194,6 @@ window.addEventListener('load', () => {
     signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
         // Signed in 
-        userAcc = userCredential.user;
         loginText.textContent = "Welcome Back!";
       })
       .catch((error) => {
@@ -240,24 +257,24 @@ window.addEventListener('load', () => {
 
   signupButton.addEventListener('click', function (e) {
     e.preventDefault();
-    var name = signupName.value;
-    var phone = signupPhone.value;
-    var img = signupImg.value;
-    var email = signupEmail.value;
-    var password = signupPassword.value;
-    var confirmPass = signupConfirmPass.value;
+    const name = signupName.value;
+    const phone = signupPhone.value;
+    const img = signupImg.files[0];
+    const imgName = signupImg.parentElement.getAttribute('data-text');
+    const email = signupEmail.value;
+    const password = signupPassword.value;
+    const confirmPass = signupConfirmPass.value;
 
-    var isEmailValid = validateEmail(email);
-    var isPasswordValid = validatePassword(password, confirmPass);
+    const isEmailValid = validateEmail(email);
+    const isPasswordValid = validatePassword(password, confirmPass);
 
     //Upgrade annonymous account if data is valid
     if (isEmailValid && isPasswordValid) {
       const credential = EmailAuthProvider.credential(email, password);
-      UpgradeAnonymous(auth, credential);
+      UpgradeAnonymous(auth, credential, img, imgName, name, phone);
     } else {
       console.log("Sign up data is invalid");
     }
-
   });
 
   signupLink.addEventListener('click', function () {
@@ -267,6 +284,10 @@ window.addEventListener('load', () => {
   signOutBtn.addEventListener('click', function () {
     SignOutUser(auth);
   });
+
+  signupImg.addEventListener('change', function () {
+    signupImg.parentElement.setAttribute("data-text", signupImg.value.replace(/.*(\/|\\)/, ''));
+  })
 
   function validateEmail(email) {
     var emailRegex = new RegExp(/^[A-Za-z0-9_!#$%&'*+\/=?`{|}~^.-]+@[A-Za-z0-9.-]+$/gm, "gm");
@@ -282,10 +303,6 @@ window.addEventListener('load', () => {
       return false;
     }
   }
-
-  signupImg.addEventListener('change', function () {
-    signupImg.parentElement.setAttribute("data-text", signupImg.value.replace(/.*(\/|\\)/, ''));
-  })
   //#endregion Login Functions
 
   //#region Overview Setup
@@ -417,18 +434,16 @@ window.addEventListener('load', () => {
   function PlanningSetup(planRef, isAnonymous, groupID) {
     if (isAnonymous) {
       planningBlocked.classList.remove('hide');
-      profileBlocked.classList.remove('hide');
       planningIntro.parentElement.classList.add('hide');
       planningWeekSelectParent.classList.add('hide');
       planCurrWeek.replaceChildren();
       planNextWeek.replaceChildren();
       planFutureWeek.replaceChildren();
-      Loading(false);
+      ProfileSetup(auth, isAnonymous);
     } else {
       loginScreen.classList.remove('show');
       mainScreen.classList.remove('disable-click');
       planningBlocked.classList.add('hide');
-      profileBlocked.classList.add('hide');
       planningIntro.parentElement.classList.remove('hide');
       planningWeekSelectParent.classList.remove('hide');
       Loading(true);
@@ -476,13 +491,12 @@ window.addEventListener('load', () => {
               }
             });
 
-            //Now Update planning intro
+            //Now Update planning intro & User Profile
             UpdatePlanningIntro(hostNameArr, groupInfoArr, groupID, planningIntro);
-
-            Loading(false);
+            ProfileSetup(auth, isAnonymous);
           })
           .catch((error) => {
-            console.log(error.code + ": " + error.message);
+            console.log(error);
           })
       }, {
         onlyOnce: true
@@ -533,21 +547,80 @@ window.addEventListener('load', () => {
   //#endregion Planning Setup
 
   //#region Profile Setup
-  function ProfileSetup(userRef, auth) {
-    
+  function ProfileSetup(auth, isAnonymous) {
+    if (isAnonymous) {
+      profileBlocked.classList.remove('hide');
+      profileInfo.parentElement.classList.add('hide');
+      profileInfo.replaceChildren();
+      Loading(false);
+    } else {
+      loginScreen.classList.remove('show');
+      mainScreen.classList.remove('disable-click');
+      profileBlocked.classList.add('hide');
+      profileInfo.parentElement.classList.remove('hide');
+      Loading(true);
+
+      onValue(ref_db(database, 'Users/' + auth?.currentUser.uid), (snapshot) => {
+        const userImage = snapshot.child("Image").val();
+        const userName = snapshot.child("Name").val();
+        const userEmail = auth?.currentUser.email;
+        const userPhone = snapshot.child("Phone").val();
+
+        getDownloadURL(ref_st(storage, "Users/" + auth?.currentUser.uid + "/" + userImage))
+          .then((url) => {
+            //Clear current elements from profile section
+            profileInfo.replaceChildren();
+
+            CreateProfileHeader(profileInfo, url, userName);
+            CreatProfileInfoRow(profileInfo, userName, userEmail, userPhone);
+
+            Loading(false);
+          })
+          .catch((error) => {
+            console.log(error);
+          })
+      }, {
+        onlyOnce: true
+      });
+    }
   }
 
-  function CreateProfileHeader(parentElem) {
-    
+  function CreateProfileHeader(parentElem, imgUrl, userName) {
+    var profileHeader = document.createElement('li');
+    profileHeader.classList.add('profile-header');
+
+    var profCol1 = document.createElement('div'); profCol1.className = "profile-col";
+    var profImg = document.createElement('img'); profImg.src = imgUrl; profImg.className = "profile-image";
+    profCol1.appendChild(profImg); profileHeader.appendChild(profCol1);
+
+    var profCol2 = document.createElement('div'); profCol2.className = "profile-col";
+    var profName = document.createElement('h3'); profName.textContent = userName;
+    profCol2.appendChild(profName); profileHeader.appendChild(profCol2);
+
+    var profCol3 = document.createElement('div'); profCol3.className = "profile-col";
+    var profSignOut = document.createElement('button'); profSignOut.setAttribute('id', 'signout-button'); profSignOut.className = "signout-button";
+    profCol3.appendChild(profSignOut); profileHeader.appendChild(profCol3);
+
+    parentElem.appendChild(profileHeader);
   }
 
-  function CreatProfileInfoRow([parentElem]) {
-    
+  function CreatProfileInfoRow(parentElem, userName, userEmail, userPhone) {
+    var profileRow = document.createElement('li');
+    profileRow.className = "profile-row";
+
+    var title = document.createElement('h2'); title.textContent = "Your Information"; profileRow.appendChild(title);
+    var name = document.createElement('h3'); name.textContent = userName; name.className = "prof-info"; name.setAttribute('data-label', 'Name:'); profileRow.appendChild(name);
+    var email = document.createElement('h3'); email.textContent = userEmail; email.className = "prof-info"; email.setAttribute('data-label', 'Email:'); profileRow.appendChild(email);
+    var phone = document.createElement('h3'); phone.textContent = userPhone; phone.className = "prof-info"; phone.setAttribute('data-label', 'Phone:'); profileRow.appendChild(phone);
+    var days = document.createElement('h3'); days.textContent = 0; days.className = "prof-info"; days.setAttribute('data-label', 'Days RSVP\'d:'); profileRow.appendChild(days);
+    var editButton = document.createElement('button'); editButton.className = "editinfo-button"; profileRow.appendChild(editButton);
+
+    parentElem.appendChild(profileRow);
   }
   //#endregion Profile Setup
 
   //#region Week Menu Dropdown
-  function SetupDropdowns(select, isHost, optionsArr) { 
+  function SetupDropdowns(select, isHost, optionsArr) {
     let menu = select.parentNode,
       button = menu.children[1],
       btnList = button.children[1],
@@ -600,15 +673,15 @@ window.addEventListener('load', () => {
 
     if (li) {
       if (li.parentNode.parentNode === overviewWeekSelection.parentNode || li.parentNode.parentNode === planWeekSelection.parentNode) {
-        DropdownSelection(li, overviewWeekSelection.parentNode);
-        DropdownSelection(li, planWeekSelection.parentNode);
+        DropdownSelection(li, overviewWeekSelection.parentNode, auth);
+        DropdownSelection(li, planWeekSelection.parentNode, auth);
 
         // Switch Event Containers based on selection
         ShowEventContainers(li.textContent, "planning-container");
         ShowEventContainers(li.textContent, "overview-container");
       }
       else {
-        DropdownSelection(li, hostSelection.parentNode);
+        DropdownSelection(li, hostSelection.parentNode, auth);
       }
     }
 
@@ -622,7 +695,7 @@ window.addEventListener('load', () => {
           liTarget = option;
         }
       });
-      DropdownSelection(liTarget, hostSelection.parentNode);
+      DropdownSelection(liTarget, hostSelection.parentNode, auth);
       tabPlanning.click();
     }
 
@@ -643,7 +716,7 @@ window.addEventListener('load', () => {
 
   });
 
-  function DropdownSelection(elemTarget, menu) {
+  function DropdownSelection(elemTarget, menu, auth) {
     let li = elemTarget,
       select = menu && menu.querySelector('select'),
       selected = select && select.querySelector('option:checked'),
@@ -656,7 +729,8 @@ window.addEventListener('load', () => {
       menu.classList.add(index > Array.prototype.indexOf.call(select.querySelectorAll('option'), selected) ? 'tilt-down' : 'tilt-up');
 
       if (menu === hostSelection.parentNode) {
-        PlanningSetup(planRef, userAcc?.isAnonymous, hostNameArr.find(h => h.host === clicked.textContent).group);
+        console.log("here");
+        PlanningSetup(planRef, auth?.currentUser.isAnonymous, hostNameArr.find(h => h.host === clicked.textContent).group);
       }
 
       setTimeout(function () {
