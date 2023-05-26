@@ -104,7 +104,7 @@ window.addEventListener('load', () => {
   //Arrays to hold the data of each week
   var currWeekArr = [], nextWeekArr = [], futureWeekArr = [];
   //Arrays to hold group information
-  var groupInfoArr = [], hostNameArr = [];
+  var groupInfoArr = [], hostNameArr = [], userScheduleArr = [];
 
   function Loading(show) {
     if (show) {
@@ -489,8 +489,8 @@ window.addEventListener('load', () => {
       SetupDropdowns(overviewWeekSelection, false);
       SetupDropdowns(hostSelection, true, hostNameArr);
 
-      //Now setup planning tab
-      PlanningSetup(planRef, isAnonymous, 'Group 1');
+      //Now setup profile tab
+      ProfileSetup(auth, isAnonymous);
     });
   }
 
@@ -547,8 +547,101 @@ window.addEventListener('load', () => {
   }
   //#endregion Overview Setup
 
+  //#region Profile Setup
+  function ProfileSetup(auth, isAnonymous) {
+    if (isAnonymous) {
+      profileBlocked.classList.remove('hide');
+      profileInfo.parentElement.classList.add('hide');
+      profileInfo.replaceChildren();
+      PlanningSetup(planRef, isAnonymous, null);
+    } else {
+      loginScreen.classList.remove('show');
+      mainScreen.classList.remove('disable-click');
+      profileBlocked.classList.add('hide');
+      profileInfo.parentElement.classList.remove('hide');
+      Loading(true);
+
+      onValue(ref_db(database, 'Users/' + auth?.currentUser.uid), (snapshot) => {
+        const userImage = snapshot.child("Image").val();
+        const userName = snapshot.child("Name").val();
+        const userEmail = auth?.currentUser.email;
+        const userPhone = snapshot.child("Phone").val();
+        const userTotalRSVP = snapshot.child("Total RSVP'd").val();
+        
+        //Clear userScheduleArr to avoid duplicates
+        userScheduleArr = [];
+
+        //Now update their schedule for each week
+        snapshot.child("Schedule").child("Current Week").forEach((day) => {
+          const currWeekDay = { week: "Current Week", day: day.key, time: day.child('Time').val(), guests: day.child('Guests').val(), group: day.child('GroupID').val() };
+          userScheduleArr.unshift(currWeekDay);
+        });
+        snapshot.child("Schedule").child("Next Week").forEach((day) => {
+          const nextWeekDay = { week: "Next Week", day: day.key, time: day.child('Time').val(), guests: day.child('Guests').val(), group: day.child('GroupID').val()};
+          userScheduleArr.unshift(nextWeekDay);
+        });
+        snapshot.child("Schedule").child("Future Week").forEach((day) => {
+          const futureWeekDay = { week: "Future Week", day: day.key, time: day.child('Time').val(), guests: day.child('Guests').val(), group: day.child('GroupID').val()};
+          userScheduleArr.unshift(futureWeekDay);
+        });
+
+        getDownloadURL(ref_st(storage, "Users/" + auth?.currentUser.uid + "/" + userImage))
+          .then((url) => {
+            //Clear current elements from profile section
+            profileInfo.replaceChildren();
+
+            CreateProfileHeader(profileInfo, url, userName);
+            CreatProfileInfoRow(profileInfo, userName, userEmail, userPhone, userTotalRSVP);
+
+            //Now setup Planning tab
+            PlanningSetup(planRef, isAnonymous, 'Group 1', userScheduleArr);
+            Loading(false);
+          })
+          .catch((error) => {
+            console.log(error);
+          })
+      }, {
+        onlyOnce: true
+      });
+    }
+  }
+
+  function CreateProfileHeader(parentElem, imgUrl, userName) {
+    var profileHeader = document.createElement('li');
+    profileHeader.classList.add('profile-header');
+
+    var profCol1 = document.createElement('div'); profCol1.className = "profile-col";
+    var profImg = document.createElement('img'); profImg.src = imgUrl; profImg.className = "profile-image";
+    profCol1.appendChild(profImg); profileHeader.appendChild(profCol1);
+
+    var profCol2 = document.createElement('div'); profCol2.className = "profile-col";
+    var profName = document.createElement('h3'); profName.textContent = userName;
+    profCol2.appendChild(profName); profileHeader.appendChild(profCol2);
+
+    var profCol3 = document.createElement('div'); profCol3.className = "profile-col";
+    var profSignOut = document.createElement('button'); profSignOut.setAttribute('id', 'signout-button'); profSignOut.className = "signout-button";
+    profCol3.appendChild(profSignOut); profileHeader.appendChild(profCol3);
+
+    parentElem.appendChild(profileHeader);
+  }
+
+  function CreatProfileInfoRow(parentElem, userName, userEmail, userPhone, userTotalRSVP) {
+    var profileRow = document.createElement('li');
+    profileRow.className = "profile-row";
+
+    var title = document.createElement('h2'); title.textContent = "Your Information"; profileRow.appendChild(title);
+    var name = document.createElement('h3'); name.textContent = userName; name.className = "prof-info"; name.setAttribute('data-label', 'Name:'); profileRow.appendChild(name);
+    var email = document.createElement('h3'); email.textContent = userEmail; email.className = "prof-info"; email.setAttribute('data-label', 'Email:'); profileRow.appendChild(email);
+    var phone = document.createElement('h3'); phone.textContent = userPhone; phone.className = "prof-info"; phone.setAttribute('data-label', 'Phone:'); profileRow.appendChild(phone);
+    var days = document.createElement('h3'); days.textContent = userTotalRSVP; days.className = "prof-info"; days.setAttribute('data-label', 'Total Days RSVP\'d:'); profileRow.appendChild(days);
+    var editButton = document.createElement('button'); editButton.className = "editinfo-button"; profileRow.appendChild(editButton);
+
+    parentElem.appendChild(profileRow);
+  }
+  //#endregion Profile Setup
+
   //#region Planning Setup
-  function PlanningSetup(planRef, isAnonymous, groupID) {
+  function PlanningSetup(planRef, isAnonymous, groupID, userScheduleArr) {
     if (isAnonymous) {
       planningBlocked.classList.remove('hide');
       planningIntro.parentElement.classList.add('hide');
@@ -556,7 +649,7 @@ window.addEventListener('load', () => {
       planCurrWeek.replaceChildren();
       planNextWeek.replaceChildren();
       planFutureWeek.replaceChildren();
-      ProfileSetup(auth, isAnonymous);
+      Loading(false);
     } else {
       loginScreen.classList.remove('show');
       mainScreen.classList.remove('disable-click');
@@ -589,28 +682,28 @@ window.addEventListener('load', () => {
             planNextWeek.replaceChildren();
             planFutureWeek.replaceChildren();
 
-            CreatePlanningTableHeader(planCurrWeek);
+            CreatePlanningTableHeader(planCurrWeek);      
             currWeekArr.forEach((elem) => {
               if (elem.group === groupID) {
-                CreatePlanningTableRow(elem, groupInfoArr, elem.group, planCurrWeek);
+                CreatePlanningTableRow(elem, groupInfoArr, elem.group, planCurrWeek, userScheduleArr.filter(u => u.group === groupID && u.week === 'Current Week'));
               }
             });
             CreatePlanningTableHeader(planNextWeek);
             nextWeekArr.forEach((elem) => {
               if (elem.group === groupID) {
-                CreatePlanningTableRow(elem, groupInfoArr, elem.group, planNextWeek);
+                CreatePlanningTableRow(elem, groupInfoArr, elem.group, planNextWeek, userScheduleArr.filter(u => u.group === groupID && u.week === 'Next Week'));
               }
             });
             CreatePlanningTableHeader(planFutureWeek);
             futureWeekArr.forEach((elem) => {
               if (elem.group === groupID) {
-                CreatePlanningTableRow(elem, groupInfoArr, elem.group, planFutureWeek);
+                CreatePlanningTableRow(elem, groupInfoArr, elem.group, planFutureWeek, userScheduleArr.filter(u => u.group === groupID && u.week === 'Future Week'));
               }
             });
 
-            //Now Update planning intro & User Profile
+            //Now Update planning intro
             UpdatePlanningIntro(hostNameArr, groupInfoArr, groupID, planningIntro);
-            ProfileSetup(auth, isAnonymous);
+            Loading(false);
           })
           .catch((error) => {
             console.log(error);
@@ -640,13 +733,18 @@ window.addEventListener('load', () => {
     parentElem.appendChild(tableHeader);
   }
 
-  function CreatePlanningTableRow(elem, groupInfoArr, groupID, parentElem) {
+  function CreatePlanningTableRow(elem, groupInfoArr, groupID, parentElem, userScheduleArr) {
     var row = document.createElement('li');
     row.className = "table-row";
 
     var col1 = document.createElement('div'); col1.className = "col"; col1.setAttribute('data-label', "Day/Time:"); col1.textContent = elem.day + "/" + elem.time; row.appendChild(col1);
     var col2 = document.createElement('div'); col2.className = "col"; col2.setAttribute('data-label', "Address:"); col2.textContent = groupInfoArr.find(g => g.group === groupID).address; row.appendChild(col2);
-    var col3 = document.createElement('div'); col3.className = "col"; col3.setAttribute('data-label', "Status:"); col3.textContent = "Not Going"; row.appendChild(col3);
+
+    //Check user schedule to update these values if they exist
+    var col3 = document.createElement('div'); col3.className = "col"; col3.setAttribute('data-label', "Status:"); 
+
+    col3.textContent = "Not Going"; 
+    row.appendChild(col3);
 
     var col4 = document.createElement('div'); col4.className = "col"; col4.setAttribute('data-label', "Guests:");
     var counter = document.createElement('div'); counter.className = "counter";
@@ -656,85 +754,12 @@ window.addEventListener('load', () => {
     col4.appendChild(counter); row.appendChild(col4);
 
     var col5 = document.createElement('div'); col5.className = "col"; col5.setAttribute('data-label', "Action:");
-    var rsvp = document.createElement('button'); rsvp.className = "rsvp-button";
+    var rsvp = document.createElement('button'); rsvp.className = "rsvp-button"; rsvp.setAttribute('data-groupID', groupID);
     col5.appendChild(rsvp); row.appendChild(col5);
 
     parentElem.appendChild(row);
   }
   //#endregion Planning Setup
-
-  //#region Profile Setup
-  function ProfileSetup(auth, isAnonymous) {
-    if (isAnonymous) {
-      profileBlocked.classList.remove('hide');
-      profileInfo.parentElement.classList.add('hide');
-      profileInfo.replaceChildren();
-      Loading(false);
-    } else {
-      loginScreen.classList.remove('show');
-      mainScreen.classList.remove('disable-click');
-      profileBlocked.classList.add('hide');
-      profileInfo.parentElement.classList.remove('hide');
-      Loading(true);
-
-      onValue(ref_db(database, 'Users/' + auth?.currentUser.uid), (snapshot) => {
-        const userImage = snapshot.child("Image").val();
-        const userName = snapshot.child("Name").val();
-        const userEmail = auth?.currentUser.email;
-        const userPhone = snapshot.child("Phone").val();
-
-        getDownloadURL(ref_st(storage, "Users/" + auth?.currentUser.uid + "/" + userImage))
-          .then((url) => {
-            //Clear current elements from profile section
-            profileInfo.replaceChildren();
-
-            CreateProfileHeader(profileInfo, url, userName);
-            CreatProfileInfoRow(profileInfo, userName, userEmail, userPhone);
-
-            Loading(false);
-          })
-          .catch((error) => {
-            console.log(error);
-          })
-      }, {
-        onlyOnce: true
-      });
-    }
-  }
-
-  function CreateProfileHeader(parentElem, imgUrl, userName) {
-    var profileHeader = document.createElement('li');
-    profileHeader.classList.add('profile-header');
-
-    var profCol1 = document.createElement('div'); profCol1.className = "profile-col";
-    var profImg = document.createElement('img'); profImg.src = imgUrl; profImg.className = "profile-image";
-    profCol1.appendChild(profImg); profileHeader.appendChild(profCol1);
-
-    var profCol2 = document.createElement('div'); profCol2.className = "profile-col";
-    var profName = document.createElement('h3'); profName.textContent = userName;
-    profCol2.appendChild(profName); profileHeader.appendChild(profCol2);
-
-    var profCol3 = document.createElement('div'); profCol3.className = "profile-col";
-    var profSignOut = document.createElement('button'); profSignOut.setAttribute('id', 'signout-button'); profSignOut.className = "signout-button";
-    profCol3.appendChild(profSignOut); profileHeader.appendChild(profCol3);
-
-    parentElem.appendChild(profileHeader);
-  }
-
-  function CreatProfileInfoRow(parentElem, userName, userEmail, userPhone) {
-    var profileRow = document.createElement('li');
-    profileRow.className = "profile-row";
-
-    var title = document.createElement('h2'); title.textContent = "Your Information"; profileRow.appendChild(title);
-    var name = document.createElement('h3'); name.textContent = userName; name.className = "prof-info"; name.setAttribute('data-label', 'Name:'); profileRow.appendChild(name);
-    var email = document.createElement('h3'); email.textContent = userEmail; email.className = "prof-info"; email.setAttribute('data-label', 'Email:'); profileRow.appendChild(email);
-    var phone = document.createElement('h3'); phone.textContent = userPhone; phone.className = "prof-info"; phone.setAttribute('data-label', 'Phone:'); profileRow.appendChild(phone);
-    var days = document.createElement('h3'); days.textContent = 0; days.className = "prof-info"; days.setAttribute('data-label', 'Total Days RSVP\'d:'); profileRow.appendChild(days);
-    var editButton = document.createElement('button'); editButton.className = "editinfo-button"; profileRow.appendChild(editButton);
-
-    parentElem.appendChild(profileRow);
-  }
-  //#endregion Profile Setup
 
   //#region Week Menu Dropdown
   function SetupDropdowns(select, isHost, optionsArr) {
@@ -820,8 +845,12 @@ window.addEventListener('load', () => {
     const rsvp = e.target.closest('.rsvp-button');
 
     if (rsvp) {
-      rsvp.classList.add('rsvp-onClick');
-      setTimeout(ValidateRSVP(rsvp), 250);
+      rsvp.classList.add('button-onClick');
+      if (rsvp.classList.contains('rsvp-cancel-button')) {
+        setTimeout(ValidateRSVP(rsvp, true), 250);
+      } else {
+        setTimeout(ValidateRSVP(rsvp, false), 250);
+      }
     }
 
     //Guest counter
@@ -850,7 +879,7 @@ window.addEventListener('load', () => {
       menu.classList.add(index > Array.prototype.indexOf.call(select.querySelectorAll('option'), selected) ? 'tilt-down' : 'tilt-up');
 
       if (menu === hostSelection.parentNode) {
-        PlanningSetup(planRef, auth?.currentUser.isAnonymous, hostNameArr.find(h => h.host === clicked.textContent).group);
+        PlanningSetup(planRef, auth?.currentUser.isAnonymous, hostNameArr.find(h => h.host === clicked.textContent).group, userScheduleArr);
       }
 
       setTimeout(function () {
@@ -895,16 +924,23 @@ window.addEventListener('load', () => {
     }
   }
 
-  function ValidateRSVP(button) {
+  function ValidateRSVP(button, isRsvp) {
     setTimeout(function () {
-      button.classList.remove('rsvp-onClick');
+      button.classList.remove('button-onClick');
       button.classList.add('rsvp-validate');
-      setTimeout(ApproveRSVP(button), 450);
+      setTimeout(ApproveRSVP(button, isRsvp), 450);
     }, 2250);
   }
 
-  function ApproveRSVP(button) {
+  function ApproveRSVP(button, isRsvp) {
     setTimeout(function () {
+      if (isRsvp === true) {
+        button.classList.remove('rsvp-cancel-button');
+        button.parentElement.parentElement.children[2].textContent = "Not Going";
+      } else {
+        button.classList.add('rsvp-cancel-button');
+        button.parentElement.parentElement.children[2].textContent = "Going";
+      }
       button.classList.remove('rsvp-validate');
     }, 2250);
   }
@@ -923,8 +959,10 @@ window.addEventListener('load', () => {
     var input = elem.previousElementSibling;
     var value = parseInt(input.value, 10);
     value = isNaN(value) ? 0 : value;
-    value++;
-    input.value = value;
+    if (value < 10) {
+      value++;
+      input.value = value;
+    }
   }
 
   //#endregion Click Functions

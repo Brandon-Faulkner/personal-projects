@@ -80,6 +80,10 @@ h2 {
   text-align: center;
 }
 
+h3 {
+  font-weight: normal;
+}
+
 h4 {
   color: var(--red);
   font-size: 16px;
@@ -1099,6 +1103,16 @@ form .btn input[type="submit"] {
   cursor: pointer;
 }
 
+.clickable-row:hover {
+  background-color: var(--background);
+  color: var(--white);
+}
+
+.clickable-row:active {
+  background-color: var(--blue);
+  color: var(--white);
+}
+
 .responsive-table .col {
   flex-basis: 20%;
 }
@@ -1168,15 +1182,22 @@ form .btn input[type="submit"] {
 
 .rsvp-button:active {
   letter-spacing: 2px;
-  color: var(--white);
-  background: var(--green);
 }
 
 .rsvp-button:after {
   content: "RSVP";
 }
 
-.rsvp-onClick {
+.rsvp-cancel-button {
+  background: var(--red);
+  border: 2px solid var(--red);
+}
+
+.rsvp-cancel-button:after {
+  content: "Cancel RSVP";
+}
+
+.button-onClick {
   width: 40px;
   border-color: #bbbbbb;
   border-width: 3px;
@@ -1187,11 +1208,11 @@ form .btn input[type="submit"] {
   animation: rotating 2s 0.25s linear infinite;
 }
 
-.rsvp-onClick:after {
+.button-onClick:after {
   content: "";
 }
 
-.rsvp-onClick:hover {
+.button-onClick:hover {
   color: var(--blue);
   background: white;
 }
@@ -1261,17 +1282,6 @@ form .btn input[type="submit"] {
   content: "Contact";
 }
 
-.contact-onClick {
-  width: 40px;
-  border-color: #bbbbbb;
-  border-width: 3px;
-  font-size: 0;
-  background: var(--white);
-  border-left-color: var(--blue);
-  -webkit-animation: rotating 2s 0.25s linear infinite;
-  animation: rotating 2s 0.25s linear infinite;
-}
-
 /*Sign Out Button*/
 .signout-button {
   outline: none;
@@ -1303,17 +1313,6 @@ form .btn input[type="submit"] {
 
 .signout-button:after {
   content: "Sign Out";
-}
-
-.signout-onClick {
-  width: 40px;
-  border-color: #bbbbbb;
-  border-width: 3px;
-  font-size: 0;
-  background: var(--white);
-  border-left-color: var(--blue);
-  -webkit-animation: rotating 2s 0.25s linear infinite;
-  animation: rotating 2s 0.25s linear infinite;
 }
 
 /*Edit Info Button*/
@@ -1349,17 +1348,6 @@ form .btn input[type="submit"] {
   content: "Edit Info";
 }
 
-.editinfo-onClick {
-  width: 40px;
-  border-color: #bbbbbb;
-  border-width: 3px;
-  font-size: 0;
-  background: var(--white);
-  border-left-color: var(--blue);
-  -webkit-animation: rotating 2s 0.25s linear infinite;
-  animation: rotating 2s 0.25s linear infinite;
-}
-
 /*Guest Button*/
 .counter {
   width: 90px;
@@ -1391,6 +1379,22 @@ form .btn input[type="submit"] {
   user-select: none;
 }
 
+.guest-up {
+  width: 10px;
+}
+.guest-down {
+  width: 10px;
+}
+
+.guest-up:hover {
+  background-color: var(--background);
+  border-radius: var(--border-radius);
+}
+
+.guest-down:hover {
+  background-color: var(--background);
+  border-radius: var(--border-radius);
+}
 /*#endregion BUTTONS*/
 
 /*#region MOBILE RESPONSIVENESS*/
