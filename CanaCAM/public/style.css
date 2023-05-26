@@ -8,7 +8,7 @@
   --background: #2d2d2d;
   --background-light: #2d2d2db0;
   --green: #00aa63;
-  --red: #f04545;
+  --red: #d53d3d;
   --border-radius: 15px;
   --box-shadow: 0 0 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
 }
@@ -78,6 +78,13 @@ h2 {
   font-size: calc(2vw + 1.25vh);
   text-transform: uppercase;
   text-align: center;
+}
+
+h4 {
+  color: var(--red);
+  font-size: 16px;
+  text-align: center;
+  margin: auto;
 }
 
 p {
@@ -233,9 +240,9 @@ p {
 
 /*#region LOGIN SCREEN*/
 .login-wrapper {
-  overflow: hidden;
-  max-width: 350px;
-  max-height: fit-content;
+  max-width: 445px;
+  height: 60vh;
+  max-height: 650px;
   background: var(--white);
   padding: 30px;
   border-radius: var(--border-radius);
@@ -276,6 +283,11 @@ p {
   animation-iteration-count: 1;
   border-color: var(--red) !important;
   color: var(--red) !important;
+}
+
+.login-error-msg {
+  display: flex;
+  margin: 10px 0 0;
 }
 
 @keyframes login-error {
@@ -407,7 +419,7 @@ input[type="radio"] {
 
 .login-wrapper .login-form-container {
   width: 100%;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
 .login-form-container .login-form-inner {
@@ -527,16 +539,17 @@ form .btn input[type="submit"] {
   top: 0;
   left: 0;
   background: var(--white);
-  padding: 10px 15px;
+  padding: 12px 18px;
   display: block;
   width: calc(100% - 40px);
   pointer-events: none;
   z-index: 20;
-  height: 40px;
-  line-height: 30px;
   color: #999;
-  border-radius: 5px 10px 10px 5px;
   font-weight: 300;
+  border: 1px solid lightgrey;
+  border-bottom-width: 2px;
+  border-radius: 15px;
+  outline: none;
 }
 
 .file-upload-wrapper:before {
@@ -546,7 +559,7 @@ form .btn input[type="submit"] {
   right: 0;
   display: inline-block;
   height: 50px;
-  background: var(--blue);
+  background: var(--green);
   color: var(--white);
   font-weight: 700;
   z-index: 25;
@@ -556,10 +569,12 @@ form .btn input[type="submit"] {
   text-transform: uppercase;
   pointer-events: none;
   border-radius: 0 15px 15px 0;
+  outline: solid;
 }
 
 .file-upload-wrapper:hover:before {
-  background: var(--blue-hover);
+  background: var(--white);
+  color: var(--green);
 }
 
 .file-upload-wrapper input {
@@ -577,7 +592,6 @@ form .btn input[type="submit"] {
   cursor: pointer;
   width: 100%;
 }
-
 /*#endregion LOGIN SCREEN*/
 
 /*#region PAGE TABS*/
@@ -1115,6 +1129,7 @@ form .btn input[type="submit"] {
   background-color: var(--white);
   box-shadow: var(--box-shadow);
   display: block !important;
+  font-size: calc(1vw + 1vh);
 }
 
 .prof-info::before {

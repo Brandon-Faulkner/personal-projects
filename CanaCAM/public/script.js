@@ -32,6 +32,21 @@ const firebaseConfig = {
 
 window.addEventListener('load', () => {
 
+  /*Notification.requestPermission().then((result) => {
+    randomNotification();
+  });
+  function randomNotification() {
+    const notifTitle = "Test Title";
+    const notifBody = `Created by Brandon Faulkner.`;
+    const notifImg = "Resources/Icons/android-chrome-96x96.png";
+    const options = {
+      body: notifBody,
+      icon: notifImg,
+    };
+    new Notification(notifTitle, options);
+    setTimeout(randomNotification, 30000);
+  }*/
+
   //#region Variables
   // Initialize Firebase, Database and Authentication
   const app = initializeApp(firebaseConfig);
@@ -86,8 +101,6 @@ window.addEventListener('load', () => {
   const profileSection = document.getElementById('profile-section');
   const profileBlocked = document.getElementById('profile-blocked');
   const profileInfo = document.getElementById('profile-info');
-  const signOutBtn = document.getElementById('signout-button');
-
   //Arrays to hold the data of each week
   var currWeekArr = [], nextWeekArr = [], futureWeekArr = [];
   //Arrays to hold group information
@@ -128,7 +141,7 @@ window.addEventListener('load', () => {
       else {
         //Signed in with Account
         OverviewSetup(groupRef, user?.isAnonymous);
-
+        console.log(user);
         //Remove listeners
         tabPlanning.removeEventListener('click', ShowLogin);
         tabProfile.removeEventListener('click', ShowLogin);
@@ -175,16 +188,15 @@ window.addEventListener('load', () => {
         const userStoreRef = ref_st(storage, "Users/" + usercred.user.uid + "/" + imgName);
         uploadBytes(userStoreRef, img)
           .then((snapshot) => {
-            console.log("Image upload good");
+            //Signed in with Account
+            OverviewSetup(groupRef, usercred.user?.isAnonymous);
+
+            //Remove listeners
+            tabPlanning.removeEventListener('click', ShowLogin);
+            tabProfile.removeEventListener('click', ShowLogin);
+            loginCloseBtn.removeEventListener('click', ShowLogin);
           });
 
-        //Signed in with Account
-        OverviewSetup(groupRef, usercred.user?.isAnonymous);
-
-        //Remove listeners
-        tabPlanning.removeEventListener('click', ShowLogin);
-        tabProfile.removeEventListener('click', ShowLogin);
-        loginCloseBtn.removeEventListener('click', ShowLogin);
       }).catch((error) => {
         console.log("Error upgrading anonymous account", error);
       });
@@ -213,12 +225,6 @@ window.addEventListener('load', () => {
             loginPassword.classList.add('login-error');
             break;
         }
-
-        setTimeout(() => {
-          loginText.classList.remove('login-error');
-          loginEmail.classList.remove('login-error');
-          loginPassword.classList.remove('login-error');
-        }, 5000);
       });
   }
 
@@ -252,28 +258,31 @@ window.addEventListener('load', () => {
 
   loginButton.addEventListener('click', function (e) {
     e.preventDefault();
+    loginText.classList.remove('login-error');
+    loginEmail.classList.remove('login-error');
+    loginPassword.classList.remove('login-error');
     SignInEmailAndPassword(auth, loginEmail.value, loginPassword.value);
   });
 
   signupButton.addEventListener('click', function (e) {
     e.preventDefault();
-    const name = signupName.value;
-    const phone = signupPhone.value;
-    const img = signupImg.files[0];
+    const name = signupName.value.trim();
+    const phone = signupPhone.value.trim();
+    const img = ValidateImg(signupImg.files[0]);
     const imgName = signupImg.parentElement.getAttribute('data-text');
-    const email = signupEmail.value;
+    const email = signupEmail.value.trim();
     const password = signupPassword.value;
     const confirmPass = signupConfirmPass.value;
 
-    const isEmailValid = validateEmail(email);
-    const isPasswordValid = validatePassword(password, confirmPass);
+    const isNameValid = ValidateName(name);
+    const isPhoneValid = ValidatePhone(phone);
+    const isEmailValid = ValidateEmail(email);
+    const isPasswordValid = ValidatePassword(password, confirmPass);
 
     //Upgrade annonymous account if data is valid
-    if (isEmailValid && isPasswordValid) {
+    if (isNameValid && isPhoneValid && isEmailValid && isPasswordValid && img != null) {
       const credential = EmailAuthProvider.credential(email, password);
       UpgradeAnonymous(auth, credential, img, imgName, name, phone);
-    } else {
-      console.log("Sign up data is invalid");
     }
   });
 
@@ -281,26 +290,134 @@ window.addEventListener('load', () => {
     signupToggleBtn.click();
   });
 
-  signOutBtn.addEventListener('click', function () {
-    SignOutUser(auth);
+  signupPhone.addEventListener('keydown', function (e) {
+    // Input must be of a valid number format or a modifier key, and not longer than ten digits
+    if (!isNumericInput(e) && !isModifierKey(e)) {
+      e.preventDefault();
+    }
+  });
+
+  const isNumericInput = (event) => {
+    const key = event.keyCode;
+    return ((key >= 48 && key <= 57) || // Allow number line
+      (key >= 96 && key <= 105) // Allow number pad
+    );
+  };
+
+  const isModifierKey = (event) => {
+    const key = event.keyCode;
+    return (event.shiftKey === true || key === 35 || key === 36) || // Allow Shift, Home, End
+      (key === 8 || key === 9 || key === 13 || key === 46) || // Allow Backspace, Tab, Enter, Delete
+      (key > 36 && key < 41) || // Allow left, up, right, down
+      (
+        // Allow Ctrl/Command + A,C,V,X,Z
+        (event.ctrlKey === true || event.metaKey === true) &&
+        (key === 65 || key === 67 || key === 86 || key === 88 || key === 90)
+      )
+  };
+
+  signupPhone.addEventListener('keyup', function (e) {
+    if (isModifierKey(e)) { return; }
+
+    const input = e.target.value.replace(/\D/g, '').substring(0, 10); // First ten digits of input only
+    const zip = input.substring(0, 3);
+    const middle = input.substring(3, 6);
+    const last = input.substring(6, 10);
+
+    if (input.length > 6) { e.target.value = `(${zip}) ${middle}-${last}`; }
+    else if (input.length > 3) { e.target.value = `(${zip}) ${middle}`; }
+    else if (input.length > 0) { e.target.value = `(${zip}`; }
   });
 
   signupImg.addEventListener('change', function () {
     signupImg.parentElement.setAttribute("data-text", signupImg.value.replace(/.*(\/|\\)/, ''));
   })
 
-  function validateEmail(email) {
-    var emailRegex = new RegExp(/^[A-Za-z0-9_!#$%&'*+\/=?`{|}~^.-]+@[A-Za-z0-9.-]+$/gm, "gm");
+  function ValidateName(name) {
+    const nameRegex = new RegExp(/^[a-zA-z]+ [a-zA-z]+$/gm, "gm");
+    const result = nameRegex.test(name);
+    const nameError = document.getElementById("name-error");
+    nameError.classList.add('hide');
+    signupName.classList.remove('login-error');
 
-    return emailRegex.test(email);
+    if (result === false) {
+      //Show error     
+      nameError.classList.remove('hide');
+      signupName.classList.add('login-error');
+    }
+
+    return result;
   }
 
-  function validatePassword(password, confirmPass) {
-    if (password === confirmPass) {
+  function ValidatePhone(phone) {
+    const phoneRegex = new RegExp(/^(\()?\d{3}(\))?(-|\s)?\d{3}(-|\s)\d{4}$/gm, "gm");
+    const result = phoneRegex.test(phone);
+    const phoneError = document.getElementById("phone-error");
+    phoneError.classList.add('hide');
+    signupPhone.classList.remove('login-error');
 
-      return true;
+    if (result === false) {
+      //Show error     
+      phoneError.classList.remove('hide');
+      signupPhone.classList.add('login-error');
+    }
+
+    return result;
+  }
+
+  function ValidateEmail(email) {
+    var emailRegex = new RegExp(/^[A-Za-z0-9_!#$%&'*+\/=?`{|}~^.-]+@[A-Za-z0-9.-]+$/gm, "gm");
+    const result = emailRegex.test(email);
+    const emailError = document.getElementById("email-error");
+    emailError.classList.add('hide');
+    signupEmail.classList.remove('login-error');
+
+    if (result === false) {
+      //Show error      
+      emailError.classList.remove('hide');
+      signupEmail.classList.add('login-error');
+    }
+
+    return result;
+  }
+
+  function ValidatePassword(password, confirmPass) {
+    var passRegex = new RegExp(/^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,}$/gm, "gm");
+    const passError = document.getElementById("pass-error");
+    const confPassError = document.getElementById("conf-pass-error");
+    passError.classList.add('hide'); confPassError.classList.add('hide');
+    signupPassword.classList.remove('login-error');
+    signupConfirmPass.classList.remove('login-error');
+
+    if (passRegex.test(password)) {
+      if (password === confirmPass) {
+        return true;
+      } else {
+        //Show error       
+        confPassError.classList.remove('hide');
+        signupConfirmPass.classList.add('login-error');
+        return false;
+      }
     } else {
+      //Show error      
+      passError.classList.remove('hide');
+      signupPassword.classList.add('login-error');
       return false;
+    }
+  }
+
+  function ValidateImg(img) {
+    const fileError = document.getElementById('file-error');
+    fileError.classList.add('hide');
+    signupImg.classList.remove('login-error');
+
+    if (img) {
+      return img;
+    } else {
+      //Show error   
+      fileError.classList.remove('hide');
+      signupImg.classList.add('login-error');
+      return null;
     }
   }
   //#endregion Login Functions
@@ -612,7 +729,7 @@ window.addEventListener('load', () => {
     var name = document.createElement('h3'); name.textContent = userName; name.className = "prof-info"; name.setAttribute('data-label', 'Name:'); profileRow.appendChild(name);
     var email = document.createElement('h3'); email.textContent = userEmail; email.className = "prof-info"; email.setAttribute('data-label', 'Email:'); profileRow.appendChild(email);
     var phone = document.createElement('h3'); phone.textContent = userPhone; phone.className = "prof-info"; phone.setAttribute('data-label', 'Phone:'); profileRow.appendChild(phone);
-    var days = document.createElement('h3'); days.textContent = 0; days.className = "prof-info"; days.setAttribute('data-label', 'Days RSVP\'d:'); profileRow.appendChild(days);
+    var days = document.createElement('h3'); days.textContent = 0; days.className = "prof-info"; days.setAttribute('data-label', 'Total Days RSVP\'d:'); profileRow.appendChild(days);
     var editButton = document.createElement('button'); editButton.className = "editinfo-button"; profileRow.appendChild(editButton);
 
     parentElem.appendChild(profileRow);
@@ -714,6 +831,10 @@ window.addEventListener('load', () => {
     if (guestDown) { GuestDown(guestDown); }
     if (guestUp) { GuestUp(guestUp); }
 
+    //Sign out button
+    const signOutButton = e.target.closest('.signout-button');
+
+    if (signOutButton) { SignOutUser(auth); }
   });
 
   function DropdownSelection(elemTarget, menu, auth) {
@@ -729,7 +850,6 @@ window.addEventListener('load', () => {
       menu.classList.add(index > Array.prototype.indexOf.call(select.querySelectorAll('option'), selected) ? 'tilt-down' : 'tilt-up');
 
       if (menu === hostSelection.parentNode) {
-        console.log("here");
         PlanningSetup(planRef, auth?.currentUser.isAnonymous, hostNameArr.find(h => h.host === clicked.textContent).group);
       }
 
