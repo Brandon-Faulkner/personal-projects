@@ -741,20 +741,33 @@ window.addEventListener('load', () => {
     var col2 = document.createElement('div'); col2.className = "col"; col2.setAttribute('data-label', "Address:"); col2.textContent = groupInfoArr.find(g => g.group === groupID).address; row.appendChild(col2);
 
     //Check user schedule to update these values if they exist
-    var col3 = document.createElement('div'); col3.className = "col"; col3.setAttribute('data-label', "Status:"); 
-
-    col3.textContent = "Not Going"; 
-    row.appendChild(col3);
+    //First create elements, update values if needed, then add to row in order
+    var col3 = document.createElement('div'); col3.className = "col"; col3.setAttribute('data-label', "Status:"); col3.textContent = "Not Going"; 
 
     var col4 = document.createElement('div'); col4.className = "col"; col4.setAttribute('data-label', "Guests:");
     var counter = document.createElement('div'); counter.className = "counter";
-    var minus = document.createElement('span'); minus.className = "guest-down"; minus.textContent = "-"; counter.appendChild(minus);
-    var counterInput = document.createElement('input'); counterInput.setAttribute("id", "counter-input-" + Math.floor(Math.random() * 100000)); counterInput.setAttribute("type", "text"); counterInput.value = 0; counterInput.disabled = true; counter.appendChild(counterInput);
-    var plus = document.createElement('span'); plus.className = "guest-up"; plus.textContent = "+"; counter.appendChild(plus);
-    col4.appendChild(counter); row.appendChild(col4);
+    var minus = document.createElement('span'); minus.className = "guest-down"; minus.textContent = "-"; 
+    var counterInput = document.createElement('input'); counterInput.setAttribute("id", "counter-input-" + Math.floor(Math.random() * 100000)); counterInput.setAttribute("type", "text"); counterInput.value = 0; counterInput.disabled = true; 
+    var plus = document.createElement('span'); plus.className = "guest-up"; plus.textContent = "+";
 
     var col5 = document.createElement('div'); col5.className = "col"; col5.setAttribute('data-label', "Action:");
     var rsvp = document.createElement('button'); rsvp.className = "rsvp-button"; rsvp.setAttribute('data-groupID', groupID);
+
+    //Check schedule
+    if (userScheduleArr != null) {
+      userScheduleArr.forEach((userDay) => {
+        if (elem.day === userDay.day && elem.time === userDay.time) {
+          col3.textContent = "Going";
+          minus.style = "display: none;"; plus.style = "display: none;";
+          counterInput.value = userDay.guests;
+          rsvp.classList.add('rsvp-cancel-button');
+        }
+      });
+    }
+ 
+    //Add elements to row then to parent
+    row.appendChild(col3); 
+    counter.appendChild(minus); counter.appendChild(counterInput); counter.appendChild(plus); col4.appendChild(counter); row.appendChild(col4);
     col5.appendChild(rsvp); row.appendChild(col5);
 
     parentElem.appendChild(row);
