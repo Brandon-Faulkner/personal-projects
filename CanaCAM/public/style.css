@@ -107,6 +107,10 @@ p {
   background-color: #fff;
 }
 
+.fa-solid {
+  padding-right: 5px;
+}
+
 /*#endregion MAIN STYLES*/
 
 /*#region LOADING*/
@@ -1350,7 +1354,7 @@ form .btn input[type="submit"] {
 
 /*Guest Button*/
 .counter {
-  width: 90px;
+  width: 100px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1377,14 +1381,14 @@ form .btn input[type="submit"] {
   cursor: pointer;
   color: var(--white);
   user-select: none;
-  font-size: 22px;
+  font-size: 18px;
 }
 
 .guest-up {
-  width: 10px;
+  width: 15px;
 }
 .guest-down {
-  width: 10px;
+  width: 15px;
 }
 
 .guest-up:hover {

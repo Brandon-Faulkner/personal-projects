@@ -15,7 +15,7 @@ if (navigator.serviceWorker) {
 
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-app.js";
-import { getDatabase, ref as ref_db, onValue, child, set } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-database.js";
+import { getDatabase, ref as ref_db, onValue, child, set, remove } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-database.js";
 import { getStorage, ref as ref_st, getDownloadURL, uploadBytes } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-storage.js";
 import { getAuth, onAuthStateChanged, signInAnonymously, signInWithEmailAndPassword, EmailAuthProvider, linkWithCredential, signOut } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-auth.js";
 
@@ -51,6 +51,7 @@ window.addEventListener('load', () => {
   // Initialize Firebase, Database and Authentication
   const app = initializeApp(firebaseConfig);
   const database = getDatabase(app);
+  const weekDatesRef = ref_db(database, "WeekDates/");
   const groupRef = ref_db(database, "Groups/");
   const planRef = ref_db(database, "GroupsInfo/");
   const storage = getStorage(app);
@@ -101,6 +102,8 @@ window.addEventListener('load', () => {
   const profileSection = document.getElementById('profile-section');
   const profileBlocked = document.getElementById('profile-blocked');
   const profileInfo = document.getElementById('profile-info');
+  //Vars to hold the timestamp of the Week Dates from db
+  var currWeekTimestamp = null, nextWeekTimestamp = null, futureWeekTimestamp = null;
   //Arrays to hold the data of each week
   var currWeekArr = [], nextWeekArr = [], futureWeekArr = [];
   //Arrays to hold group information
@@ -422,6 +425,17 @@ window.addEventListener('load', () => {
   }
   //#endregion Login Functions
 
+  //#region Week Date Functions
+  function InitializeWeekDateVars(currWeekTimestamp, nextWeekTimestamp, futureWeekTimestamp) {
+    onValue(weekDatesRef, (snapshot) => {
+      currWeekTimestamp = snapshot.child("Current Timestamp");
+      nextWeekTimestamp = snapshot.child("Next Timestamp");
+      futureWeekTimestamp = snapshot.child('Future Timestamp');
+    });
+  }
+  
+  //#endregion Week Date Functions
+
   //#region Overview Setup
   function OverviewSetup(groupRef, isAnonymous) {
     onValue(groupRef, (snapshot) => {
@@ -567,7 +581,7 @@ window.addEventListener('load', () => {
         const userEmail = auth?.currentUser.email;
         const userPhone = snapshot.child("Phone").val();
         const userTotalRSVP = snapshot.child("Total RSVP'd").val();
-        
+
         //Clear userScheduleArr to avoid duplicates
         userScheduleArr = [];
 
@@ -577,11 +591,11 @@ window.addEventListener('load', () => {
           userScheduleArr.unshift(currWeekDay);
         });
         snapshot.child("Schedule").child("Next Week").forEach((day) => {
-          const nextWeekDay = { week: "Next Week", day: day.key, time: day.child('Time').val(), guests: day.child('Guests').val(), group: day.child('GroupID').val()};
+          const nextWeekDay = { week: "Next Week", day: day.key, time: day.child('Time').val(), guests: day.child('Guests').val(), group: day.child('GroupID').val() };
           userScheduleArr.unshift(nextWeekDay);
         });
         snapshot.child("Schedule").child("Future Week").forEach((day) => {
-          const futureWeekDay = { week: "Future Week", day: day.key, time: day.child('Time').val(), guests: day.child('Guests').val(), group: day.child('GroupID').val()};
+          const futureWeekDay = { week: "Future Week", day: day.key, time: day.child('Time').val(), guests: day.child('Guests').val(), group: day.child('GroupID').val() };
           userScheduleArr.unshift(futureWeekDay);
         });
 
@@ -614,12 +628,13 @@ window.addEventListener('load', () => {
     var profImg = document.createElement('img'); profImg.src = imgUrl; profImg.className = "profile-image";
     profCol1.appendChild(profImg); profileHeader.appendChild(profCol1);
 
-    var profCol2 = document.createElement('div'); profCol2.className = "profile-col";
-    var profName = document.createElement('h3'); profName.textContent = userName;
-    profCol2.appendChild(profName); profileHeader.appendChild(profCol2);
+    //var profCol2 = document.createElement('div'); profCol2.className = "profile-col";
+    //var profName = document.createElement('h3'); profName.textContent = userName;
+    //profCol2.appendChild(profName); profileHeader.appendChild(profCol2);
 
-    var profCol3 = document.createElement('div'); profCol3.className = "profile-col";
+    var profCol3 = document.createElement('div'); profCol3.className = "profile-col"; profCol3.style = "padding-top: 10px;";
     var profSignOut = document.createElement('button'); profSignOut.setAttribute('id', 'signout-button'); profSignOut.className = "signout-button";
+    var profSignOutIcon = document.createElement('i'); profSignOutIcon.className = "fa-solid fa-right-from-bracket"; profSignOut.appendChild(profSignOutIcon);
     profCol3.appendChild(profSignOut); profileHeader.appendChild(profCol3);
 
     parentElem.appendChild(profileHeader);
@@ -634,7 +649,8 @@ window.addEventListener('load', () => {
     var email = document.createElement('h3'); email.textContent = userEmail; email.className = "prof-info"; email.setAttribute('data-label', 'Email:'); profileRow.appendChild(email);
     var phone = document.createElement('h3'); phone.textContent = userPhone; phone.className = "prof-info"; phone.setAttribute('data-label', 'Phone:'); profileRow.appendChild(phone);
     var days = document.createElement('h3'); days.textContent = userTotalRSVP; days.className = "prof-info"; days.setAttribute('data-label', 'Total Days RSVP\'d:'); profileRow.appendChild(days);
-    var editButton = document.createElement('button'); editButton.className = "editinfo-button"; profileRow.appendChild(editButton);
+    var editButton = document.createElement('button'); editButton.className = "editinfo-button";
+    var editIcon = document.createElement('i'); editIcon.className = "fa-solid fa-pen-to-square"; editButton.appendChild(editIcon); profileRow.appendChild(editButton);
 
     parentElem.appendChild(profileRow);
   }
@@ -682,7 +698,7 @@ window.addEventListener('load', () => {
             planNextWeek.replaceChildren();
             planFutureWeek.replaceChildren();
 
-            CreatePlanningTableHeader(planCurrWeek);      
+            CreatePlanningTableHeader(planCurrWeek);
             currWeekArr.forEach((elem) => {
               if (elem.group === groupID) {
                 CreatePlanningTableRow(elem, groupInfoArr, elem.group, planCurrWeek, userScheduleArr.filter(u => u.group === groupID && u.week === 'Current Week'));
@@ -742,31 +758,32 @@ window.addEventListener('load', () => {
 
     //Check user schedule to update these values if they exist
     //First create elements, update values if needed, then add to row in order
-    var col3 = document.createElement('div'); col3.className = "col"; col3.setAttribute('data-label', "Status:"); col3.textContent = "Not Going"; 
+    var col3 = document.createElement('div'); col3.className = "col"; col3.setAttribute('data-label', "Status:"); col3.textContent = "Not Going";
 
     var col4 = document.createElement('div'); col4.className = "col"; col4.setAttribute('data-label', "Guests:");
     var counter = document.createElement('div'); counter.className = "counter";
-    var minus = document.createElement('span'); minus.className = "guest-down"; minus.textContent = "-"; 
-    var counterInput = document.createElement('input'); counterInput.setAttribute("id", "counter-input-" + Math.floor(Math.random() * 100000)); counterInput.setAttribute("type", "text"); counterInput.value = 0; counterInput.disabled = true; 
-    var plus = document.createElement('span'); plus.className = "guest-up"; plus.textContent = "+";
+    var minus = document.createElement('span'); minus.className = "guest-down"; var minusIcon = document.createElement('i'); minusIcon.className = "fa-solid fa-minus"; minus.appendChild(minusIcon);
+    var counterInput = document.createElement('input'); counterInput.setAttribute("id", "counter-input-" + Math.floor(Math.random() * 100000)); counterInput.setAttribute("type", "text"); counterInput.value = 0; counterInput.disabled = true;
+    var plus = document.createElement('span'); plus.className = "guest-up"; var plusIcon = document.createElement('i'); plusIcon.className = "fa-solid fa-plus"; plus.appendChild(plusIcon);
 
     var col5 = document.createElement('div'); col5.className = "col"; col5.setAttribute('data-label', "Action:");
-    var rsvp = document.createElement('button'); rsvp.className = "rsvp-button"; rsvp.setAttribute('data-groupID', groupID);
+    var rsvp = document.createElement('button'); rsvp.className = "rsvp-button"; rsvp.setAttribute('data-groupID', groupID); 
 
     //Check schedule
     if (userScheduleArr != null) {
       userScheduleArr.forEach((userDay) => {
         if (elem.day === userDay.day && elem.time === userDay.time) {
           col3.textContent = "Going";
-          minus.style = "display: none;"; plus.style = "display: none;";
+          minus.classList.add('hide'); plus.classList.add('hide');
           counterInput.value = userDay.guests;
           rsvp.classList.add('rsvp-cancel-button');
+          rsvp.setAttribute('data-week', userDay.week);
         }
       });
     }
- 
+
     //Add elements to row then to parent
-    row.appendChild(col3); 
+    row.appendChild(col3);
     counter.appendChild(minus); counter.appendChild(counterInput); counter.appendChild(plus); col4.appendChild(counter); row.appendChild(col4);
     col5.appendChild(rsvp); row.appendChild(col5);
 
@@ -859,10 +876,10 @@ window.addEventListener('load', () => {
 
     if (rsvp) {
       rsvp.classList.add('button-onClick');
-      if (rsvp.classList.contains('rsvp-cancel-button')) {
-        setTimeout(ValidateRSVP(rsvp, true), 250);
+      if (!rsvp.classList.contains('rsvp-cancel-button')) {
+        setTimeout(ValidateRSVP(auth, rsvp, false), 250);
       } else {
-        setTimeout(ValidateRSVP(rsvp, false), 250);
+        setTimeout(ValidateRSVP(auth, rsvp, true), 250);
       }
     }
 
@@ -937,12 +954,60 @@ window.addEventListener('load', () => {
     }
   }
 
-  function ValidateRSVP(button, isRsvp) {
+  function ValidateRSVP(auth, button, isRsvp) {
     setTimeout(function () {
-      button.classList.remove('button-onClick');
-      button.classList.add('rsvp-validate');
-      setTimeout(ApproveRSVP(button, isRsvp), 450);
-    }, 2250);
+      //Get info from elements
+      var row = button.parentElement.parentElement;
+      var dayAndTime = row.children[0].textContent.split('/');
+      var groupID = button.getAttribute('data-groupID');
+      var week = button.getAttribute('data-week');
+      var guests = row.children[3].children[0].children[1];
+
+      if (isRsvp === true) {
+        guests.nextElementSibling.classList.remove('hide');
+        guests.previousElementSibling.classList.remove('hide');
+        guests.value = 0;
+
+        //Remove day from user schedule in db
+        set(ref_db(database, 'Users/' + auth?.currentUser.uid + '/Schedule/' + week + '/' + dayAndTime[0]), {
+          GroupID: null,
+          Guests: null,
+          Time: null,
+        })
+          .then(() => {
+            button.classList.remove('button-onClick');
+            button.classList.add('rsvp-validate');
+            setTimeout(ApproveRSVP(button, isRsvp), 450);
+          })
+          .catch((error) => {
+            guests.nextElementSibling.classList.remove('hide');
+            guests.previousElementSibling.classList.remove('hide');
+            button.classList.remove('button-onClick');
+            console.log(error.code + ": " + error.message);
+          });
+      } else {
+        guests.nextElementSibling.classList.add('hide');
+        guests.previousElementSibling.classList.add('hide');
+
+        //Update user Schedule in db
+        set(ref_db(database, 'Users/' + auth?.currentUser.uid + '/Schedule/' + week + '/' + dayAndTime[0]), {
+          GroupID: groupID,
+          Guests: guests.value,
+          Time: dayAndTime[1]
+        })
+          .then(() => {
+            button.classList.remove('button-onClick');
+            button.classList.add('rsvp-validate');
+            setTimeout(ApproveRSVP(button, isRsvp), 450);
+          })
+          .catch((error) => {
+            guests.nextElementSibling.classList.remove('hide');
+            guests.previousElementSibling.classList.remove('hide');
+            button.classList.remove('button-onClick');
+            console.log(error.code + ": " + error.message);
+          });
+      }
+    }, 1250);
   }
 
   function ApproveRSVP(button, isRsvp) {
@@ -955,7 +1020,7 @@ window.addEventListener('load', () => {
         button.parentElement.parentElement.children[2].textContent = "Going";
       }
       button.classList.remove('rsvp-validate');
-    }, 2250);
+    }, 1250);
   }
 
   function GuestDown(elem) {
