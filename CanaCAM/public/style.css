@@ -1051,6 +1051,10 @@ form .btn input[type="submit"] {
   padding-inline-start: 0;
 }
 
+.container-holders {
+  display: contents;
+}
+
 .event-container {
   max-width: 1000px;
   height: 100%;

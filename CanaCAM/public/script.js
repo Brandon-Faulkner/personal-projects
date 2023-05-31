@@ -51,7 +51,6 @@ window.addEventListener('load', () => {
   // Initialize Firebase, Database and Authentication
   const app = initializeApp(firebaseConfig);
   const database = getDatabase(app);
-  const weekDatesRef = ref_db(database, "WeekDates/");
   const groupRef = ref_db(database, "Groups/");
   const planRef = ref_db(database, "GroupsInfo/");
   const storage = getStorage(app);
@@ -89,23 +88,17 @@ window.addEventListener('load', () => {
   const planningWeekSelectParent = document.getElementById('plan-week-select-grid');
   const hostSelection = document.getElementById('host-selection');
   const planWeekSelection = document.getElementById('plan-week-selection');
-  const planCurrWeek = document.getElementById('plan-current-week');
-  const planNextWeek = document.getElementById('plan-next-week');
-  const planFutureWeek = document.getElementById('plan-future-week');
+  const planWeekHolder = document.getElementById('plan-week-holder');
 
   const overviewWeekSelection = document.getElementById('over-week-selection');
-  const overviewCurrWeek = document.getElementById('overview-current-week');
-  const overviewNextWeek = document.getElementById('overview-next-week');
-  const overviewFutureWeek = document.getElementById('overview-future-week');
+  const overviewWeekHolder = document.getElementById('overview-week-holder');
 
   const tabProfile = document.getElementById('tab-profile');
   const profileSection = document.getElementById('profile-section');
   const profileBlocked = document.getElementById('profile-blocked');
   const profileInfo = document.getElementById('profile-info');
-  //Vars to hold the timestamp of the Week Dates from db
-  var currWeekTimestamp = null, nextWeekTimestamp = null, futureWeekTimestamp = null;
-  //Arrays to hold the data of each week
-  var currWeekArr = [], nextWeekArr = [], futureWeekArr = [];
+  //Array to hold the data of each week
+  var allWeeksArr = []; var uniqWeeks = [];
   //Arrays to hold group information
   var groupInfoArr = [], hostNameArr = [], userScheduleArr = [];
 
@@ -144,7 +137,7 @@ window.addEventListener('load', () => {
       else {
         //Signed in with Account
         OverviewSetup(groupRef, user?.isAnonymous);
-        console.log(user);
+        
         //Remove listeners
         tabPlanning.removeEventListener('click', ShowLogin);
         tabProfile.removeEventListener('click', ShowLogin);
@@ -425,22 +418,17 @@ window.addEventListener('load', () => {
   }
   //#endregion Login Functions
 
-  //#region Week Date Functions
-  function InitializeWeekDateVars(currWeekTimestamp, nextWeekTimestamp, futureWeekTimestamp) {
-    onValue(weekDatesRef, (snapshot) => {
-      currWeekTimestamp = snapshot.child("Current Timestamp");
-      nextWeekTimestamp = snapshot.child("Next Timestamp");
-      futureWeekTimestamp = snapshot.child('Future Timestamp');
-    });
-  }
-  
-  //#endregion Week Date Functions
+  //#region Check Date Functions
+  //encodeURIComponent('2/10/2020');
+  //decodeURIComponent('2%2F10%2F2020);
+
+  //#endregion Check Date Functions
 
   //#region Overview Setup
   function OverviewSetup(groupRef, isAnonymous) {
     onValue(groupRef, (snapshot) => {
       //Clear arrays to not have duplicate data
-      currWeekArr = []; nextWeekArr = []; futureWeekArr = []; hostNameArr = [];
+      allWeeksArr = []; uniqWeeks = []; hostNameArr = [];
 
       Loading(true);
 
@@ -452,56 +440,45 @@ window.addEventListener('load', () => {
 
         //Keep track of just host names for dropdown
         const host = { group: groupKey, host: hostName };
-        hostNameArr.unshift(host);
+        hostNameArr.push(host);
 
-        //Get the Day and times for each week
-        childSnapshot.child("Weeks").child("Current Week").forEach((day) => {
-          const currWeekDay = { group: groupKey, day: day.key, time: day.val(), host: hostName, location: genLocation };
-          currWeekArr.unshift(currWeekDay);
-        });
-        childSnapshot.child("Weeks").child("Next Week").forEach((day) => {
-          const nextWeekDay = { group: groupKey, day: day.key, time: day.val(), host: hostName, location: genLocation };
-          nextWeekArr.unshift(nextWeekDay);
-        });
-        childSnapshot.child("Weeks").child("Future Week").forEach((day) => {
-          const futureWeekDay = { group: groupKey, day: day.key, time: day.val(), host: hostName, location: genLocation };
-          futureWeekArr.unshift(futureWeekDay);
+        //Get the day and times for each week
+        childSnapshot.child("Weeks").forEach((week) => {
+          week.forEach((day) => {
+            const weekData = { group: groupKey, week: decodeURIComponent(week.key), day: day.key, time: day.val(), host: hostName, location: genLocation };
+            allWeeksArr.push(weekData);
+          });
         });
       });
 
-      //Clear current elements in the lists
-      overviewCurrWeek.replaceChildren();
-      overviewNextWeek.replaceChildren();
-      overviewFutureWeek.replaceChildren();
+      //Clear current elements
+      overviewWeekHolder.replaceChildren();
 
-      //Create unique arrays for each week to determine all unique days
-      var uniqCurr = [...new Set(currWeekArr.map(item => item.day))]; DaySorter(uniqCurr, true);
-      var uniqNext = [...new Set(nextWeekArr.map(item => item.day))]; DaySorter(uniqNext, true);
-      var uniqFuture = [...new Set(futureWeekArr.map(item => item.day))]; DaySorter(uniqFuture, true);
+      //Create unique arrays for each week to determine all unique days and weeks
+      var uniqDays = [...new Set(allWeeksArr.map(item => item.day))]; DaySorter(uniqDays, true);
+      uniqWeeks = [...new Set(allWeeksArr.map(item => item.week))];
 
       //Sort the week arrays by day and then time
-      DaySorter(currWeekArr); TimeSorter(currWeekArr);
-      DaySorter(nextWeekArr); TimeSorter(nextWeekArr);
-      DaySorter(futureWeekArr); TimeSorter(futureWeekArr);
+      DaySorter(allWeeksArr); TimeSorter(allWeeksArr);
 
-      //Create elements for the lists from each array
-      uniqCurr.forEach((elem) => {
-        CreateOverviewTableHeader(elem, overviewCurrWeek);
-        CreateOverviewTableRow(currWeekArr, elem, overviewCurrWeek);
-      });
-      uniqNext.forEach((elem) => {
-        CreateOverviewTableHeader(elem, overviewNextWeek);
-        CreateOverviewTableRow(nextWeekArr, elem, overviewNextWeek);
-      });
-      uniqFuture.forEach((elem) => {
-        CreateOverviewTableHeader(elem, overviewFutureWeek);
-        CreateOverviewTableRow(futureWeekArr, elem, overviewFutureWeek);
+      //Create Week containers for each week
+      uniqWeeks.forEach((week) => {
+        CreateOverviewWeekContainers(week, overviewWeekHolder);
+        var containerElem = document.getElementById(week + "-overview");
+        var filteredArr = allWeeksArr.filter(w => w.week === week);
+        
+        uniqDays.forEach((day) => {
+          if (filteredArr.find(d => d.day === day)) {
+            CreateOverviewTableHeader(day, containerElem);
+            CreateOverviewTableRow(filteredArr, day, containerElem);
+          }             
+        });
       });
 
       //Update dropdowns
-      SetupDropdowns(planWeekSelection, false);
-      SetupDropdowns(overviewWeekSelection, false);
-      SetupDropdowns(hostSelection, true, hostNameArr);
+      SetupDropdowns(planWeekSelection, uniqWeeks, false);
+      SetupDropdowns(overviewWeekSelection, uniqWeeks, false);
+      SetupDropdowns(hostSelection, hostNameArr, true);
 
       //Now setup profile tab
       ProfileSetup(auth, isAnonymous);
@@ -527,6 +504,13 @@ window.addEventListener('load', () => {
       var time1 = getNumber(a.time); var time2 = getNumber(b.time);
       return time2 - time1;
     })
+  }
+
+  function CreateOverviewWeekContainers(week, parentElem) {
+    var container = document.createElement('div'); container.className = "event-container hide"; container.setAttribute('name', "overview-container");
+    var ul = document.createElement('ul'); ul.className = "responsive-table event-ul"; ul.setAttribute('id', week + "-overview");
+    container.appendChild(ul);
+    parentElem.appendChild(container);
   }
 
   function CreateOverviewTableHeader(day, parentElem) {
@@ -586,17 +570,11 @@ window.addEventListener('load', () => {
         userScheduleArr = [];
 
         //Now update their schedule for each week
-        snapshot.child("Schedule").child("Current Week").forEach((day) => {
-          const currWeekDay = { week: "Current Week", day: day.key, time: day.child('Time').val(), guests: day.child('Guests').val(), group: day.child('GroupID').val() };
-          userScheduleArr.unshift(currWeekDay);
-        });
-        snapshot.child("Schedule").child("Next Week").forEach((day) => {
-          const nextWeekDay = { week: "Next Week", day: day.key, time: day.child('Time').val(), guests: day.child('Guests').val(), group: day.child('GroupID').val() };
-          userScheduleArr.unshift(nextWeekDay);
-        });
-        snapshot.child("Schedule").child("Future Week").forEach((day) => {
-          const futureWeekDay = { week: "Future Week", day: day.key, time: day.child('Time').val(), guests: day.child('Guests').val(), group: day.child('GroupID').val() };
-          userScheduleArr.unshift(futureWeekDay);
+        snapshot.child("Schedule").forEach((week) => {
+          week.forEach((day) => {
+            const weekDay = { week: week.key, day: day.key, time: day.child('Time').val(), guests: day.child('Guests').val(), group: day.child('GroupID').val() };
+            userScheduleArr.push(weekDay);
+          });
         });
 
         getDownloadURL(ref_st(storage, "Users/" + auth?.currentUser.uid + "/" + userImage))
@@ -604,7 +582,7 @@ window.addEventListener('load', () => {
             //Clear current elements from profile section
             profileInfo.replaceChildren();
 
-            CreateProfileHeader(profileInfo, url, userName);
+            CreateProfileHeader(profileInfo, url);
             CreatProfileInfoRow(profileInfo, userName, userEmail, userPhone, userTotalRSVP);
 
             //Now setup Planning tab
@@ -620,7 +598,7 @@ window.addEventListener('load', () => {
     }
   }
 
-  function CreateProfileHeader(parentElem, imgUrl, userName) {
+  function CreateProfileHeader(parentElem, imgUrl) {
     var profileHeader = document.createElement('li');
     profileHeader.classList.add('profile-header');
 
@@ -628,14 +606,10 @@ window.addEventListener('load', () => {
     var profImg = document.createElement('img'); profImg.src = imgUrl; profImg.className = "profile-image";
     profCol1.appendChild(profImg); profileHeader.appendChild(profCol1);
 
-    //var profCol2 = document.createElement('div'); profCol2.className = "profile-col";
-    //var profName = document.createElement('h3'); profName.textContent = userName;
-    //profCol2.appendChild(profName); profileHeader.appendChild(profCol2);
-
-    var profCol3 = document.createElement('div'); profCol3.className = "profile-col"; profCol3.style = "padding-top: 10px;";
+    var profCol2 = document.createElement('div'); profCol2.className = "profile-col"; profCol2.style = "padding-top: 10px;";
     var profSignOut = document.createElement('button'); profSignOut.setAttribute('id', 'signout-button'); profSignOut.className = "signout-button";
     var profSignOutIcon = document.createElement('i'); profSignOutIcon.className = "fa-solid fa-right-from-bracket"; profSignOut.appendChild(profSignOutIcon);
-    profCol3.appendChild(profSignOut); profileHeader.appendChild(profCol3);
+    profCol2.appendChild(profSignOut); profileHeader.appendChild(profCol2);
 
     parentElem.appendChild(profileHeader);
   }
@@ -662,9 +636,7 @@ window.addEventListener('load', () => {
       planningBlocked.classList.remove('hide');
       planningIntro.parentElement.classList.add('hide');
       planningWeekSelectParent.classList.add('hide');
-      planCurrWeek.replaceChildren();
-      planNextWeek.replaceChildren();
-      planFutureWeek.replaceChildren();
+      planWeekHolder.replaceChildren();
       Loading(false);
     } else {
       loginScreen.classList.remove('show');
@@ -693,32 +665,25 @@ window.addEventListener('load', () => {
             const data = { group: groupKey, address: address, description: description, email: email, image: url, phone: phone };
             groupInfoArr.unshift(data);
 
-            //Clear the current elements in the lists
-            planCurrWeek.replaceChildren();
-            planNextWeek.replaceChildren();
-            planFutureWeek.replaceChildren();
+            //Clear the current elements in the list
+            planWeekHolder.replaceChildren();
 
-            CreatePlanningTableHeader(planCurrWeek);
-            currWeekArr.forEach((elem) => {
-              if (elem.group === groupID) {
-                CreatePlanningTableRow(elem, groupInfoArr, elem.group, planCurrWeek, userScheduleArr.filter(u => u.group === groupID && u.week === 'Current Week'));
-              }
-            });
-            CreatePlanningTableHeader(planNextWeek);
-            nextWeekArr.forEach((elem) => {
-              if (elem.group === groupID) {
-                CreatePlanningTableRow(elem, groupInfoArr, elem.group, planNextWeek, userScheduleArr.filter(u => u.group === groupID && u.week === 'Next Week'));
-              }
-            });
-            CreatePlanningTableHeader(planFutureWeek);
-            futureWeekArr.forEach((elem) => {
-              if (elem.group === groupID) {
-                CreatePlanningTableRow(elem, groupInfoArr, elem.group, planFutureWeek, userScheduleArr.filter(u => u.group === groupID && u.week === 'Future Week'));
-              }
+            //Create week containers for each week
+            uniqWeeks.forEach((week) => {
+              CreatePlanningWeekContainers(week, planWeekHolder);
+              var containerElem = document.getElementById(week + "-planning");
+              CreatePlanningTableHeader(containerElem);
+
+              allWeeksArr.forEach((elem) => {
+                if (elem.group === groupID && elem.week === week) {
+                  CreatePlanningTableRow(elem, groupInfoArr, elem.group, containerElem, userScheduleArr.filter(u => u.group === groupID && u.week === week));
+                }
+              });
             });
 
             //Now Update planning intro
             UpdatePlanningIntro(hostNameArr, groupInfoArr, groupID, planningIntro);
+            ShowEventContainers(uniqWeeks[0], 'planning-container');
             Loading(false);
           })
           .catch((error) => {
@@ -736,6 +701,13 @@ window.addEventListener('load', () => {
     parentElem.children[0].children[3].setAttribute("data-groupID", groupID);
 
     planningImg.setAttribute('src', groupInfoArr.find(g => g.group === groupID).image);
+  }
+
+  function CreatePlanningWeekContainers(week, parentElem) {
+    var container = document.createElement('div'); container.className = "event-container hide"; container.setAttribute('name', "planning-container");
+    var ul = document.createElement('ul'); ul.className = "responsive-table event-ul"; ul.setAttribute('id', week + "-planning");
+    container.appendChild(ul);
+    parentElem.appendChild(container);
   }
 
   function CreatePlanningTableHeader(parentElem) {
@@ -767,7 +739,7 @@ window.addEventListener('load', () => {
     var plus = document.createElement('span'); plus.className = "guest-up"; var plusIcon = document.createElement('i'); plusIcon.className = "fa-solid fa-plus"; plus.appendChild(plusIcon);
 
     var col5 = document.createElement('div'); col5.className = "col"; col5.setAttribute('data-label', "Action:");
-    var rsvp = document.createElement('button'); rsvp.className = "rsvp-button"; rsvp.setAttribute('data-groupID', groupID); 
+    var rsvp = document.createElement('button'); rsvp.className = "rsvp-button"; rsvp.setAttribute('data-groupID', groupID);
 
     //Check schedule
     if (userScheduleArr != null) {
@@ -792,34 +764,31 @@ window.addEventListener('load', () => {
   //#endregion Planning Setup
 
   //#region Week Menu Dropdown
-  function SetupDropdowns(select, isHost, optionsArr) {
+  function SetupDropdowns(select, optionsArr, isHostArr) {
     let menu = select.parentNode,
       button = menu.children[1],
       btnList = button.children[1],
       selectList = menu.children[2];
 
-    //Create options in host dropdown
-    if (isHost) {
-      select.replaceChildren(); btnList.replaceChildren(); selectList.replaceChildren();
-
-      for (let index = optionsArr.length - 1; index >= 0; index--) {
-        select.add(new Option(optionsArr[index].host));
-        var li1 = document.createElement('li');
-        li1.textContent = optionsArr[index].host;
-        var li2 = document.createElement('li');
-        li2.textContent = optionsArr[index].host;
-        btnList.appendChild(li1);
-        selectList.appendChild(li2);
-      }
-    }
+    //Create options
+    select.replaceChildren(); btnList.replaceChildren(); selectList.replaceChildren();
+    optionsArr.forEach((elem) => {
+      select.add(new Option(isHostArr === true ? elem.host : elem));
+      var li1 = document.createElement('li');
+      li1.textContent = isHostArr === true ? elem.host : elem;
+      var li2 = document.createElement('li');
+      li2.textContent = isHostArr === true ? elem.host : elem;
+      btnList.appendChild(li1);
+      selectList.appendChild(li2);
+    });
 
     select.selectedIndex = "0";
     menu.style.setProperty('--t', select.selectedIndex * -41 + 'px');
 
     // Show the first container from the first option in lists
-    if (!isHost) {
-      ShowEventContainers("Current Week", "planning-container");
-      ShowEventContainers("Current Week", "overview-container");
+    if (!isHostArr) {
+      ShowEventContainers(uniqWeeks[0], "planning-container");
+      ShowEventContainers(uniqWeeks[0], "overview-container");
     }
   }
   //#endregion
@@ -924,33 +893,18 @@ window.addEventListener('load', () => {
 
     containerArr.forEach(elem => {
       elem.classList.remove('show', 'hide');
+
+      var weekID = elem.children[0].getAttribute('id');
+      weekID = weekID.replace('-planning', ''); weekID = weekID.replace('-overview', '');
+      if (weekID === clickedWeek) {
+        elem.classList.add('show');
+      } else {
+        elem.classList.add('hide');
+      }
     });
 
     if (containerName === "planning-container") {
       planningIntro.parentElement.classList.add('show');
-    }
-
-    switch (clickedWeek) {
-      case "Current Week":
-        eventContainers[0].classList.add('show');
-        eventContainers[1].classList.add('hide');
-        eventContainers[2].classList.add('hide');
-        break;
-      case "Next Week":
-        eventContainers[0].classList.add('hide');
-        eventContainers[1].classList.add('show');
-        eventContainers[2].classList.add('hide');
-        break;
-      case "Future Week":
-        eventContainers[0].classList.add('hide');
-        eventContainers[1].classList.add('hide');
-        eventContainers[2].classList.add('show');
-        break;
-      default:
-        eventContainers[0].classList.add('show');
-        eventContainers[1].classList.add('hide');
-        eventContainers[2].classList.add('hide');
-        break;
     }
   }
 
