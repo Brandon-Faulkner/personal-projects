@@ -15,7 +15,7 @@ if (navigator.serviceWorker) {
 
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-app.js";
-import { getDatabase, ref as ref_db, onValue, child, set, remove } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-database.js";
+import { getDatabase, ref as ref_db, onValue, child, set, remove, update } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-database.js";
 import { getStorage, ref as ref_st, getDownloadURL, uploadBytes } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-storage.js";
 import { getAuth, onAuthStateChanged, signInAnonymously, signInWithEmailAndPassword, EmailAuthProvider, linkWithCredential, signOut } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-auth.js";
 
@@ -419,11 +419,45 @@ window.addEventListener('load', () => {
   }
   //#endregion Login Functions
 
-  //#region Check Date Functions
+  //#region Remove Old Weeks
   //encodeURIComponent('2/10/2020');
   //decodeURIComponent('2%2F10%2F2020);
+  function RemoveOldWeeksFromGroups(groupRef) {
+    onValue(groupRef, (snapshot) => {
+      snapshot.forEach((group) => {
+        group.child("Weeks").forEach((week) => {
+          const decodedWeek = decodeURIComponent(week.key);
+          const splitWeekDates = decodedWeek.split('-');
+          const beginWeekDate = new Date(splitWeekDates[0]);//.toLocaleDateString('en', {month: 'numeric', day: '2-digit', year: '2-digit'});
+          const endWeekDate = new Date(splitWeekDates[1]);
+          const currentDate = new Date();
 
-  //#endregion Check Date Functions
+          //If the entire week has passed
+          if (endWeekDate.getTime() < currentDate.getTime()) {
+            groupRef.child(group.key).child(week.key).remove();
+          } else {
+            const sorter = { "Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3, "Friday": 4, "Saturday": 5, "Sunday": 6 };
+            //Week is still valid, check if individual days have passed
+            week.forEach((day) => {
+              const tempBeginDate = new Date(beginWeekDate);
+              tempBeginDate.setDate(tempBeginDate.getDate() + sorter[day.key]);
+              if (tempBeginDate.getTime() > currentDate.getTime()) {
+                //REMOVE DAY FROM DB
+              }
+            });
+          }
+        });
+      });
+    }, {
+      onlyOnce: true
+    });
+  }
+
+  function RemoveOldWeeksFromUser(auth) {
+    
+  }
+
+  //#endregion Remove Old Weeks
 
   //#region Overview Setup
   function OverviewSetup(groupRef, isAnonymous) {
