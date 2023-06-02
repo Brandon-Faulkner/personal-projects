@@ -97,6 +97,7 @@ window.addEventListener('load', () => {
   const profileSection = document.getElementById('profile-section');
   const profileBlocked = document.getElementById('profile-blocked');
   const profileInfo = document.getElementById('profile-info');
+
   //Array to hold the data of each week
   var allWeeksArr = []; var uniqWeeks = [];
   //Arrays to hold group information
@@ -137,7 +138,7 @@ window.addEventListener('load', () => {
       else {
         //Signed in with Account
         OverviewSetup(groupRef, user?.isAnonymous);
-        
+
         //Remove listeners
         tabPlanning.removeEventListener('click', ShowLogin);
         tabProfile.removeEventListener('click', ShowLogin);
@@ -466,12 +467,11 @@ window.addEventListener('load', () => {
         CreateOverviewWeekContainers(week, overviewWeekHolder);
         var containerElem = document.getElementById(week + "-overview");
         var filteredArr = allWeeksArr.filter(w => w.week === week);
-        
         uniqDays.forEach((day) => {
           if (filteredArr.find(d => d.day === day)) {
             CreateOverviewTableHeader(day, containerElem);
             CreateOverviewTableRow(filteredArr, day, containerElem);
-          }             
+          }
         });
       });
 
@@ -572,7 +572,7 @@ window.addEventListener('load', () => {
         //Now update their schedule for each week
         snapshot.child("Schedule").forEach((week) => {
           week.forEach((day) => {
-            const weekDay = { week: week.key, day: day.key, time: day.child('Time').val(), guests: day.child('Guests').val(), group: day.child('GroupID').val() };
+            const weekDay = { week: decodeURIComponent(week.key), day: day.key, time: day.child('Time').val(), guests: day.child('Guests').val(), group: day.child('GroupID').val() };
             userScheduleArr.push(weekDay);
           });
         });
@@ -674,7 +674,7 @@ window.addEventListener('load', () => {
               var containerElem = document.getElementById(week + "-planning");
               CreatePlanningTableHeader(containerElem);
 
-              allWeeksArr.forEach((elem) => {
+              allWeeksArr.forEach((elem) => {         
                 if (elem.group === groupID && elem.week === week) {
                   CreatePlanningTableRow(elem, groupInfoArr, elem.group, containerElem, userScheduleArr.filter(u => u.group === groupID && u.week === week));
                 }
@@ -765,25 +765,23 @@ window.addEventListener('load', () => {
 
   //#region Week Menu Dropdown
   function SetupDropdowns(select, optionsArr, isHostArr) {
-    let menu = select.parentNode,
-      button = menu.children[1],
-      btnList = button.children[1],
-      selectList = menu.children[2];
+    let mainBtn = select.children[0],
+      dropdownTitle = mainBtn.children[0],
+      dropdownList = select.children[1].children[0].children[0];
 
-    //Create options
-    select.replaceChildren(); btnList.replaceChildren(); selectList.replaceChildren();
+    //Create List item options
+    dropdownList.replaceChildren(); var index = 0;
     optionsArr.forEach((elem) => {
-      select.add(new Option(isHostArr === true ? elem.host : elem));
-      var li1 = document.createElement('li');
-      li1.textContent = isHostArr === true ? elem.host : elem;
-      var li2 = document.createElement('li');
-      li2.textContent = isHostArr === true ? elem.host : elem;
-      btnList.appendChild(li1);
-      selectList.appendChild(li2);
+      var li = document.createElement('li'); li.className = "dropdown-list-item";
+      var btn = document.createElement('button'); btn.className = "dropdown-button list-button"; btn.setAttribute('data-translate-value', (100 * index) + "%");
+      var span = document.createElement('span'); span.className = "text-truncate"; span.textContent = isHostArr === true ? elem.host : elem;
+      btn.appendChild(span); li.appendChild(btn);
+      dropdownList.appendChild(li);
+
+      index++;
     });
 
-    select.selectedIndex = "0";
-    menu.style.setProperty('--t', select.selectedIndex * -41 + 'px');
+    dropdownTitle.textContent = isHostArr === true ? optionsArr[0].host : optionsArr[0];
 
     // Show the first container from the first option in lists
     if (!isHostArr) {
@@ -798,32 +796,52 @@ window.addEventListener('load', () => {
     e.stopPropagation();
 
     //Dropdown menus
-    const menu = e.target.closest('.select-menu');
+    const menu = e.target.closest('.dropdown-container');
+    const allMenus = document.querySelectorAll('.dropdown-container');
 
-    if (menu && !menu.classList.contains('open')) {
-      menu.classList.add('open');
-    }
+    if (menu) {
+      if (!menu.children[1].classList.contains('open')) {
+        menu.children[1].classList.add('open');
+        menu.children[0].children[1].classList.add('flip-arrow');
 
-    if (!e.target.closest('.select-menu')) {
-      document.querySelectorAll('.select-menu').forEach(function (menu) {
-        menu.classList.remove('open');
+        //Close other menus 
+        allMenus.forEach(function (otherMenu) {
+          if (menu != otherMenu) {
+            otherMenu.children[1].classList.remove('open');
+            otherMenu.children[0].children[1].classList.remove('flip-arrow');
+          }       
+        });
+      } else {
+        menu.children[1].classList.remove('open');
+        menu.children[0].children[1].classList.remove('flip-arrow');
+      }
+    } else {
+      allMenus.forEach(function (menu) {
+        menu.children[1].classList.remove('open');
+        menu.children[0].children[1].classList.remove('flip-arrow');
       });
     }
 
-    const li = e.target.closest('.select-menu > ul > li');
+    const li = e.target.closest('.dropdown-list-item');
 
     if (li) {
-      if (li.parentNode.parentNode === overviewWeekSelection.parentNode || li.parentNode.parentNode === planWeekSelection.parentNode) {
-        DropdownSelection(li, overviewWeekSelection.parentNode, auth);
-        DropdownSelection(li, planWeekSelection.parentNode, auth);
+      const liParent = li.parentNode.parentNode.parentNode.parentNode;
+      const clickedText = li.children[0].children[0].textContent;
 
-        // Switch Event Containers based on selection
-        ShowEventContainers(li.textContent, "planning-container");
-        ShowEventContainers(li.textContent, "overview-container");
-      }
-      else {
-        DropdownSelection(li, hostSelection.parentNode, auth);
-      }
+      //Make sure it is not the already selected item
+      if (liParent.children[0].children[0].textContent != clickedText) {
+        if (liParent === overviewWeekSelection || liParent === planWeekSelection) {
+          DropdownSelection(li, overviewWeekSelection, auth);
+          DropdownSelection(li, planWeekSelection, auth);
+  
+          // Switch Event Containers based on selection
+          ShowEventContainers(clickedText, "planning-container");
+          ShowEventContainers(clickedText, "overview-container");
+        }
+        else {
+          DropdownSelection(li, hostSelection, auth);
+        }
+      }      
     }
 
     //Clickable rows
@@ -866,24 +884,13 @@ window.addEventListener('load', () => {
   });
 
   function DropdownSelection(elemTarget, menu, auth) {
-    let li = elemTarget,
-      select = menu && menu.querySelector('select'),
-      selected = select && select.querySelector('option:checked'),
-      index = li && Array.prototype.indexOf.call(li.parentNode.children, li);
+    const clickedItemText = elemTarget.children[0].children[0].textContent;
 
-    if (li && menu && select && selected && index !== undefined) {
-      menu.style.setProperty('--t', index * -41 + 'px');
-      selected.removeAttribute('selected');
-      var clicked = select.querySelectorAll('option')[index]; clicked.setAttribute('selected', '');
-      menu.classList.add(index > Array.prototype.indexOf.call(select.querySelectorAll('option'), selected) ? 'tilt-down' : 'tilt-up');
-
-      if (menu === hostSelection.parentNode) {
-        PlanningSetup(planRef, auth?.currentUser.isAnonymous, hostNameArr.find(h => h.host === clicked.textContent).group, userScheduleArr);
+    if (clickedItemText != null) {
+      menu.children[0].children[0].textContent = clickedItemText;
+      if (menu === hostSelection) {
+        PlanningSetup(planRef, auth?.currentUser.isAnonymous, hostNameArr.find(h => h.host === clickedItemText).group, userScheduleArr);
       }
-
-      setTimeout(function () {
-        menu.classList.remove('open', 'tilt-up', 'tilt-down');
-      }, 500);
     }
   };
 
@@ -914,7 +921,7 @@ window.addEventListener('load', () => {
       var row = button.parentElement.parentElement;
       var dayAndTime = row.children[0].textContent.split('/');
       var groupID = button.getAttribute('data-groupID');
-      var week = button.getAttribute('data-week');
+      var week = encodeURIComponent(button.getAttribute('data-week'));
       var guests = row.children[3].children[0].children[1];
 
       if (isRsvp === true) {
