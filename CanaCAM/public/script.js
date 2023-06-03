@@ -128,6 +128,7 @@ window.addEventListener('load', () => {
     if (user) {
       // Signed in Anonymously
       if (user?.isAnonymous) {
+        RemoveOldWeeksFromGroups(groupRef);
         OverviewSetup(groupRef, user?.isAnonymous);
 
         //Add listeners
@@ -137,6 +138,7 @@ window.addEventListener('load', () => {
       }
       else {
         //Signed in with Account
+        RemoveOldWeeksFromGroups(groupRef);
         OverviewSetup(groupRef, user?.isAnonymous);
 
         //Remove listeners
@@ -420,8 +422,6 @@ window.addEventListener('load', () => {
   //#endregion Login Functions
 
   //#region Remove Old Weeks
-  //encodeURIComponent('2/10/2020');
-  //decodeURIComponent('2%2F10%2F2020);
   function RemoveOldWeeksFromGroups(groupRef) {
     onValue(groupRef, (snapshot) => {
       snapshot.forEach((group) => {
@@ -434,15 +434,15 @@ window.addEventListener('load', () => {
 
           //If the entire week has passed
           if (endWeekDate.getTime() < currentDate.getTime()) {
-            groupRef.child(group.key).child(week.key).remove();
+            remove(ref_db(database, 'Groups/' + group.key + '/Weeks/' + week.key));
           } else {
             const sorter = { "Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3, "Friday": 4, "Saturday": 5, "Sunday": 6 };
-            //Week is still valid, check if individual days have passed
+            //Week is still valid, check if individual days have passed and remove
             week.forEach((day) => {
               const tempBeginDate = new Date(beginWeekDate);
-              tempBeginDate.setDate(tempBeginDate.getDate() + sorter[day.key]);
-              if (tempBeginDate.getTime() > currentDate.getTime()) {
-                //REMOVE DAY FROM DB
+              tempBeginDate.setDate(tempBeginDate.getDate() + sorter[day.key]); AddTimeToDate(day.val(), tempBeginDate);
+              if (tempBeginDate.getTime() < currentDate.getTime()) {
+                remove(ref_db(database, 'Groups/' + group.key + '/Weeks/' + week.key + '/' + day.key));
               }
             });
           }
@@ -453,8 +453,25 @@ window.addEventListener('load', () => {
     });
   }
 
+  function AddTimeToDate(time, date) {
+    //Check for AM or PM
+    if (time.includes('PM')) {
+      time = time.replace('PM', '');
+
+      //Split hours and minutes
+      var hoursAndMin = time.split(':');
+      date.setHours(parseInt(hoursAndMin[0]) + 12, hoursAndMin[1]);
+    } else {
+      time = time.replace('AM', '');
+
+      //Split hours and minutes
+      var hoursAndMin = time.split(':');
+      date.setHours(hoursAndMin[0], hoursAndMin[1]);
+    }
+  }
+
   function RemoveOldWeeksFromUser(auth) {
-    
+
   }
 
   //#endregion Remove Old Weeks
@@ -533,10 +550,8 @@ window.addEventListener('load', () => {
   }
 
   function TimeSorter(weekArr) {
-    const getNumber = n => +n.replace(/:/g, '');
     weekArr.sort(function sortByTime(a, b) {
-      var time1 = getNumber(a.time); var time2 = getNumber(b.time);
-      return time2 - time1;
+      return new Date('1970/01/01 ' + a.time) - new Date('1970/01/01 ' + b.time);
     })
   }
 
@@ -708,7 +723,7 @@ window.addEventListener('load', () => {
               var containerElem = document.getElementById(week + "-planning");
               CreatePlanningTableHeader(containerElem);
 
-              allWeeksArr.forEach((elem) => {         
+              allWeeksArr.forEach((elem) => {
                 if (elem.group === groupID && elem.week === week) {
                   CreatePlanningTableRow(elem, groupInfoArr, elem.group, containerElem, userScheduleArr.filter(u => u.group === groupID && u.week === week));
                 }
@@ -843,7 +858,7 @@ window.addEventListener('load', () => {
           if (menu != otherMenu) {
             otherMenu.children[1].classList.remove('open');
             otherMenu.children[0].children[1].classList.remove('flip-arrow');
-          }       
+          }
         });
       } else {
         menu.children[1].classList.remove('open');
@@ -867,7 +882,7 @@ window.addEventListener('load', () => {
         if (liParent === overviewWeekSelection || liParent === planWeekSelection) {
           DropdownSelection(li, overviewWeekSelection, auth);
           DropdownSelection(li, planWeekSelection, auth);
-  
+
           // Switch Event Containers based on selection
           ShowEventContainers(clickedText, "planning-container");
           ShowEventContainers(clickedText, "overview-container");
@@ -875,7 +890,7 @@ window.addEventListener('load', () => {
         else {
           DropdownSelection(li, hostSelection, auth);
         }
-      }      
+      }
     }
 
     //Clickable rows

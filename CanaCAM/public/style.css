@@ -604,6 +604,7 @@ form .btn input[type="submit"] {
   cursor: pointer;
   width: 100%;
 }
+
 /*#endregion LOGIN SCREEN*/
 
 /*#region PAGE TABS*/
@@ -915,13 +916,13 @@ form .btn input[type="submit"] {
 }
 
 .dropdown-button {
-  font-size: calc(2vw + 1.5vh);
+  font-size: 24px;
   display: flex;
   align-items: center;
   padding: 0 20px;
 }
 
-.dropdown-button:hover, 
+.dropdown-button:hover,
 .dropdown-button:focus {
   border: 1px solid var(--white);
 }
@@ -947,7 +948,7 @@ form .btn input[type="submit"] {
   border-radius: var(--border-radius);
   color: var(--white);
   overflow: hidden;
-  padding: 0 20px 0 0;
+  padding: 0 0 0 10px;
 }
 
 .dropdown-list-container {
@@ -957,6 +958,7 @@ form .btn input[type="submit"] {
   position: absolute;
   margin-top: 40px;
   width: 95%;
+  max-width: 600px;
 }
 
 .dropdown-list-wrapper {
@@ -984,6 +986,9 @@ li.dropdown-list-item {
   z-index: 1;
   opacity: 1;
   transition: opacity 0.8s var(--dropdown-transition-timing);
+  border: 1px solid var(--dropdown-border);
+  border-radius: var(--border-radius);
+  margin: 10px 0;
 }
 
 /*#endregion WEEK SELECTION*/
@@ -1334,6 +1339,7 @@ li.dropdown-list-item {
 .guest-up {
   width: 15px;
 }
+
 .guest-down {
   width: 15px;
 }
@@ -1347,6 +1353,7 @@ li.dropdown-list-item {
   background-color: var(--background);
   border-radius: var(--border-radius);
 }
+
 /*#endregion BUTTONS*/
 
 /*#region MOBILE RESPONSIVENESS*/
@@ -1446,6 +1453,18 @@ li.dropdown-list-item {
 
   .tabs-ul li label svg {
     height: 1.5em;
+  }
+}
+
+@media all and (min-width: 768px) {
+  #host-list-container {
+    width: 47.5%;
+    max-width: 475px;
+  }
+
+  #week-list-container {
+    width: 47.5%;
+    max-width: 475px;
   }
 }
 
