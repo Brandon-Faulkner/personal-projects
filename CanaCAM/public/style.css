@@ -605,6 +605,19 @@ form .btn input[type="submit"] {
   width: 100%;
 }
 
+.forgot-pass {
+  -webkit-animation-name: content;
+  animation-name: content;
+  -webkit-animation-direction: normal;
+  animation-direction: normal;
+  -webkit-animation-duration: 0.5s;
+  animation-duration: 0.5s;
+  -webkit-animation-timing-function: ease-in-out;
+  animation-timing-function: ease-in-out;
+  -webkit-animation-iteration-count: 1;
+  animation-iteration-count: 1;
+}
+
 /*#endregion LOGIN SCREEN*/
 
 /*#region PAGE TABS*/
@@ -1154,14 +1167,15 @@ li.dropdown-list-item {
 }
 
 .button-onClick {
-  width: 40px;
-  border-color: #bbbbbb;
-  border-width: 3px;
-  font-size: 0;
-  background: var(--white);
-  border-left-color: var(--green);
-  -webkit-animation: rotating 2s 0.25s linear infinite;
-  animation: rotating 2s 0.25s linear infinite;
+  width: 40px !important;
+  border-color: #bbbbbb !important;
+  border-width: 3px !important;
+  font-size: 0 !important;
+  cursor: progress !important;
+  background: transparent !important;
+  border-left-color: var(--green) !important;
+  -webkit-animation: rotating .75s 0.25s linear infinite;
+  animation: rotating .75s 0.25s linear infinite;
 }
 
 .button-onClick:after {
@@ -1170,7 +1184,7 @@ li.dropdown-list-item {
 
 .button-onClick:hover {
   color: var(--blue);
-  background: white;
+  background: transparent;
 }
 
 .rsvp-validate {

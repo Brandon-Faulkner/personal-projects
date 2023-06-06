@@ -17,7 +17,7 @@ if (navigator.serviceWorker) {
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-app.js";
 import { getDatabase, ref as ref_db, onValue, child, set, remove, update } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-database.js";
 import { getStorage, ref as ref_st, getDownloadURL, uploadBytes } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-storage.js";
-import { getAuth, onAuthStateChanged, signInAnonymously, signInWithEmailAndPassword, EmailAuthProvider, linkWithCredential, signOut } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signInAnonymously, signInWithEmailAndPassword, sendPasswordResetEmail, EmailAuthProvider, linkWithCredential, signOut } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-auth.js";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -62,10 +62,17 @@ window.addEventListener('load', () => {
   const loginCloseBtn = document.getElementById('login-close-btn');
   const loginText = document.querySelector(".login-title-text .login");
   const loginForm = document.querySelector("form.login");
+  const loginFormContainer = document.getElementById('login-form-container');
   const loginToggleBtn = document.querySelector("label.login");
   const loginEmail = document.getElementById('login-email');
   const loginPassword = document.getElementById('login-password');
+  const loginForgotPassword = document.getElementById('login-forgot-password');
   const loginButton = document.getElementById('login-button');
+
+  const forgotPassContainer = document.getElementById('forgot-pass-container'); 
+  const forgotPassEmail = document.getElementById('forgot-pass-email');
+  const forgotPassBtn = document.getElementById('forgot-pass-button');
+  var forgPass = false;
 
   const signupForm = document.getElementById('signup-form-content');
   const signupToggleBtn = document.querySelector("label.signup");
@@ -128,6 +135,7 @@ window.addEventListener('load', () => {
     if (user) {
       // Signed in Anonymously
       if (user?.isAnonymous) {
+        ClearLoginAndSignupInputs();
         RemoveOldWeeksFromGroups(groupRef);
         OverviewSetup(groupRef, user?.isAnonymous);
 
@@ -139,6 +147,7 @@ window.addEventListener('load', () => {
       else {
         //Signed in with Account
         RemoveOldWeeksFromGroups(groupRef);
+        RemoveOldWeeksFromUser(auth);
         OverviewSetup(groupRef, user?.isAnonymous);
 
         //Remove listeners
@@ -153,13 +162,25 @@ window.addEventListener('load', () => {
   });
 
   function ShowLogin() {
-    if (!loginScreen.classList.contains('show')) {
-      loginScreen.classList.add('show');
-      mainScreen.classList.add('disable-click');
-    }
-    else {
-      loginScreen.classList.remove('show');
-      mainScreen.classList.remove('disable-click');
+    if (forgPass === true) {
+      if (forgotPassContainer.classList.contains('hide')) {
+        loginFormContainer.classList.add('hide');
+        forgotPassContainer.classList.remove('hide');
+      } else {
+        loginFormContainer.classList.remove('hide');
+        forgotPassContainer.classList.add('hide');
+        forgPass = false;
+      }
+    } else {
+      if (!loginScreen.classList.contains('show')) {
+        loginScreen.classList.add('show');
+        mainScreen.classList.add('disable-click');
+      }
+      else {
+        loginScreen.classList.remove('show');
+        mainScreen.classList.remove('disable-click');
+        ClearLoginAndSignupInputs();
+      }
     }
   }
 
@@ -180,7 +201,8 @@ window.addEventListener('load', () => {
         set(ref_db(database, 'Users/' + usercred.user.uid), {
           Image: imgName,
           Name: name,
-          Phone: phone
+          Phone: phone,
+          "Total RSVP'd": 0,
         });
 
         //Upload prof pic to storage
@@ -234,6 +256,17 @@ window.addEventListener('load', () => {
 
     });
   }
+
+  function SendForgotPasswordEmail(auth, email) {
+    sendPasswordResetEmail(auth, email)
+      .then(() => {
+        //Email sent
+        console.log("yay");
+      })
+      .catch((error) => {
+        console.log("Error with Forgot Password: ", error);
+      });
+  }
   //#endregion Authentication Functions
 
   //#region Login Functions
@@ -283,6 +316,17 @@ window.addEventListener('load', () => {
       const credential = EmailAuthProvider.credential(email, password);
       UpgradeAnonymous(auth, credential, img, imgName, name, phone);
     }
+  });
+
+  loginForgotPassword.addEventListener('click', function () {
+    forgPass = true;
+    ShowLogin();
+  });
+
+  forgotPassBtn.addEventListener('click', function (e) {
+    e.preventDefault(0);
+    const email = forgotPassEmail.value.trim();
+    SendForgotPasswordEmail(auth, email);
   });
 
   signupLink.addEventListener('click', function () {
@@ -419,6 +463,21 @@ window.addEventListener('load', () => {
       return null;
     }
   }
+
+  function ClearLoginAndSignupInputs() {
+    //Login
+    loginEmail.value = null;
+    loginPassword.value = null;
+
+    //Sign up
+    signupName.value = null;
+    signupPhone.value = null;
+    signupEmail.value = null;
+    signupPassword.value = null;
+    signupConfirmPass.value = null;
+    signupImg.value = null;
+    signupImg.parentElement.setAttribute("data-text", "Upload Profile Picture");
+  }
   //#endregion Login Functions
 
   //#region Remove Old Weeks
@@ -471,7 +530,32 @@ window.addEventListener('load', () => {
   }
 
   function RemoveOldWeeksFromUser(auth) {
+    onValue(ref_db(database, 'Users/' + auth?.currentUser.uid), (snapshot) => {
+      snapshot.child('Schedule').forEach((week) => {
+        const decodedWeek = decodeURIComponent(week.key);
+        const splitWeekDates = decodedWeek.split('-');
+        const beginWeekDate = new Date(splitWeekDates[0]);//.toLocaleDateString('en', {month: 'numeric', day: '2-digit', year: '2-digit'});
+        const endWeekDate = new Date(splitWeekDates[1]);
+        const currentDate = new Date();
 
+        //If the entire week has passed
+        if (endWeekDate.getTime() < currentDate.getTime()) {
+          remove(ref_db(database, 'Users/' + auth?.currentUser.uid + '/Schedule/' + week.key));
+        } else {
+          const sorter = { "Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3, "Friday": 4, "Saturday": 5, "Sunday": 6 };
+          //Week is still valid, check if individual days have passed and remove
+          week.forEach((day) => {
+            const tempBeginDate = new Date(beginWeekDate);
+            tempBeginDate.setDate(tempBeginDate.getDate() + sorter[day.key]); AddTimeToDate(day.child('Time').val(), tempBeginDate);
+            if (tempBeginDate.getTime() < currentDate.getTime()) {
+              remove(ref_db(database, 'Users/' + auth?.currentUser.uid + '/Schedule/' + week.key + '/' + day.key));
+            }
+          });
+        }
+      });
+    }, {
+      onlyOnce: true
+    });
   }
 
   //#endregion Remove Old Weeks
@@ -929,7 +1013,7 @@ window.addEventListener('load', () => {
     //Sign out button
     const signOutButton = e.target.closest('.signout-button');
 
-    if (signOutButton) { SignOutUser(auth); }
+    if (signOutButton) { signOutButton.classList.add('button-onClick'); SignOutUser(auth); }
   });
 
   function DropdownSelection(elemTarget, menu, auth) {
