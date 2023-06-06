@@ -69,7 +69,7 @@ window.addEventListener('load', () => {
   const loginForgotPassword = document.getElementById('login-forgot-password');
   const loginButton = document.getElementById('login-button');
 
-  const forgotPassContainer = document.getElementById('forgot-pass-container'); 
+  const forgotPassContainer = document.getElementById('forgot-pass-container');
   const forgotPassEmail = document.getElementById('forgot-pass-email');
   const forgotPassBtn = document.getElementById('forgot-pass-button');
   var forgPass = false;
@@ -104,6 +104,7 @@ window.addEventListener('load', () => {
   const profileSection = document.getElementById('profile-section');
   const profileBlocked = document.getElementById('profile-blocked');
   const profileInfo = document.getElementById('profile-info');
+  var userTotalRSVP = 0;
 
   //Array to hold the data of each week
   var allWeeksArr = []; var uniqWeeks = [];
@@ -697,7 +698,7 @@ window.addEventListener('load', () => {
         const userName = snapshot.child("Name").val();
         const userEmail = auth?.currentUser.email;
         const userPhone = snapshot.child("Phone").val();
-        const userTotalRSVP = snapshot.child("Total RSVP'd").val();
+        userTotalRSVP = snapshot.child("Total RSVP'd").val();
 
         //Clear userScheduleArr to avoid duplicates
         userScheduleArr = [];
@@ -755,7 +756,7 @@ window.addEventListener('load', () => {
     var name = document.createElement('h3'); name.textContent = userName; name.className = "prof-info"; name.setAttribute('data-label', 'Name:'); profileRow.appendChild(name);
     var email = document.createElement('h3'); email.textContent = userEmail; email.className = "prof-info"; email.setAttribute('data-label', 'Email:'); profileRow.appendChild(email);
     var phone = document.createElement('h3'); phone.textContent = userPhone; phone.className = "prof-info"; phone.setAttribute('data-label', 'Phone:'); profileRow.appendChild(phone);
-    var days = document.createElement('h3'); days.textContent = userTotalRSVP; days.className = "prof-info"; days.setAttribute('data-label', 'Total Days RSVP\'d:'); profileRow.appendChild(days);
+    var days = document.createElement('h3'); days.textContent = userTotalRSVP; days.className = "prof-info"; days.setAttribute('data-label', 'Total Days RSVP\'d:'); days.setAttribute('id', 'user-total-rsvp'); profileRow.appendChild(days);
     var editButton = document.createElement('button'); editButton.className = "editinfo-button";
     var editIcon = document.createElement('i'); editIcon.className = "fa-solid fa-pen-to-square"; editButton.appendChild(editIcon); profileRow.appendChild(editButton);
 
@@ -868,11 +869,11 @@ window.addEventListener('load', () => {
     var col4 = document.createElement('div'); col4.className = "col"; col4.setAttribute('data-label', "Guests:");
     var counter = document.createElement('div'); counter.className = "counter";
     var minus = document.createElement('span'); minus.className = "guest-down"; var minusIcon = document.createElement('i'); minusIcon.className = "fa-solid fa-minus"; minus.appendChild(minusIcon);
-    var counterInput = document.createElement('input'); counterInput.setAttribute("id", "counter-input-" + Math.floor(Math.random() * 100000)); counterInput.setAttribute("type", "text"); counterInput.value = 0; counterInput.disabled = true;
+    var counterInput = document.createElement('input'); counterInput.setAttribute("id", "counter-input-" + Math.floor(Math.random() * 100000)); counterInput.setAttribute("type", "text"); counterInput.value = 0;
     var plus = document.createElement('span'); plus.className = "guest-up"; var plusIcon = document.createElement('i'); plusIcon.className = "fa-solid fa-plus"; plus.appendChild(plusIcon);
 
     var col5 = document.createElement('div'); col5.className = "col"; col5.setAttribute('data-label', "Action:");
-    var rsvp = document.createElement('button'); rsvp.className = "rsvp-button"; rsvp.setAttribute('data-groupID', groupID);
+    var rsvp = document.createElement('button'); rsvp.className = "rsvp-button"; rsvp.setAttribute('data-groupID', groupID); rsvp.setAttribute('data-week', elem.week);
 
     //Check schedule
     if (userScheduleArr != null) {
@@ -882,7 +883,6 @@ window.addEventListener('load', () => {
           minus.classList.add('hide'); plus.classList.add('hide');
           counterInput.value = userDay.guests;
           rsvp.classList.add('rsvp-cancel-button');
-          rsvp.setAttribute('data-week', userDay.week);
         }
       });
     }
@@ -964,15 +964,15 @@ window.addEventListener('load', () => {
       //Make sure it is not the already selected item
       if (liParent.children[0].children[0].textContent != clickedText) {
         if (liParent === overviewWeekSelection || liParent === planWeekSelection) {
-          DropdownSelection(li, overviewWeekSelection, auth);
-          DropdownSelection(li, planWeekSelection, auth);
+          DropdownSelection(clickedText, overviewWeekSelection, auth);
+          DropdownSelection(clickedText, planWeekSelection, auth);
 
           // Switch Event Containers based on selection
           ShowEventContainers(clickedText, "planning-container");
           ShowEventContainers(clickedText, "overview-container");
         }
         else {
-          DropdownSelection(li, hostSelection, auth);
+          DropdownSelection(clickedText, hostSelection, auth);
         }
       }
     }
@@ -981,13 +981,8 @@ window.addEventListener('load', () => {
     const row = e.target.closest('.clickable-row');
 
     if (row) {
-      var liTarget = null;
-      Array.from(hostSelection.options).forEach((option) => {
-        if (row.children[2].textContent === option.value) {
-          liTarget = option;
-        }
-      });
-      DropdownSelection(liTarget, hostSelection.parentNode, auth);
+      var liTarget = row.children[2].textContent;
+      DropdownSelection(liTarget, hostSelection, auth);
       tabPlanning.click();
     }
 
@@ -1017,12 +1012,10 @@ window.addEventListener('load', () => {
   });
 
   function DropdownSelection(elemTarget, menu, auth) {
-    const clickedItemText = elemTarget.children[0].children[0].textContent;
-
-    if (clickedItemText != null) {
-      menu.children[0].children[0].textContent = clickedItemText;
+    if (elemTarget != null) {
+      menu.children[0].children[0].textContent = elemTarget;
       if (menu === hostSelection) {
-        PlanningSetup(planRef, auth?.currentUser.isAnonymous, hostNameArr.find(h => h.host === clickedItemText).group, userScheduleArr);
+        PlanningSetup(planRef, auth?.currentUser.isAnonymous, hostNameArr.find(h => h.host === elemTarget).group, userScheduleArr);
       }
     }
   };
@@ -1056,6 +1049,8 @@ window.addEventListener('load', () => {
       var groupID = button.getAttribute('data-groupID');
       var week = encodeURIComponent(button.getAttribute('data-week'));
       var guests = row.children[3].children[0].children[1];
+      const updates = {};
+      const totalRsvpElem = document.getElementById('user-total-rsvp');
 
       if (isRsvp === true) {
         guests.nextElementSibling.classList.remove('hide');
@@ -1069,9 +1064,14 @@ window.addEventListener('load', () => {
           Time: null,
         })
           .then(() => {
-            button.classList.remove('button-onClick');
-            button.classList.add('rsvp-validate');
-            setTimeout(ApproveRSVP(button, isRsvp), 450);
+            //Subtract total day rsvp from user
+            updates['Users/' + auth?.currentUser.uid + "/Total RSVP'd"] = --userTotalRSVP;
+            update(ref_db(database), updates).then(() => {
+              totalRsvpElem.textContent = userTotalRSVP;
+              button.classList.remove('button-onClick');
+              button.classList.add('rsvp-validate');
+              setTimeout(ApproveRSVP(button, isRsvp), 450);
+            });
           })
           .catch((error) => {
             guests.nextElementSibling.classList.remove('hide');
@@ -1090,9 +1090,14 @@ window.addEventListener('load', () => {
           Time: dayAndTime[1]
         })
           .then(() => {
-            button.classList.remove('button-onClick');
-            button.classList.add('rsvp-validate');
-            setTimeout(ApproveRSVP(button, isRsvp), 450);
+            //Add total day rsvp from user
+            updates['Users/' + auth?.currentUser.uid + "/Total RSVP'd"] = ++userTotalRSVP;
+            update(ref_db(database), updates).then(() => {
+              totalRsvpElem.textContent = userTotalRSVP;
+              button.classList.remove('button-onClick');
+              button.classList.add('rsvp-validate');
+              setTimeout(ApproveRSVP(button, isRsvp), 450);
+            });
           })
           .catch((error) => {
             guests.nextElementSibling.classList.remove('hide');

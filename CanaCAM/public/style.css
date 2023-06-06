@@ -1339,6 +1339,7 @@ li.dropdown-list-item {
   color: var(--white);
   appearance: none;
   outline: 0;
+  pointer-events: none;
 }
 
 .counter span {
