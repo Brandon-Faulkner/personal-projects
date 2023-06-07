@@ -207,9 +207,10 @@ window.addEventListener('load', () => {
         });
 
         //Upload prof pic to storage
+        const meta = {contentType: 'image/jpeg'};
         const userStoreRef = ref_st(storage, "Users/" + usercred.user.uid + "/" + imgName);
-        uploadBytes(userStoreRef, img)
-          .then((snapshot) => {
+        uploadBytes(userStoreRef, img, meta)
+          .then(() => {
             //Signed in with Account
             OverviewSetup(groupRef, usercred.user?.isAnonymous);
 
@@ -301,8 +302,8 @@ window.addEventListener('load', () => {
     e.preventDefault();
     const name = signupName.value.trim();
     const phone = signupPhone.value.trim();
-    const img = ValidateImg(signupImg.files[0]);
     const imgName = signupImg.parentElement.getAttribute('data-text');
+    const img = ValidateImg(signupImg.files[0], imgName);
     const email = signupEmail.value.trim();
     const password = signupPassword.value;
     const confirmPass = signupConfirmPass.value;
@@ -450,13 +451,13 @@ window.addEventListener('load', () => {
     }
   }
 
-  function ValidateImg(img) {
+  async function ValidateImg(img, imgName) {
     const fileError = document.getElementById('file-error');
     fileError.classList.add('hide');
     signupImg.classList.remove('login-error');
 
     if (img) {
-      return img;
+      return await CompressImage(img, imgName);
     } else {
       //Show error   
       fileError.classList.remove('hide');
@@ -480,6 +481,52 @@ window.addEventListener('load', () => {
     signupImg.parentElement.setAttribute("data-text", "Upload Profile Picture");
   }
   //#endregion Login Functions
+
+  //#region Resize Image Functions
+  async function CompressImage (oldImage, imgName) {
+    const blobURL = URL.createObjectURL(oldImage);
+    const img = new Image();
+    img.src = blobURL;
+
+    img.onload = function () {
+      const [newWidth, newHeight] = calculateSize(img, 250, 250);
+      const canvas = document.createElement("canvas");
+      canvas.width = newWidth;
+      canvas.height = newHeight;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, newWidth, newHeight);
+      canvas.toBlob(
+        (blob) => {
+          //Turn blob into a file
+          const file = new File([blob], imgName, {type: 'image/jpeg', lastModified: Date.now()});
+          console.log(signupImg.files[0]);
+          console.log(file);
+          console.log(blob);
+          return file;        
+        }, "image/jpeg",
+      );
+    };
+  };
+
+  function calculateSize(img, maxWidth, maxHeight) {
+    let width = img.width;
+    let height = img.height;
+
+    // calculate the width and height, constraining the proportions
+    if (width > height) {
+      if (width > maxWidth) {
+        height = Math.round((height * maxWidth) / width);
+        width = maxWidth;
+      }
+    } else {
+      if (height > maxHeight) {
+        width = Math.round((width * maxHeight) / height);
+        height = maxHeight;
+      }
+    }
+    return [width, height];
+  }
+  //#endregion Resize Image Functions
 
   //#region Remove Old Weeks
   function RemoveOldWeeksFromGroups(groupRef) {

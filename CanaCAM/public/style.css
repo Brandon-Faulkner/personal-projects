@@ -1096,8 +1096,8 @@ li.dropdown-list-item {
 
 .profile-image {
   height: auto;
-  max-width: 50%;
-  max-height: 90%;
+  max-width: 250px;
+  max-height: 250px;
   border-radius: var(--border-radius);
   box-shadow: var(--box-shadow);
   background-color: var(--white);
