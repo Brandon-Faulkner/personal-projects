@@ -252,9 +252,9 @@ p {
 
 /*#region LOGIN SCREEN*/
 .login-wrapper {
+  overflow: auto;
   max-width: 445px;
-  height: 60vh;
-  max-height: 650px;
+  height: fit-content;
   background: var(--white);
   padding: 30px;
   border-radius: var(--border-radius);
@@ -432,6 +432,9 @@ input[type="radio"] {
 .login-wrapper .login-form-container {
   width: 100%;
   overflow-x: hidden;
+  height: auto;
+  max-height: 110vh;
+  padding-top: 20px;
 }
 
 .login-form-container .login-form-inner {
@@ -972,6 +975,7 @@ form .btn input[type="submit"] {
   margin-top: 40px;
   width: 95%;
   max-width: 600px;
+  z-index: 1;
 }
 
 .dropdown-list-wrapper {
@@ -1054,6 +1058,26 @@ li.dropdown-list-item {
   align-items: center;
 }
 
+.responsive-table [data-badge] {
+  position: relative;
+}
+.responsive-table [data-badge]:after {
+  position: absolute;
+  right: -10px;
+  top: -10px;
+  width: 100px;
+  height: 30px;
+  font-style: italic;
+  padding: 5px;
+  color: var(--white);
+  background-color: var(--blue);
+  font-size: 20px;
+  border-radius: 5px;
+  content: attr(data-badge);
+  border: solid 1px var(--blue);
+  box-shadow: var(--box-shadow);
+}
+
 .responsive-table .table-header {
   background-color: var(--green);
   color: var(--white);
@@ -1131,7 +1155,8 @@ li.dropdown-list-item {
   outline: none;
   height: 40px;
   text-align: center;
-  width: 110px;
+  width: auto;
+  min-width: 100px;
   border-radius: 40px;
   background: var(--green);
   border: 2px solid var(--green);
@@ -1168,6 +1193,7 @@ li.dropdown-list-item {
 
 .button-onClick {
   width: 40px !important;
+  min-width: 0 !important;
   border-color: #bbbbbb !important;
   border-width: 3px !important;
   font-size: 0 !important;
@@ -1224,7 +1250,8 @@ li.dropdown-list-item {
   outline: none;
   height: 40px;
   text-align: center;
-  width: 100px;
+  width: auto;
+  min-width: 100px;
   border-radius: 40px;
   background: var(--green);
   border: 2px solid var(--green);
@@ -1257,7 +1284,8 @@ li.dropdown-list-item {
   outline: none;
   height: 40px;
   text-align: center;
-  width: 100px;
+  width: auto;
+  min-width: 100px;
   border-radius: 40px;
   background: var(--green);
   border: 2px solid var(--green);
@@ -1290,7 +1318,8 @@ li.dropdown-list-item {
   outline: none;
   height: 40px;
   text-align: center;
-  width: 100px;
+  width: auto;
+  min-width: 100px;
   border-radius: 40px;
   background: var(--green);
   border: 2px solid var(--green);
@@ -1320,7 +1349,8 @@ li.dropdown-list-item {
 
 /*Guest Button*/
 .counter {
-  width: 100px;
+  width: auto;
+  min-width: 100px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1344,7 +1374,7 @@ li.dropdown-list-item {
 
 .counter span {
   display: block;
-  padding: 0 10px;
+  margin: auto;
   cursor: pointer;
   color: var(--white);
   user-select: none;
@@ -1352,11 +1382,15 @@ li.dropdown-list-item {
 }
 
 .guest-up {
-  width: 15px;
+  width: 20px;
 }
 
 .guest-down {
-  width: 15px;
+  width: 20px;
+}
+
+.fa-minus, .fa-plus {
+  padding-right: 0;
 }
 
 .guest-up:hover {

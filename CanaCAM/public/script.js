@@ -14,10 +14,10 @@ if (navigator.serviceWorker) {
 }
 
 // Import the functions you need from the SDKs you need
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-app.js";
-import { getDatabase, ref as ref_db, onValue, child, set, remove, update } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-database.js";
-import { getStorage, ref as ref_st, getDownloadURL, uploadBytes } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-storage.js";
-import { getAuth, onAuthStateChanged, signInAnonymously, signInWithEmailAndPassword, sendPasswordResetEmail, EmailAuthProvider, linkWithCredential, signOut } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
+import { getDatabase, ref as ref_db, onValue, child, set, remove, update } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+import { getStorage, ref as ref_st, getDownloadURL, uploadBytes } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-storage.js";
+import { getAuth, onAuthStateChanged, signInAnonymously, signInWithEmailAndPassword, sendPasswordResetEmail, EmailAuthProvider, linkWithCredential, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -31,7 +31,6 @@ const firebaseConfig = {
 };
 
 window.addEventListener('load', () => {
-
   /*Notification.requestPermission().then((result) => {
     randomNotification();
   });
@@ -198,30 +197,29 @@ window.addEventListener('load', () => {
   function UpgradeAnonymous(auth, credential, img, imgName, name, phone) {
     linkWithCredential(auth.currentUser, credential)
       .then((usercred) => {
-        //Upload user data to db
-        set(ref_db(database, 'Users/' + usercred.user.uid), {
-          Image: imgName,
-          Name: name,
-          Phone: phone,
-          "Total RSVP'd": 0,
-        });
-
         //Upload prof pic to storage
-        const meta = {contentType: 'image/jpeg'};
         const userStoreRef = ref_st(storage, "Users/" + usercred.user.uid + "/" + imgName);
-        uploadBytes(userStoreRef, img, meta)
+        uploadBytes(userStoreRef, img)
           .then(() => {
-            //Signed in with Account
-            OverviewSetup(groupRef, usercred.user?.isAnonymous);
+            //Upload user data to db
+            set(ref_db(database, 'Users/' + usercred.user.uid), {
+              Image: imgName,
+              Name: name,
+              Phone: phone,
+              "Total RSVP'd": 0,
+            })
+              .then(() => {
+                //Signed in with Account
+                OverviewSetup(groupRef, usercred.user?.isAnonymous);
 
-            //Remove listeners
-            tabPlanning.removeEventListener('click', ShowLogin);
-            tabProfile.removeEventListener('click', ShowLogin);
-            loginCloseBtn.removeEventListener('click', ShowLogin);
+                //Remove listeners
+                tabPlanning.removeEventListener('click', ShowLogin);
+                tabProfile.removeEventListener('click', ShowLogin);
+                loginCloseBtn.removeEventListener('click', ShowLogin);
+              });
           });
-
       }).catch((error) => {
-        console.log("Error upgrading anonymous account", error);
+        console.log("Error upgrading anonymous account:", error);
       });
   }
 
@@ -302,8 +300,8 @@ window.addEventListener('load', () => {
     e.preventDefault();
     const name = signupName.value.trim();
     const phone = signupPhone.value.trim();
+    const img = ValidateImg(signupImg.files[0]);
     const imgName = signupImg.parentElement.getAttribute('data-text');
-    const img = ValidateImg(signupImg.files[0], imgName);
     const email = signupEmail.value.trim();
     const password = signupPassword.value;
     const confirmPass = signupConfirmPass.value;
@@ -375,8 +373,23 @@ window.addEventListener('load', () => {
   });
 
   signupImg.addEventListener('change', function () {
-    signupImg.parentElement.setAttribute("data-text", signupImg.value.replace(/.*(\/|\\)/, ''));
-  })
+    signupImg.parentElement.setAttribute("data-text", "Upload Profile Picture");
+    const fileError = document.getElementById('file-error');
+    fileError.classList.add('hide');
+
+    if (signupImg.files.length > 0) {
+      const fileSize = signupImg.files.item(0).size;
+      const fileMb = fileSize / 1024 ** 2;
+      if (fileMb >= 2) {
+        //Bad
+        fileError.children[0].textContent = "Please select a file less than 2MB.";
+        fileError.classList.remove('hide');  
+      } else {
+        //Good
+        signupImg.parentElement.setAttribute("data-text", signupImg.value.replace(/.*(\/|\\)/, ''));
+      }
+    }
+  });
 
   function ValidateName(name) {
     const nameRegex = new RegExp(/^[a-zA-z]+ [a-zA-z]+$/gm, "gm");
@@ -451,13 +464,13 @@ window.addEventListener('load', () => {
     }
   }
 
-  async function ValidateImg(img, imgName) {
+  function ValidateImg(img) {
     const fileError = document.getElementById('file-error');
     fileError.classList.add('hide');
     signupImg.classList.remove('login-error');
 
     if (img) {
-      return await CompressImage(img, imgName);
+      return img;
     } else {
       //Show error   
       fileError.classList.remove('hide');
@@ -481,52 +494,6 @@ window.addEventListener('load', () => {
     signupImg.parentElement.setAttribute("data-text", "Upload Profile Picture");
   }
   //#endregion Login Functions
-
-  //#region Resize Image Functions
-  async function CompressImage (oldImage, imgName) {
-    const blobURL = URL.createObjectURL(oldImage);
-    const img = new Image();
-    img.src = blobURL;
-
-    img.onload = function () {
-      const [newWidth, newHeight] = calculateSize(img, 250, 250);
-      const canvas = document.createElement("canvas");
-      canvas.width = newWidth;
-      canvas.height = newHeight;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(img, 0, 0, newWidth, newHeight);
-      canvas.toBlob(
-        (blob) => {
-          //Turn blob into a file
-          const file = new File([blob], imgName, {type: 'image/jpeg', lastModified: Date.now()});
-          console.log(signupImg.files[0]);
-          console.log(file);
-          console.log(blob);
-          return file;        
-        }, "image/jpeg",
-      );
-    };
-  };
-
-  function calculateSize(img, maxWidth, maxHeight) {
-    let width = img.width;
-    let height = img.height;
-
-    // calculate the width and height, constraining the proportions
-    if (width > height) {
-      if (width > maxWidth) {
-        height = Math.round((height * maxWidth) / width);
-        width = maxWidth;
-      }
-    } else {
-      if (height > maxHeight) {
-        width = Math.round((width * maxHeight) / height);
-        height = maxHeight;
-      }
-    }
-    return [width, height];
-  }
-  //#endregion Resize Image Functions
 
   //#region Remove Old Weeks
   function RemoveOldWeeksFromGroups(groupRef) {
@@ -714,7 +681,7 @@ window.addEventListener('load', () => {
     array.forEach((elem) => {
       if (elem.day === day) {
         var row = document.createElement('li');
-        row.className = "table-row clickable-row";
+        row.className = "table-row clickable-row"; row.setAttribute('id', elem.group + '-' + elem.week + '-' + elem.day);
 
         var col1 = document.createElement('div'); col1.className = "col"; col1.setAttribute('data-label', "Time:"); col1.textContent = elem.time; row.appendChild(col1);
         var col2 = document.createElement('div'); col2.className = "col"; col2.setAttribute('data-label', "General Location:"); col2.textContent = elem.location; row.appendChild(col2);
@@ -755,6 +722,7 @@ window.addEventListener('load', () => {
           week.forEach((day) => {
             const weekDay = { week: decodeURIComponent(week.key), day: day.key, time: day.child('Time').val(), guests: day.child('Guests').val(), group: day.child('GroupID').val() };
             userScheduleArr.push(weekDay);
+            AddOrRemoveNotifBadge(weekDay.group + '-' + weekDay.week + '-' + weekDay.day, 'RSVP\'d', 'add');
           });
         });
 
@@ -920,7 +888,7 @@ window.addEventListener('load', () => {
     var plus = document.createElement('span'); plus.className = "guest-up"; var plusIcon = document.createElement('i'); plusIcon.className = "fa-solid fa-plus"; plus.appendChild(plusIcon);
 
     var col5 = document.createElement('div'); col5.className = "col"; col5.setAttribute('data-label', "Action:");
-    var rsvp = document.createElement('button'); rsvp.className = "rsvp-button"; rsvp.setAttribute('data-groupID', groupID); rsvp.setAttribute('data-week', elem.week);
+    var rsvp = document.createElement('button'); rsvp.className = "rsvp-button"; rsvp.setAttribute('data-groupID', groupID); rsvp.setAttribute('data-week', elem.week); rsvp.setAttribute('data-day', elem.day);
 
     //Check schedule
     if (userScheduleArr != null) {
@@ -1158,15 +1126,33 @@ window.addEventListener('load', () => {
 
   function ApproveRSVP(button, isRsvp) {
     setTimeout(function () {
+      //Add or remove badge on clickable row in overview on the day of the RSVP      
+      const groupID = button.getAttribute('data-groupID');
+      const week = button.getAttribute('data-week');
+      const day = button.getAttribute('data-day');
+
       if (isRsvp === true) {
         button.classList.remove('rsvp-cancel-button');
         button.parentElement.parentElement.children[2].textContent = "Not Going";
+        AddOrRemoveNotifBadge(groupID + '-' + week + '-' + day, null, 'remove')
       } else {
         button.classList.add('rsvp-cancel-button');
         button.parentElement.parentElement.children[2].textContent = "Going";
+        AddOrRemoveNotifBadge(groupID + '-' + week + '-' + day, 'RSVP\'d', 'add');
       }
       button.classList.remove('rsvp-validate');
     }, 1250);
+  }
+
+  function AddOrRemoveNotifBadge(idString, contentString, addOrRemove) {
+    const row = document.getElementById(idString);
+    if (row != null) {
+      if (addOrRemove === 'add') {
+        row.setAttribute('data-badge', contentString);
+      } else if (addOrRemove === 'remove') {
+        row.removeAttribute('data-badge');
+      }
+    }
   }
 
   function GuestDown(elem) {
@@ -1188,6 +1174,5 @@ window.addEventListener('load', () => {
       input.value = value;
     }
   }
-
   //#endregion Click Functions
 });
