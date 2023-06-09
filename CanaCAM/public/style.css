@@ -1148,176 +1148,58 @@ li.dropdown-list-item {
 }
 
 /*Messages*/
-<link href='https://fonts.googleapis.com/css?family=Open+Sans:400,600,700' rel='stylesheet' type='text/css'>
+#chat-wrapper{
+	width: 70%;
+  min-width: 305px;
+  max-width: 400px;  
+	background: var(--white);
+	border-radius: var(--border-radius);
+	height: 50%;
+	position: absolute;
+	top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: auto;
+}
 
-<a id="view-code" href="https://codepen.io/virgilpana/pen/ZYZXgP" target="_blank">VIEW CODE</a>
-
-<div id="chatbox">
-	<div id="friendslist">
-    	<div id="topmenu">
-        </div>
-        
-        <div id="friends">
-        	<div class="friend">
-            	<img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/245657/1_copy.jpg" />
-                <p>
-                	<strong>Miro Badev</strong>
-	                <span>mirobadev@gmail.com</span>
-                </p>
-                <div class="status available"></div>
-            </div>
-            
-            <div class="friend">
-            	<img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/245657/2_copy.jpg" />
-                <p>
-                	<strong>Martin Joseph</strong>
-	                <span>marjoseph@gmail.com</span>
-                </p>
-                <div class="status away"></div>
-            </div>
-            
-            <div class="friend">
-            	<img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/245657/3_copy.jpg" />
-                <p>
-                	<strong>Tomas Kennedy</strong>
-	                <span>tomaskennedy@gmail.com</span>
-                </p>
-                <div class="status inactive"></div>
-            </div>
-            
-            <div class="friend">
-            	<img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/245657/4_copy.jpg" />
-                <p>
-                	<strong>Enrique	Sutton</strong>
-	                <span>enriquesutton@gmail.com</span>
-                </p>
-                <div class="status inactive"></div>
-            </div>
-            
-            <div class="friend">
-            	<img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/245657/5_copy.jpg" />
-                <p>
-                <strong>	Darnell	Strickland</strong>
-	                <span>darnellstrickland@gmail.com</span>
-                </p>
-                <div class="status inactive"></div>
-            </div>            
-        </div>                
-        
-    </div>	
-    
-    <div id="chatview" class="p1">    	
-        <div id="profile">
-
-            <div id="close">
-                <div class="cy"></div>
-                <div class="cx"></div>
-            </div>
-            
-            <p>Miro Badev</p>
-            <span>miro@badev@gmail.com</span>
-        </div>
-        <div id="chat-messages">
-        	<label>Thursday 02</label>
-            
-            <div class="message">
-            	<img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/245657/1_copy.jpg" />
-                <div class="bubble">
-                	Really cool stuff!
-                    <div class="corner"></div>
-                    <span>3 min</span>
-                </div>
-            </div>
-            
-            <div class="message right">
-            	<img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/245657/2_copy.jpg" />
-                <div class="bubble">
-                	Can you share a link for the tutorial?
-                    <div class="corner"></div>
-                    <span>1 min</span>
-                </div>
-            </div>
-            
-            <div class="message">
-            	<img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/245657/1_copy.jpg" />
-                <div class="bubble">
-                	Yeah, hold on
-                    <div class="corner"></div>
-                    <span>Now</span>
-                </div>
-            </div>
-            
-            <div class="message right">
-            	<img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/245657/2_copy.jpg" />
-                <div class="bubble">
-                	Can you share a link for the tutorial?
-                    <div class="corner"></div>
-                    <span>1 min</span>
-                </div>
-            </div>
-            
-            <div class="message">
-            	<img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/245657/1_copy.jpg" />
-                <div class="bubble">
-                	Yeah, hold on
-                    <div class="corner"></div>
-                    <span>Now</span>
-                </div>
-            </div>
-            
-        </div>
-    	
-        <div id="sendmessage">
-        	<input type="text" value="Send message..." />
-            <button id="send"></button>
-        </div>
-    
-    </div>        
-</div>	
-    
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-
-#friendslist{
+#chat-host-list{
   display: inline-grid;
 	position:absolute;
 	top:0;
 	left:0;
-	width:290px;
-	height:484px;
+	width: 100%;
+	height: 100%;
 }
-#topmenu{
-	height:69px;
-	width:auto;
-	border-bottom:1px solid #d8dfe3;	
+#chat-host-title{
+	height: 12.5%;
+	width: 100%;
+	border-bottom: 1px solid #d8dfe3;	
 }
-#topmenu span{
-	float:left;	
-	width: 96px;
-    height: 70px;
-    background: url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/245657/top-menu.png") -3px -118px no-repeat;
-}
-#topmenu span.friends{margin-bottom:-1px;}
-#topmenu span.chats{background-position:-95px 25px; cursor:pointer;}
-#topmenu span.chats:hover{background-position:-95px -46px; cursor:pointer;}
-#topmenu span.history{background-position:-190px 24px; cursor:pointer;}
-#topmenu span.history:hover{background-position:-190px -47px; cursor:pointer;}
-
-#friends {
-  height: 100%;
-  width: max-content;
-  overflow: overlay;
+#chat-hosts {
+    height: auto;
+    width: 100%;
+    display: inline-grid;
+    overflow: overlay;
+    position: absolute;
+    top: 12.5%;
+    bottom: 0;
+    right: 0;
+    left: 0;
 }
 
-.friend{
-	height:70px;
-	border-bottom:1px solid #e7ebee;		
+.chat-host{
+	height:70px;	
 	position:relative;
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
 }
-.friend:hover{
+.chat-host:hover{
 	background:#f1f4f6;
 	cursor:pointer;
 }
-.friend img{
+.chat-host img{
 	width:40px;
 	border-radius:50%;
 	margin:15px;
@@ -1331,23 +1213,25 @@ li.dropdown-list-item {
 	left:12px;
 	border:3px solid #fff;
 }
-.friend p{
-	padding:15px 0 0 0;			
+.chat-host p{
+	padding: 0;			
 	float:left;
 	width:220px;
+  margin: 0;
+  text-align: left;
 }
-.friend p strong{
+.chat-host p strong{
   font-weight:600;
   font-size:15px;
 	color:#597a96;  
 
 }
-.friend p span{
+.chat-host p span{
 	font-size:13px;
 	font-weight:400;
 	color:#aab8c2;
 }
-.friend .status{
+.chat-host .status{
 	background:#26c281;
 	border-radius:50%;	
 	width:9px;
@@ -1356,30 +1240,10 @@ li.dropdown-list-item {
 	top:31px;
 	right:17px;
 }
-.friend .status.away{background:#ffce54;}
-.friend .status.inactive{background:#eaeef0;}
-#search{
-	background:#e3e9ed url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/245657/search.png") -11px 0 no-repeat;
-	height:60px;
-	width:290px;
-	position:absolute;
-	bottom:0;
-	left:0;
-}
-#searchfield{
-	background:#e3e9ed;
-	margin:21px 0 0 55px;
-	border:none;
-	padding:0;
-	font-size:14px;
-	font-family:"Open Sans", sans-serif; 
-	font-weight:400px;
-	color:#8198ac;
-}
-#searchfield:focus{
-	 outline: 0;
-}
-#chatview{
+.chat-host .status.away{background:#ffce54;}
+.chat-host .status.inactive{background:#eaeef0;}
+
+#chat-view{
 	width:290px;
 	height:484px;
 	position:absolute;
@@ -1388,22 +1252,22 @@ li.dropdown-list-item {
 	display:none;
 	background:#fff;
 }
-#profile{
+#chat-host-profile{
 	height:153px;
 	overflow:hidden;
 	text-align:center;
 	color:#fff;
 }
-.p1 #profile{
+.p1 #chat-host-profile{
 	background:#fff url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/245657/timeline1.png") 0 0 no-repeat;
 }
-#profile .avatar{
+#chat-host-profile .avatar{
 	width:68px;
 	border:3px solid #fff;
 	margin:23px 0 0;
 	border-radius:50%;
 }
-#profile  p{
+#chat-host-profile  p{
 	font-weight:600;
 	font-size:15px;
 	margin:118px 0 -1px;
@@ -1414,7 +1278,7 @@ li.dropdown-list-item {
 	     -o-transition: all 200ms cubic-bezier(0.000, 0.995, 0.990, 1.000);
 	        transition: all 200ms cubic-bezier(0.000, 0.995, 0.990, 1.000);	
 }
-#profile  p.animate{
+#chat-host-profile  p.animate{
 	margin-top:97px;
 	opacity:1;
 	-webkit-transition: all 200ms cubic-bezier(0.000, 0.995, 0.990, 1.000);
@@ -1423,7 +1287,7 @@ li.dropdown-list-item {
 	     -o-transition: all 200ms cubic-bezier(0.000, 0.995, 0.990, 1.000);
 	        transition: all 200ms cubic-bezier(0.000, 0.995, 0.990, 1.000);	
 }
-#profile  span{
+#chat-host-profile  span{
 	font-weight:400;
 	font-size:11px;
 }
@@ -1510,7 +1374,7 @@ div.message.right .corner{
 	  right: 0;
 	  bottom: -22px;
 }
-#sendmessage{
+#chat-send-message{
 	height:60px;
 	border-top:1px solid #e7ebee;	
 	position:absolute;
@@ -1520,7 +1384,7 @@ div.message.right .corner{
 	background:#fff;
 	padding-bottom:50px;
 }
-#sendmessage input{
+#chat-send-message input{
 	background:#fff;
 	margin:21px 0 0 21px;
 	border:none;
@@ -1530,10 +1394,10 @@ div.message.right .corner{
 	font-weight:400px;
 	color:#aab8c2;
 }
-#sendmessage input:focus{
+#chat-send-message input:focus{
 	 outline: 0;
 }
-#sendmessage button{
+#chat-send-message button{
 	background:#fff url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/245657/send.png") 0 -41px no-repeat;
 	width:30px;
 	height:30px;
@@ -1542,15 +1406,15 @@ div.message.right .corner{
 	top: 23px;
 	border:none;
 }
-#sendmessage button:hover{
+#chat-send-message button:hover{
 	cursor:pointer;
 	background-position: 0 0 ;
 }
-#sendmessage button:focus{
+#chat-send-message button:focus{
 	 outline: 0;	 
 }
 
-#close{
+#chat-close{
 	position:absolute;
 	top: 8px;	
 	opacity:0.8;
@@ -1559,7 +1423,7 @@ div.message.right .corner{
 	height:20px;
 	cursor:pointer;
 }
-#close:hover{
+#chat-close:hover{
 	opacity:1;
 }
 .cx, .cy{
@@ -1619,7 +1483,7 @@ div.message.right .corner{
 	transform: rotate(140deg);		 
 	-webkit-transition: all 100ms ease-out;
 	   -moz-transition: all 100ms ease-out;
-		-ms-transition: all 100ease-out;
+		-ms-transition: all 100ms ease-out;
 		 -o-transition: all 100ms ease-out;
 			transition: all 100ms ease-out;
 }
@@ -1627,13 +1491,13 @@ div.message.right .corner{
 	-ms-transform: rotate(135deg); 
 	-webkit-transform: rotate(135deg); 
 	transform: rotate(135deg);		 
-	-webkit-transition: all 100ease-out;
+	-webkit-transition: all 100ms ease-out;
 	   -moz-transition: all 100ms ease-out;
 		-ms-transition: all 100ms ease-out;
 		 -o-transition: all 100ms ease-out;
 			transition: all 100ms ease-out;
 }
-#chatview, #sendmessage { 
+#chat-view, #chat-send-message { 
 overflow:hidden; 
 border-radius:6px; 
 }
