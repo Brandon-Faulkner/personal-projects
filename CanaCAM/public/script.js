@@ -207,8 +207,9 @@ window.addEventListener('load', () => {
     linkWithCredential(auth.currentUser, credential)
       .then((usercred) => {
         //Upload prof pic to storage
+        const metaData = { cacheControl: 'public,max-age=604800', };
         const userStoreRef = ref_st(storage, "Users/" + usercred.user.uid + "/" + imgName);
-        uploadBytes(userStoreRef, img)
+        uploadBytes(userStoreRef, img, metaData)
           .then(() => {
             //Upload user data to db
             set(ref_db(database, 'Users/' + usercred.user.uid), {
@@ -735,6 +736,16 @@ window.addEventListener('load', () => {
           });
         });
 
+        //Update Messages with current hosts and user messages
+        chatHosts.replaceChildren();
+        hostNameArr.forEach((host) => {
+          ChatHostsSetup(chatHosts, host.host);
+        });
+
+        //snapshot.child("Messages").forEach((msg) => {
+          //Pull messages based on host and setup
+        //});
+
         getDownloadURL(ref_st(storage, "Users/" + auth?.currentUser.uid + "/" + userImage))
           .then((url) => {
             //Clear current elements from profile section
@@ -767,7 +778,10 @@ window.addEventListener('load', () => {
     var profCol2 = document.createElement('div'); profCol2.className = "profile-col"; profCol2.style = "padding-top: 10px;";
     var profSignOut = document.createElement('button'); profSignOut.setAttribute('id', 'signout-button'); profSignOut.className = "signout-button";
     var profSignOutIcon = document.createElement('i'); profSignOutIcon.className = "fa-solid fa-right-from-bracket"; profSignOut.appendChild(profSignOutIcon);
-    profCol2.appendChild(profSignOut); profileHeader.appendChild(profCol2);
+    profCol2.appendChild(profSignOut); 
+    var profMessages = document.createElement('button'); profMessages.setAttribute('id', 'messages-button'); profMessages.className = "messages-button";
+    var profMessagesIcon = document.createElement('i'); profMessagesIcon.className = "fa-solid fa-message"; profMessages.appendChild(profMessagesIcon);
+    profCol2.appendChild(profMessages); profileHeader.appendChild(profCol2);
 
     parentElem.appendChild(profileHeader);
   }
@@ -798,6 +812,14 @@ window.addEventListener('load', () => {
     
     parentElem.appendChild(hostDiv);
   }
+
+  chatCloseBtn.addEventListener('click', function () {
+    if (chatView.classList.contains('animate')) {
+      chatView.classList.remove('animate');
+    } else {
+      chatScreen.classList.remove('show');
+    }
+  });
   //#endregion Profile Setup
 
   //#region Planning Setup
@@ -1045,6 +1067,15 @@ window.addEventListener('load', () => {
     const signOutButton = e.target.closest('.signout-button');
 
     if (signOutButton) { signOutButton.classList.add('button-onClick'); SignOutUser(auth); }
+
+    //Messages button 
+    const messagesButton = e.target.closest('.messages-button');
+
+    if (messagesButton) { 
+      if (!chatScreen.classList.contains('show')) {
+        chatScreen.classList.add('show');
+      } 
+    }
   });
 
   function DropdownSelection(elemTarget, menu, auth) {
