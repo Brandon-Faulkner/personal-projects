@@ -104,6 +104,15 @@ window.addEventListener('load', () => {
   const profileBlocked = document.getElementById('profile-blocked');
   const profileInfo = document.getElementById('profile-info');
   var userTotalRSVP = 0;
+  const chatScreen = document.getElementById('chat-page');
+  const chatCloseBtn = document.getElementById('chat-close-btn');
+  const chatHosts = document.getElementById('chat-hosts');
+  const chatView = document.getElementById('chat-view');
+  const chatHostProf = document.getElementById('chat-host-profile');
+  const chatMessages = document.getElementById('chat-messages');
+  const chatMessageInput = document.getElementById('chat-msg-input');
+  const chatSendBtn = document.getElementById('chat-send-btn');
+  
 
   //Array to hold the data of each week
   var allWeeksArr = []; var uniqWeeks = [];
@@ -776,6 +785,18 @@ window.addEventListener('load', () => {
     var editIcon = document.createElement('i'); editIcon.className = "fa-solid fa-pen-to-square"; editButton.appendChild(editIcon); profileRow.appendChild(editButton);
 
     parentElem.appendChild(profileRow);
+  }
+
+  //Messages
+  function ChatHostsSetup(parentElem, host) {
+    var hostDiv = document.createElement('div'); hostDiv.classList.add('chat-host'); hostDiv.setAttribute('id', host + '-chat');
+
+    var hostImg = document.createElement('img'); hostImg.src = "https://s3-us-west-2.amazonaws.com/s.cdpn.io/245657/1_copy.jpg"; hostDiv.appendChild(hostImg);
+    var hostName = document.createElement('p'); var nameText = document.createElement('strong'); nameText.textContent = host; hostName.appendChild(nameText); hostDiv.appendChild(hostName);
+
+    var notifStatus = document.createElement('div'); notifStatus.classList.add('status'); notifStatus.setAttribute('id', host + '-status'); hostDiv.appendChild(notifStatus);
+    
+    parentElem.appendChild(hostDiv);
   }
   //#endregion Profile Setup
 
