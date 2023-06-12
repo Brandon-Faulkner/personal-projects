@@ -2,17 +2,25 @@
   "rules": {
     "Groups":{
       ".read": "auth != null",
-      ".write": "auth != null && auth.token.email.endsWith('@canachurch.com')"
+      ".write": "auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && root.child('Users').child(auth.uid).child('isAdmin').val() === true"
     },
     "GroupsInfo": {
       ".read": "auth != null && auth.token.firebase.sign_in_provider != 'anonymous'",
-      ".write": "auth != null && auth.token.email.endsWith('@canachurch.com')" 
+      ".write": "root.child('Users').child(auth.uid).child('isAdmin').val() === true" 
     },
     "Users": {
       "$uid": {
-        ".read": "$uid === auth.uid",
-        ".write": "$uid === auth.uid"
+        ".read": "$uid === auth.uid || root.child('Users').child(auth.uid).child('isAdmin').val() === true",
+        ".write": "$uid === auth.uid || root.child('Users').child(auth.uid).child('isAdmin').val() === true"
       }
-    }    
+    },
+    "UsersMessages": {
+      "$groupID": {
+        "$uid": {
+          ".read": "$uid === auth.uid || root.child('Users').child(auth.uid).child('isAdmin').val() === true",
+          ".write": "$uid === auth.uid || root.child('Users').child(auth.uid).child('isAdmin').val() === true"
+        }
+      }
+    }
   }
 }

@@ -11,6 +11,21 @@ Copyright 2015, 2019 Google Inc. All Rights Reserved.
  limitations under the License.
 */
 
+importScripts("https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js");
+importScripts("https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js");
+importScripts("https://www.gstatic.com/firebasejs/9.22.1/firebase-messaging.js");
+
+firebase.initializeApp = ({
+  apiKey: "AIzaSyBNmzs6isOjHTVJq0YM7HGLxBrJ4d22sf8",
+  authDomain: "cana-cam.firebaseapp.com",
+  databaseURL: "https://cana-cam-default-rtdb.firebaseio.com",
+  projectId: "cana-cam",
+  storageBucket: "cana-cam.appspot.com",
+  messagingSenderId: "587415518534",
+  appId: "1:587415518534:web:0a62871e35785219bc3947"
+});
+
+//#region ORIGINAL CODE FROM AUTHOR
 // Incrementing OFFLINE_VERSION will kick off the install event and force
 // previously cached resources to be updated from the network.
 const OFFLINE_VERSION = 1;
@@ -74,3 +89,20 @@ self.addEventListener('fetch', (event) => {
   // event.respondWith(), the request will be handled by the browser as if there
   // were no service worker involvement.
 });
+//#endregion ORIGINAL CODE FROM AUTHOR
+
+//#region CODE ADDED BY BRANDON FAULKNER
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  event.waitUntil(clients.matchAll({type: "window"}).then(function(clientList) {
+    for (var i = 0; i < clientList.length; i++) {
+      var client = clientList[i];
+      if (client.url == '/' && 'focus' in client)
+          return client.focus();
+      }
+      if (clients.openWindow) {
+      return clients.openWindow('/');
+      }
+  }));
+});
+//#endregion CODE ADDED BY BRANDON FAULKNER

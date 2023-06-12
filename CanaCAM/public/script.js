@@ -1,23 +1,9 @@
-// Ensure that the browser supports the service worker API
-if (navigator.serviceWorker) {
-  // Start registration process on every page load
-  window.addEventListener('load', () => {
-    navigator.serviceWorker
-      // The register function takes as argument
-      // the file path to the worker's file
-      .register('service-worker.js')
-      // Gives us registration object
-      .then(reg => console.log('Service Worker Registered'))
-      .catch(swErr => console.log(
-        `Service Worker Installation Error: ${swErr}}`));
-  });
-}
-
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
 import { getDatabase, ref as ref_db, onValue, child, set, remove, update } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 import { getStorage, ref as ref_st, getDownloadURL, uploadBytes } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-storage.js";
 import { getAuth, onAuthStateChanged, signInAnonymously, signInWithEmailAndPassword, sendPasswordResetEmail, EmailAuthProvider, linkWithCredential, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-messaging.js";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -30,11 +16,18 @@ const firebaseConfig = {
   appId: "1:587415518534:web:0a62871e35785219bc3947"
 };
 
+// Initialize Firebase, Database and Authentication
+const app = initializeApp(firebaseConfig);
+const database = getDatabase(app);
+const groupRef = ref_db(database, "Groups/");
+const planRef = ref_db(database, "GroupsInfo/");
+const storage = getStorage(app);
+const auth = getAuth(app);
+const messaging = getMessaging(app);
+
+
 window.addEventListener('load', () => {
-  /*Notification.requestPermission().then((result) => {
-    randomNotification();
-  });
-  function randomNotification() {
+  /*function randomNotification() {
     const notifTitle = "Test Title";
     const notifBody = `Created by Brandon Faulkner.`;
     const notifImg = "Resources/Icons/android-chrome-96x96.png";
@@ -46,15 +39,16 @@ window.addEventListener('load', () => {
     setTimeout(randomNotification, 30000);
   }*/
 
-  //#region Variables
-  // Initialize Firebase, Database and Authentication
-  const app = initializeApp(firebaseConfig);
-  const database = getDatabase(app);
-  const groupRef = ref_db(database, "Groups/");
-  const planRef = ref_db(database, "GroupsInfo/");
-  const storage = getStorage(app);
-  const auth = getAuth(app);
+  // Ensure that the browser supports the service worker API
+  var registration = null;
+  if (navigator.serviceWorker) {
+    navigator.serviceWorker.register('service-worker.js').then(reg => {
+      registration = reg;
+      console.log('Service Worker Registered');
+    }).catch(swErr => console.log(`Service Worker Installation Error: ${swErr}}`));
+  }
 
+  //#region Variables
   // Main Elements used before & after login
   const loader = document.getElementById('loader');
   const loginScreen = document.getElementById('login-page');
@@ -112,7 +106,7 @@ window.addEventListener('load', () => {
   const chatMessages = document.getElementById('chat-messages');
   const chatMessageInput = document.getElementById('chat-msg-input');
   const chatSendBtn = document.getElementById('chat-send-btn');
-  
+
 
   //Array to hold the data of each week
   var allWeeksArr = []; var uniqWeeks = [];
@@ -155,6 +149,7 @@ window.addEventListener('load', () => {
       }
       else {
         //Signed in with Account
+        SetupMessagingRequirements(auth, registration);
         RemoveOldWeeksFromGroups(groupRef);
         RemoveOldWeeksFromUser(auth);
         OverviewSetup(groupRef, user?.isAnonymous);
@@ -169,6 +164,29 @@ window.addEventListener('load', () => {
       AnonymousSignIn(auth);
     }
   });
+
+  function SetupMessagingRequirements(auth, reg) {
+    if (auth?.currentUser.isAnonymous === false) {
+      getToken(messaging, {serviceWorkerRegistration: reg, vapidKey: "BPN_vJi33qNLzcxQdUGrfBckm5ONtGrKXgtJqDmIWBuLNjQbT79i8eBYFoFUHffm-93MieygaJm6_fCfQKH5tAM"})
+      .then((currentToken) => {
+        if (currentToken) {
+          //Send to db
+          const updateUserToken = {};
+          updateUserToken["Users/" + auth?.currentUser.uid + "/notifToken"] = currentToken;
+          update(ref_db(database), updateUserToken);
+        } else {
+          //Show notification request
+          Notification.requestPermission().then((result) => {
+            if (result === 'granted') {
+              console.log("Yay, notifications");
+            }
+          });
+        }
+      }).catch((error) => {
+        console.log('An error occurred while retrieving token. ', error);
+      });
+    }
+  }
 
   function ShowLogin() {
     if (forgPass === true) {
@@ -393,7 +411,7 @@ window.addEventListener('load', () => {
       if (fileMb >= 2) {
         //Bad
         fileError.children[0].textContent = "Please select a file less than 2MB.";
-        fileError.classList.remove('hide');  
+        fileError.classList.remove('hide');
       } else {
         //Good
         signupImg.parentElement.setAttribute("data-text", signupImg.value.replace(/.*(\/|\\)/, ''));
@@ -736,16 +754,6 @@ window.addEventListener('load', () => {
           });
         });
 
-        //Update Messages with current hosts and user messages
-        chatHosts.replaceChildren();
-        hostNameArr.forEach((host) => {
-          ChatHostsSetup(chatHosts, host.host);
-        });
-
-        //snapshot.child("Messages").forEach((msg) => {
-          //Pull messages based on host and setup
-        //});
-
         getDownloadURL(ref_st(storage, "Users/" + auth?.currentUser.uid + "/" + userImage))
           .then((url) => {
             //Clear current elements from profile section
@@ -764,6 +772,19 @@ window.addEventListener('load', () => {
       }, {
         onlyOnce: true
       });
+
+      //Listen for changes to only chat messages from db
+      onValue(ref_db(database, 'Users/' + auth?.currentUser.uid + '/Messages'), (snapshot) => {
+        //Update Messages with current hosts and user messages
+        chatHosts.replaceChildren();
+        hostNameArr.forEach((host) => {
+          ChatHostsSetup(chatHosts, host.host);
+        });
+
+        snapshot.child("Messages").forEach((groupHost) => {
+          //Pull messages based on host and setup
+        });
+      });
     }
   }
 
@@ -778,7 +799,7 @@ window.addEventListener('load', () => {
     var profCol2 = document.createElement('div'); profCol2.className = "profile-col"; profCol2.style = "padding-top: 10px;";
     var profSignOut = document.createElement('button'); profSignOut.setAttribute('id', 'signout-button'); profSignOut.className = "signout-button";
     var profSignOutIcon = document.createElement('i'); profSignOutIcon.className = "fa-solid fa-right-from-bracket"; profSignOut.appendChild(profSignOutIcon);
-    profCol2.appendChild(profSignOut); 
+    profCol2.appendChild(profSignOut);
     var profMessages = document.createElement('button'); profMessages.setAttribute('id', 'messages-button'); profMessages.className = "messages-button";
     var profMessagesIcon = document.createElement('i'); profMessagesIcon.className = "fa-solid fa-message"; profMessages.appendChild(profMessagesIcon);
     profCol2.appendChild(profMessages); profileHeader.appendChild(profCol2);
@@ -809,7 +830,7 @@ window.addEventListener('load', () => {
     var hostName = document.createElement('p'); var nameText = document.createElement('strong'); nameText.textContent = host; hostName.appendChild(nameText); hostDiv.appendChild(hostName);
 
     var notifStatus = document.createElement('div'); notifStatus.classList.add('status'); notifStatus.setAttribute('id', host + '-status'); hostDiv.appendChild(notifStatus);
-    
+
     parentElem.appendChild(hostDiv);
   }
 
@@ -1071,10 +1092,10 @@ window.addEventListener('load', () => {
     //Messages button 
     const messagesButton = e.target.closest('.messages-button');
 
-    if (messagesButton) { 
+    if (messagesButton) {
       if (!chatScreen.classList.contains('show')) {
         chatScreen.classList.add('show');
-      } 
+      }
     }
   });
 
