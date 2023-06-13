@@ -3,7 +3,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebas
 import { getDatabase, ref as ref_db, onValue, child, set, remove, update } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 import { getStorage, ref as ref_st, getDownloadURL, uploadBytes } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-storage.js";
 import { getAuth, onAuthStateChanged, signInAnonymously, signInWithEmailAndPassword, sendPasswordResetEmail, EmailAuthProvider, linkWithCredential, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
-import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-messaging.js";
+import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-messaging.js";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -13,7 +13,8 @@ const firebaseConfig = {
   projectId: "cana-cam",
   storageBucket: "cana-cam.appspot.com",
   messagingSenderId: "587415518534",
-  appId: "1:587415518534:web:0a62871e35785219bc3947"
+  appId: "1:587415518534:web:0a62871e35785219bc3947",
+  measurementId: "G-FQMB5KD4NX"
 };
 
 // Initialize Firebase, Database and Authentication
@@ -173,7 +174,7 @@ window.addEventListener('load', () => {
           //Send to db
           const updateUserToken = {};
           updateUserToken["Users/" + auth?.currentUser.uid + "/notifToken"] = currentToken;
-          update(ref_db(database), updateUserToken);
+          update(ref_db(database), updateUserToken);     
         } else {
           //Show notification request
           Notification.requestPermission().then((result) => {
@@ -187,6 +188,10 @@ window.addEventListener('load', () => {
       });
     }
   }
+
+  onMessage(messaging, (payload) => {
+    console.log('Message Recieve: ', payload);
+  });
 
   function ShowLogin() {
     if (forgPass === true) {

@@ -1,21 +1,35 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * const {onCall} = require("firebase-functions/v2/https");
- * const {onDocumentWritten} = require("firebase-functions/v2/firestore");
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
-
-const {onRequest} = require("firebase-functions/v2/https");
-const logger = require("firebase-functions/logger");
 const admin = require("firebase-admin");
 const functions = require("firebase-functions");
 
-// Create and deploy your first functions
-// https://firebase.google.com/docs/functions/get-started
+admin.initializeApp(functions.config().firebase);
 
-// exports.helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+exports.sendListenerPostNotification = functions.database.ref('/UsersMessages/{groupID}/{uid}/HostMsgs/').onCreate((snapshot, context) => {
+    const userID = context.params.uid;
+    const data = snapshot.val();
+
+    //Get user notification token
+    return admin.database().ref('/Users/' + userID + '/notifToken').once('value').then(token => {
+        //Make sure token exists
+        if (!token) {
+            return console.log('No notif token to send notifications to.');
+        }
+
+        console.log('Token Val: ' + token.val());
+
+        //Notification details
+        const message = {
+            token: token.val(),
+            notification: {
+                title: "New Message",
+                body: "A host has sent you a message",
+            }
+        };
+
+        //Send notification to device
+        return admin.messaging().send(message).then((response) => {
+            console.log('Sent notification:', response);
+        }).catch((error) => {
+            console.log('Error sending notification: ', error);
+        });
+    });
+});

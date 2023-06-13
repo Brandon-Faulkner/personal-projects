@@ -11,19 +11,21 @@ Copyright 2015, 2019 Google Inc. All Rights Reserved.
  limitations under the License.
 */
 
-importScripts("https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js");
-importScripts("https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js");
-importScripts("https://www.gstatic.com/firebasejs/9.22.1/firebase-messaging.js");
+importScripts("https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js");
+importScripts("https://www.gstatic.com/firebasejs/9.22.1/firebase-messaging-compat.js");
 
-firebase.initializeApp = ({
+firebase.initializeApp({
   apiKey: "AIzaSyBNmzs6isOjHTVJq0YM7HGLxBrJ4d22sf8",
   authDomain: "cana-cam.firebaseapp.com",
   databaseURL: "https://cana-cam-default-rtdb.firebaseio.com",
   projectId: "cana-cam",
   storageBucket: "cana-cam.appspot.com",
   messagingSenderId: "587415518534",
-  appId: "1:587415518534:web:0a62871e35785219bc3947"
+  appId: "1:587415518534:web:0a62871e35785219bc3947",
+  measurementId: "G-FQMB5KD4NX"
 });
+
+const messaging = firebase.messaging();
 
 //#region ORIGINAL CODE FROM AUTHOR
 // Incrementing OFFLINE_VERSION will kick off the install event and force
@@ -92,6 +94,18 @@ self.addEventListener('fetch', (event) => {
 //#endregion ORIGINAL CODE FROM AUTHOR
 
 //#region CODE ADDED BY BRANDON FAULKNER
+messaging.onBackgroundMessage((payload) => {
+  console.log("Background Message Recieved! : ", payload);
+  //Create the notification
+  const title = "New Message";
+  const options = {
+    body: 'A host has sent you a new message.',
+    icon: 'Resources/Icons/android-chrome-96x96.png'
+  };
+
+  self.registration.showNotification(title, options);
+});
+
 self.addEventListener('notificationclick', event => {
   event.notification.close();
   event.waitUntil(clients.matchAll({type: "window"}).then(function(clientList) {
