@@ -3,9 +3,10 @@ const functions = require("firebase-functions");
 
 admin.initializeApp(functions.config().firebase);
 
-exports.sendListenerPostNotification = functions.database.ref('/UsersMessages/{groupID}/{uid}/HostMsgs/').onCreate((snapshot, context) => {
+exports.sendListenerPostNotification = functions.database.ref('/UsersMessages/{host}/{uid}/HostMsgs/{timestamp}').onCreate((snapshot, context) => {
     const userID = context.params.uid;
-    const data = snapshot.val();
+    const hostName = context.params.host;
+    const messageContent = snapshot.val();
 
     //Get user notification token
     return admin.database().ref('/Users/' + userID + '/notifToken').once('value').then(token => {
@@ -14,14 +15,12 @@ exports.sendListenerPostNotification = functions.database.ref('/UsersMessages/{g
             return console.log('No notif token to send notifications to.');
         }
 
-        console.log('Token Val: ' + token.val());
-
         //Notification details
         const message = {
             token: token.val(),
-            notification: {
-                title: "New Message",
-                body: "A host has sent you a message",
+            data: {
+                title: hostName + " replied",
+                body: messageContent,
             }
         };
 

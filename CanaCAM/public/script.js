@@ -28,19 +28,7 @@ const messaging = getMessaging(app);
 
 
 window.addEventListener('load', () => {
-  /*function randomNotification() {
-    const notifTitle = "Test Title";
-    const notifBody = `Created by Brandon Faulkner.`;
-    const notifImg = "Resources/Icons/android-chrome-96x96.png";
-    const options = {
-      body: notifBody,
-      icon: notifImg,
-    };
-    new Notification(notifTitle, options);
-    setTimeout(randomNotification, 30000);
-  }*/
-
-  // Ensure that the browser supports the service worker API
+  // Ensure that the browser supports the service worker API then register it
   var registration = null;
   if (navigator.serviceWorker) {
     navigator.serviceWorker.register('service-worker.js').then(reg => {
@@ -101,6 +89,7 @@ window.addEventListener('load', () => {
   var userTotalRSVP = 0;
   const chatScreen = document.getElementById('chat-page');
   const chatCloseBtn = document.getElementById('chat-close-btn');
+  const chatHostsList = document.getElementById('chat-host-list');
   const chatHosts = document.getElementById('chat-hosts');
   const chatView = document.getElementById('chat-view');
   const chatHostProf = document.getElementById('chat-host-profile');
@@ -150,7 +139,6 @@ window.addEventListener('load', () => {
       }
       else {
         //Signed in with Account
-        SetupMessagingRequirements(auth, registration);
         RemoveOldWeeksFromGroups(groupRef);
         RemoveOldWeeksFromUser(auth);
         OverviewSetup(groupRef, user?.isAnonymous);
@@ -164,33 +152,6 @@ window.addEventListener('load', () => {
       // Signed out
       AnonymousSignIn(auth);
     }
-  });
-
-  function SetupMessagingRequirements(auth, reg) {
-    if (auth?.currentUser.isAnonymous === false) {
-      getToken(messaging, {serviceWorkerRegistration: reg, vapidKey: "BPN_vJi33qNLzcxQdUGrfBckm5ONtGrKXgtJqDmIWBuLNjQbT79i8eBYFoFUHffm-93MieygaJm6_fCfQKH5tAM"})
-      .then((currentToken) => {
-        if (currentToken) {
-          //Send to db
-          const updateUserToken = {};
-          updateUserToken["Users/" + auth?.currentUser.uid + "/notifToken"] = currentToken;
-          update(ref_db(database), updateUserToken);     
-        } else {
-          //Show notification request
-          Notification.requestPermission().then((result) => {
-            if (result === 'granted') {
-              console.log("Yay, notifications");
-            }
-          });
-        }
-      }).catch((error) => {
-        console.log('An error occurred while retrieving token. ', error);
-      });
-    }
-  }
-
-  onMessage(messaging, (payload) => {
-    console.log('Message Recieve: ', payload);
   });
 
   function ShowLogin() {
@@ -840,12 +801,78 @@ window.addEventListener('load', () => {
   }
 
   chatCloseBtn.addEventListener('click', function () {
-    if (chatView.classList.contains('animate')) {
-      chatView.classList.remove('animate');
+    if (chatView.classList.contains('fadeInChat')) {
+      chatView.classList.add('fadeOut');
+      chatView.classList.remove('fadeInChat');
+      chatHostsList.classList.add('fadeInChat');
+      chatHostsList.classList.remove('fadeOut');
     } else {
       chatScreen.classList.remove('show');
     }
   });
+
+  function SetupMessagingRequirements(auth, reg) {
+    if (auth?.currentUser.isAnonymous === false) {
+      getToken(messaging, { serviceWorkerRegistration: reg, vapidKey: "BPN_vJi33qNLzcxQdUGrfBckm5ONtGrKXgtJqDmIWBuLNjQbT79i8eBYFoFUHffm-93MieygaJm6_fCfQKH5tAM" })
+        .then((currentToken) => {
+          if (currentToken) {
+            //Send to db
+            const updateUserToken = {};
+            updateUserToken["Users/" + auth?.currentUser.uid + "/notifToken"] = currentToken;
+            update(ref_db(database), updateUserToken);
+
+            // Show message notif to user when recieve on the foreground
+            onMessage(messaging, (payload) => {
+              console.log('Message Recieve: ', payload.data.title);
+              console.log('Message: ', payload.data.body);
+            });
+
+            //Register the Service Worker for background Push API
+            if (registration) {
+              const options = {
+                userVisibleOnly: true,
+                currentToken,
+              };
+
+              registration.pushManager.subscribe(options).then((pushSubscription) => {
+                console.log(pushSubscription.endpoint);
+              }, (error) => {
+                console.error(error);
+              });
+            }
+          } else {
+            //Show notification request
+            if (!("Notification" in window)) {
+              console.log("This browser does not support notifications.");
+            } else if (checkNotificationPromise()) {
+              Notification.requestPermission().then((result) => {
+                if (result === 'granted') {
+                  SetupMessagingRequirements(auth, reg);
+                }
+              });
+            } else {
+              Notification.requestPermission((permission) => {
+                if (Notification.permission === 'granted') {
+                  SetupMessagingRequirements(auth, reg);
+                }
+              })
+            }      
+          }
+        }).catch((error) => {
+          console.log('An error occurred while retrieving token. ', error);
+        });
+    }
+  }
+
+  function checkNotificationPromise() {
+    try {
+      Notification.requestPermission().then();
+    } catch (error) {
+      return false;
+    }
+
+    return true;
+  }
   //#endregion Profile Setup
 
   //#region Planning Setup
@@ -1098,11 +1125,45 @@ window.addEventListener('load', () => {
     const messagesButton = e.target.closest('.messages-button');
 
     if (messagesButton) {
+      SetupMessagingRequirements(auth, registration);
+      
       if (!chatScreen.classList.contains('show')) {
         chatScreen.classList.add('show');
       }
     }
+
+    //Host Contact From Messages
+    const hostContact = e.target.closest('.chat-host');
+
+    if (hostContact) {
+      GetAndShowChatMessages(hostContact.children[1].children[0].textContent);
+    }
   });
+
+  function GetAndShowChatMessages(hostName) {
+    const chatHostName = chatHostProf.children[0];
+
+    //First reset everything
+    chatView.classList.remove('fadeInChat', 'fadeOut');
+    chatHostsList.classList.remove('fadeInChat', 'fadeOut');
+    chatHostName.classList.remove('fadeInChat', 'fadeOut');
+    chatHostProf.classList.remove('fadeInChat', 'fadeOut');
+    
+    setTimeout(() => {
+      chatHostName.classList.add('fadeInChat');
+      chatHostProf.classList.add('fadeInChat');
+    }, 100);
+
+    setTimeout(() => {
+      chatMessages.classList.add('animate');
+    }, 150);
+
+    chatHostName.textContent = hostName;
+    chatHostsList.classList.add('fadeOut');
+    chatView.style.display = 'inline-grid'; chatView.classList.add('fadeInChat');
+
+
+  }
 
   function DropdownSelection(elemTarget, menu, auth) {
     if (elemTarget != null) {

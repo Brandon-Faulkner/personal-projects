@@ -40,7 +40,7 @@ self.addEventListener('install', (event) => {
     const cache = await caches.open(CACHE_NAME);
     // Setting {cache: 'reload'} in the new request will ensure that the response
     // isn't fulfilled from the HTTP cache; i.e., it will be from the network.
-    await cache.add(new Request(OFFLINE_URL, {cache: 'reload'}));
+    await cache.add(new Request(OFFLINE_URL, { cache: 'reload' }));
   })());
 });
 
@@ -94,29 +94,36 @@ self.addEventListener('fetch', (event) => {
 //#endregion ORIGINAL CODE FROM AUTHOR
 
 //#region CODE ADDED BY BRANDON FAULKNER
-messaging.onBackgroundMessage((payload) => {
-  console.log("Background Message Recieved! : ", payload);
-  //Create the notification
-  const title = "New Message";
-  const options = {
-    body: 'A host has sent you a new message.',
-    icon: 'Resources/Icons/android-chrome-96x96.png'
-  };
+self.addEventListener('push', (event) => {
+  if (!(self.Notification && self.Notification.permission === "granted")) {
+    return;
+  }
 
-  self.registration.showNotification(title, options);
+  messaging.onBackgroundMessage((payload) => {
+    //console.log("Background Message Recieved! : ", payload);
+  
+    //Create the notification
+    const title = payload.data.title;
+    const options = {
+      body: payload.data.body,
+      icon: 'Resources/Icons/android-chrome-96x96.png'
+    };
+  
+    return self.registration.showNotification(title, options);
+  });
 });
 
 self.addEventListener('notificationclick', event => {
   event.notification.close();
-  event.waitUntil(clients.matchAll({type: "window"}).then(function(clientList) {
+  event.waitUntil(clients.matchAll({ type: "window" }).then(function (clientList) {
     for (var i = 0; i < clientList.length; i++) {
       var client = clientList[i];
       if (client.url == '/' && 'focus' in client)
-          return client.focus();
-      }
-      if (clients.openWindow) {
+        return client.focus();
+    }
+    if (clients.openWindow) {
       return clients.openWindow('/');
-      }
+    }
   }));
 });
 //#endregion CODE ADDED BY BRANDON FAULKNER
