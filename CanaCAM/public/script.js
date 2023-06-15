@@ -739,18 +739,41 @@ window.addEventListener('load', () => {
         onlyOnce: true
       });
 
-      //Listen for changes to only chat messages from db
-      onValue(ref_db(database, 'Users/' + auth?.currentUser.uid + '/Messages'), (snapshot) => {
-        //Update Messages with current hosts and user messages
-        chatHosts.replaceChildren();
-        hostNameArr.forEach((host) => {
-          ChatHostsSetup(chatHosts, host.host);
-        });
 
-        snapshot.child("Messages").forEach((groupHost) => {
-          //Pull messages based on host and setup
+      //Listen for changes to each hosts chat messages
+      chatHosts.replaceChildren();
+      hostNameArr.forEach((host) => {
+        ChatHostsSetup(chatHosts, host.host);
+        onValue(ref_db(database, 'UsersMessages/' + host.host + '/' + auth?.currentUser.uid + '/'), (snapshot) => {
+          //Pull messages and update UI
+          chatMessages.replaceChildren();
+
+          //Host messages
+          const hostMsgs = [];
+          snapshot.child('HostMsgs').forEach((msg) => {
+            hostMsgs.push({timestamp: msg.key, message: msg.val()});
+          });
+
+          //User messages
+          const userMsgs = [];
+          snapshot.child('UserMsgs').forEach((msg) => {
+            userMsgs.push({timestamp: msg.key, message: msg.val()});
+          });
+
+          //Merge the two arrays together in order
+          const mergedMsgs = [];
+          var index1, index2 = Math.min(hostMsgs.length, userMsgs.length);
+
+          for(index1 = 0; index1 < index2; index1++) {
+            mergedMsgs.push(userMsgs[index1], hostMsgs[index1]);
+          }
+
+          mergedMsgs.push(...userMsgs.slice(index2),...hostMsgs.slice(index2));
+          //should now be merged
+
         });
       });
+      
     }
   }
 
@@ -762,7 +785,7 @@ window.addEventListener('load', () => {
     var profImg = document.createElement('img'); profImg.src = imgUrl; profImg.className = "profile-image";
     profCol1.appendChild(profImg); profileHeader.appendChild(profCol1);
 
-    var profCol2 = document.createElement('div'); profCol2.className = "profile-col"; profCol2.style = "padding-top: 10px;";
+    var profCol2 = document.createElement('div'); profCol2.className = "profile-col"; profCol2.style = "padding-top: 10px; display: inline-flex; justify-content: center;";
     var profSignOut = document.createElement('button'); profSignOut.setAttribute('id', 'signout-button'); profSignOut.className = "signout-button";
     var profSignOutIcon = document.createElement('i'); profSignOutIcon.className = "fa-solid fa-right-from-bracket"; profSignOut.appendChild(profSignOutIcon);
     profCol2.appendChild(profSignOut);
@@ -800,6 +823,10 @@ window.addEventListener('load', () => {
     parentElem.appendChild(hostDiv);
   }
 
+  function GetChatMessages(parentElem, auth, hostName) {
+    
+  }
+
   chatCloseBtn.addEventListener('click', function () {
     if (chatView.classList.contains('fadeInChat')) {
       chatView.classList.add('fadeOut');
@@ -812,7 +839,7 @@ window.addEventListener('load', () => {
   });
 
   function SetupMessagingRequirements(auth, reg) {
-    if (auth?.currentUser.isAnonymous === false) {
+    if (auth?.currentUser.isAnonymous === false && ('Notification' in window)) {
       getToken(messaging, { serviceWorkerRegistration: reg, vapidKey: "BPN_vJi33qNLzcxQdUGrfBckm5ONtGrKXgtJqDmIWBuLNjQbT79i8eBYFoFUHffm-93MieygaJm6_fCfQKH5tAM" })
         .then((currentToken) => {
           if (currentToken) {
@@ -826,20 +853,6 @@ window.addEventListener('load', () => {
               console.log('Message Recieve: ', payload.data.title);
               console.log('Message: ', payload.data.body);
             });
-
-            //Register the Service Worker for background Push API
-            if (registration) {
-              const options = {
-                userVisibleOnly: true,
-                currentToken,
-              };
-
-              registration.pushManager.subscribe(options).then((pushSubscription) => {
-                console.log(pushSubscription.endpoint);
-              }, (error) => {
-                console.error(error);
-              });
-            }
           } else {
             //Show notification request
             if (!("Notification" in window)) {
@@ -1136,11 +1149,11 @@ window.addEventListener('load', () => {
     const hostContact = e.target.closest('.chat-host');
 
     if (hostContact) {
-      GetAndShowChatMessages(hostContact.children[1].children[0].textContent);
+      ShowChatScreen(hostContact.children[1].children[0].textContent);
     }
   });
 
-  function GetAndShowChatMessages(hostName) {
+  function ShowChatScreen(hostName) {
     const chatHostName = chatHostProf.children[0];
 
     //First reset everything
@@ -1149,6 +1162,7 @@ window.addEventListener('load', () => {
     chatHostName.classList.remove('fadeInChat', 'fadeOut');
     chatHostProf.classList.remove('fadeInChat', 'fadeOut');
     
+    //Start hiding and showing the correct elems
     setTimeout(() => {
       chatHostName.classList.add('fadeInChat');
       chatHostProf.classList.add('fadeInChat');
@@ -1161,8 +1175,6 @@ window.addEventListener('load', () => {
     chatHostName.textContent = hostName;
     chatHostsList.classList.add('fadeOut');
     chatView.style.display = 'inline-grid'; chatView.classList.add('fadeInChat');
-
-
   }
 
   function DropdownSelection(elemTarget, menu, auth) {

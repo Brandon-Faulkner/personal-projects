@@ -100,7 +100,7 @@ self.addEventListener('push', (event) => {
   }
 
   messaging.onBackgroundMessage((payload) => {
-    //console.log("Background Message Recieved! : ", payload);
+    console.log("Background Message Recieved! : ", payload);
   
     //Create the notification
     const title = payload.data.title;
