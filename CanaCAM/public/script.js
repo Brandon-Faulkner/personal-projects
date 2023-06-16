@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-import { getDatabase, ref as ref_db, onValue, child, set, remove, update } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+import { getDatabase, ref as ref_db, onValue, child, set, remove, update, get } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 import { getStorage, ref as ref_st, getDownloadURL, uploadBytes } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-storage.js";
 import { getAuth, onAuthStateChanged, signInAnonymously, signInWithEmailAndPassword, sendPasswordResetEmail, EmailAuthProvider, linkWithCredential, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-messaging.js";
@@ -734,46 +734,16 @@ window.addEventListener('load', () => {
           })
           .catch((error) => {
             console.log(error);
-          })
+          });
+
+        //Setup each host in Contact Host section
+        chatHosts.replaceChildren();
+        hostNameArr.forEach((host) => {
+          ChatHostsSetup(chatHosts, host.host);
+        });
       }, {
         onlyOnce: true
       });
-
-
-      //Listen for changes to each hosts chat messages
-      chatHosts.replaceChildren();
-      hostNameArr.forEach((host) => {
-        ChatHostsSetup(chatHosts, host.host);
-        onValue(ref_db(database, 'UsersMessages/' + host.host + '/' + auth?.currentUser.uid + '/'), (snapshot) => {
-          //Pull messages and update UI
-          chatMessages.replaceChildren();
-
-          //Host messages
-          const hostMsgs = [];
-          snapshot.child('HostMsgs').forEach((msg) => {
-            hostMsgs.push({timestamp: msg.key, message: msg.val()});
-          });
-
-          //User messages
-          const userMsgs = [];
-          snapshot.child('UserMsgs').forEach((msg) => {
-            userMsgs.push({timestamp: msg.key, message: msg.val()});
-          });
-
-          //Merge the two arrays together in order
-          const mergedMsgs = [];
-          var index1, index2 = Math.min(hostMsgs.length, userMsgs.length);
-
-          for(index1 = 0; index1 < index2; index1++) {
-            mergedMsgs.push(userMsgs[index1], hostMsgs[index1]);
-          }
-
-          mergedMsgs.push(...userMsgs.slice(index2),...hostMsgs.slice(index2));
-          //should now be merged
-
-        });
-      });
-      
     }
   }
 
@@ -823,8 +793,15 @@ window.addEventListener('load', () => {
     parentElem.appendChild(hostDiv);
   }
 
-  function GetChatMessages(parentElem, auth, hostName) {
-    
+  function CreateMessageBubble(parentElem, msg) {
+    var mainDiv = document.createElement('div'); msg.side === "right" ? mainDiv.className = "message right" : mainDiv.className = "message";
+    var profImg = document.createElement('img'); profImg.src = "https://s3-us-west-2.amazonaws.com/s.cdpn.io/245657/1_copy.jpg"; mainDiv.appendChild(profImg);
+
+    var bubble = document.createElement('div'); bubble.className = "bubble"; bubble.textContent = msg.message;
+    var bubbleCorner = document.createElement('div'); bubbleCorner.className = "corner"; bubble.appendChild(bubbleCorner);
+    var timeStamp = document.createElement('span'); timeStamp.textContent = msg.timestamp; bubble.appendChild(timeStamp);
+    mainDiv.appendChild(bubble);
+    parentElem.appendChild(mainDiv);
   }
 
   chatCloseBtn.addEventListener('click', function () {
@@ -869,7 +846,7 @@ window.addEventListener('load', () => {
                   SetupMessagingRequirements(auth, reg);
                 }
               })
-            }      
+            }
           }
         }).catch((error) => {
           console.log('An error occurred while retrieving token. ', error);
@@ -1139,7 +1116,7 @@ window.addEventListener('load', () => {
 
     if (messagesButton) {
       SetupMessagingRequirements(auth, registration);
-      
+
       if (!chatScreen.classList.contains('show')) {
         chatScreen.classList.add('show');
       }
@@ -1161,7 +1138,7 @@ window.addEventListener('load', () => {
     chatHostsList.classList.remove('fadeInChat', 'fadeOut');
     chatHostName.classList.remove('fadeInChat', 'fadeOut');
     chatHostProf.classList.remove('fadeInChat', 'fadeOut');
-    
+
     //Start hiding and showing the correct elems
     setTimeout(() => {
       chatHostName.classList.add('fadeInChat');
@@ -1175,6 +1152,46 @@ window.addEventListener('load', () => {
     chatHostName.textContent = hostName;
     chatHostsList.classList.add('fadeOut');
     chatView.style.display = 'inline-grid'; chatView.classList.add('fadeInChat');
+
+    //Get messages from db and Update UI
+    get(ref_db(database, 'UsersMessages/' + hostName + '/' + auth?.currentUser.uid + '/')).then((snapshot) => {
+      chatMessages.replaceChildren();
+      if (snapshot.size > 0) {
+        //Host messages
+        const hostMsgs = [];
+        snapshot.child('HostMsgs').forEach((msg) => {
+          hostMsgs.push({ timestamp: msg.key, message: msg.val(), side: "left" });
+        });
+
+        //User messages
+        const userMsgs = [];
+        snapshot.child('UserMsgs').forEach((msg) => {
+          userMsgs.push({ timestamp: msg.key, message: msg.val(), side: "right" });
+        });
+
+        //Merge the two arrays together in order
+        const mergedMsgs = [];
+        var index1, index2 = Math.min(hostMsgs.length, userMsgs.length);
+
+        for (index1 = 0; index1 < index2; index1++) {
+          mergedMsgs.push(userMsgs[index1], hostMsgs[index1]);
+        }
+
+        mergedMsgs.push(...userMsgs.slice(index2), ...hostMsgs.slice(index2));
+
+        //Create message bubbles 
+        mergedMsgs.forEach((msg) => {
+          CreateMessageBubble(chatMessages, msg);
+        });
+      } else {
+        var noMsgsLabel = document.createElement('label');
+        noMsgsLabel.textContent = "No Messages";
+        chatMessages.appendChild(noMsgsLabel);
+      }
+
+    }).catch((error) => {
+      console.log(error);
+    });
   }
 
   function DropdownSelection(elemTarget, menu, auth) {
