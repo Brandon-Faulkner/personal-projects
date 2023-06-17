@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-import { getDatabase, ref as ref_db, onValue, child, set, remove, update, get } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+import { getDatabase, ref as ref_db, onValue, set, remove, update, get } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 import { getStorage, ref as ref_st, getDownloadURL, uploadBytes } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-storage.js";
 import { getAuth, onAuthStateChanged, signInAnonymously, signInWithEmailAndPassword, sendPasswordResetEmail, EmailAuthProvider, linkWithCredential, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-messaging.js";
@@ -26,7 +26,6 @@ const storage = getStorage(app);
 const auth = getAuth(app);
 const messaging = getMessaging(app);
 
-
 window.addEventListener('load', () => {
   // Ensure that the browser supports the service worker API then register it
   var registration = null;
@@ -39,7 +38,7 @@ window.addEventListener('load', () => {
 
   //#region Variables
   // Main Elements used before & after login
-  const loader = document.getElementById('loader');
+  const mainLoader = document.getElementById('loader');
   const loginScreen = document.getElementById('login-page');
   const loginCloseBtn = document.getElementById('login-close-btn');
   const loginText = document.querySelector(".login-title-text .login");
@@ -54,7 +53,6 @@ window.addEventListener('load', () => {
   const forgotPassContainer = document.getElementById('forgot-pass-container');
   const forgotPassEmail = document.getElementById('forgot-pass-email');
   const forgotPassBtn = document.getElementById('forgot-pass-button');
-  var forgPass = false;
 
   const signupForm = document.getElementById('signup-form-content');
   const signupToggleBtn = document.querySelector("label.signup");
@@ -67,18 +65,25 @@ window.addEventListener('load', () => {
   const signupConfirmPass = document.getElementById('signup-confirm-pass');
   const signupButton = document.getElementById('signup-button');
 
+  const toastElem = document.querySelector('.toast');
+  const toastMessage = document.querySelector('.toast-message');
+  const toastProgress = document.querySelector('.toast-progress');
+  const toastClose = document.querySelector('.toast .close');
+
   const mainScreen = document.getElementById('main-page');
 
   const tabPlanning = document.getElementById('tab-planning');
+  const planningSection = document.getElementById('planning-section');
   const planningBlocked = document.getElementById('planning-blocked');
   const planningIntro = document.getElementById('tab-planning-intro');
   const planningImg = document.getElementById('planning-image');
-  const contactBtn = document.getElementById('contact-button');
   const planningWeekSelectParent = document.getElementById('plan-week-select-grid');
   const hostSelection = document.getElementById('host-selection');
   const planWeekSelection = document.getElementById('plan-week-selection');
   const planWeekHolder = document.getElementById('plan-week-holder');
 
+  const tabOverview = document.getElementById('tab-overview');
+  const overviewSection = document.getElementById('overview-sections');
   const overviewWeekSelection = document.getElementById('over-week-selection');
   const overviewWeekHolder = document.getElementById('overview-week-holder');
 
@@ -86,37 +91,44 @@ window.addEventListener('load', () => {
   const profileSection = document.getElementById('profile-section');
   const profileBlocked = document.getElementById('profile-blocked');
   const profileInfo = document.getElementById('profile-info');
-  var userTotalRSVP = 0;
   const chatScreen = document.getElementById('chat-page');
   const chatCloseBtn = document.getElementById('chat-close-btn');
   const chatHostsList = document.getElementById('chat-host-list');
   const chatHosts = document.getElementById('chat-hosts');
   const chatView = document.getElementById('chat-view');
+  const chatLoader = document.getElementById('chat-loader');
   const chatHostProf = document.getElementById('chat-host-profile');
   const chatMessages = document.getElementById('chat-messages');
   const chatMessageInput = document.getElementById('chat-msg-input');
   const chatSendBtn = document.getElementById('chat-send-btn');
 
-
+  //Timers used for notification toast
+  var timerOne = 0; var timerTwo = 0;
   //Array to hold the data of each week
   var allWeeksArr = []; var uniqWeeks = [];
   //Arrays to hold group information
   var groupInfoArr = [], hostNameArr = [], userScheduleArr = [];
+  //Values to register swipe actions
+  var touchStartX = 0; var touchEndX = 0;
+  //Used to determine if Forgot Password Page is open
+  var forgPass = false;
+  //Not sure if this will stay
+  var userTotalRSVP = 0;
 
-  function Loading(show) {
+  function Loading(loaderElem, show) {
     if (show) {
       //Show loading indicator
-      if (!loader.classList.contains('fadeIn')) {
-        loader.classList.remove('fadeOut');
-        loader.classList.add('fadeIn');
+      if (!loaderElem.classList.contains('fadeIn')) {
+        loaderElem.classList.remove('fadeOut');
+        loaderElem.classList.add('fadeIn');
       }
     }
     else {
       setTimeout(() => {
         //Remove loading indicator
-        if (loader.classList.contains('fadeIn')) {
-          loader.classList.remove('fadeIn');
-          loader.classList.add('fadeOut');
+        if (loaderElem.classList.contains('fadeIn')) {
+          loaderElem.classList.remove('fadeIn');
+          loaderElem.classList.add('fadeOut');
         }
       }, 500);
     }
@@ -575,7 +587,7 @@ window.addEventListener('load', () => {
       //Clear arrays to not have duplicate data
       allWeeksArr = []; uniqWeeks = []; hostNameArr = [];
 
-      Loading(true);
+      Loading(mainLoader, true);
 
       snapshot.forEach((childSnapshot) => {
         //Group Num, Host and Gen location
@@ -699,7 +711,7 @@ window.addEventListener('load', () => {
       mainScreen.classList.remove('disable-click');
       profileBlocked.classList.add('hide');
       profileInfo.parentElement.classList.remove('hide');
-      Loading(true);
+      Loading(mainLoader, true);
 
       onValue(ref_db(database, 'Users/' + auth?.currentUser.uid), (snapshot) => {
         const userImage = snapshot.child("Image").val();
@@ -730,7 +742,7 @@ window.addEventListener('load', () => {
 
             //Now setup Planning tab
             PlanningSetup(planRef, isAnonymous, 'Group 1', userScheduleArr);
-            Loading(false);
+            Loading(mainLoader, false);
           })
           .catch((error) => {
             console.log(error);
@@ -793,13 +805,12 @@ window.addEventListener('load', () => {
     parentElem.appendChild(hostDiv);
   }
 
-  function CreateMessageBubble(parentElem, msg) {
-    var mainDiv = document.createElement('div'); msg.side === "right" ? mainDiv.className = "message right" : mainDiv.className = "message";
-    var profImg = document.createElement('img'); profImg.src = "https://s3-us-west-2.amazonaws.com/s.cdpn.io/245657/1_copy.jpg"; mainDiv.appendChild(profImg);
+  function CreateMessageBubble(parentElem, msg, side) {
+    var mainDiv = document.createElement('div'); side === "right" ? mainDiv.className = "message right" : mainDiv.className = "message";
 
-    var bubble = document.createElement('div'); bubble.className = "bubble"; bubble.textContent = msg.message;
-    var bubbleCorner = document.createElement('div'); bubbleCorner.className = "corner"; bubble.appendChild(bubbleCorner);
-    var timeStamp = document.createElement('span'); timeStamp.textContent = msg.timestamp; bubble.appendChild(timeStamp);
+    var bubble = document.createElement('div'); bubble.className = "bubble"; bubble.textContent = msg;
+    var bubbleCorner = document.createElement('div'); bubbleCorner.className = "corner-" + side; bubble.appendChild(bubbleCorner);
+    //var timeStamp = document.createElement('span'); timeStamp.textContent = msg.timestamp; bubble.appendChild(timeStamp);
     mainDiv.appendChild(bubble);
     parentElem.appendChild(mainDiv);
   }
@@ -812,6 +823,22 @@ window.addEventListener('load', () => {
       chatHostsList.classList.remove('fadeOut');
     } else {
       chatScreen.classList.remove('show');
+      chatMessageInput.value = null;
+    }
+  });
+
+  chatSendBtn.addEventListener('click', function () {
+    //Send message using update from firebase, clear input, create the message bubble
+    const messageContent = chatMessageInput.value.trim();
+    const hostName = chatHostProf.children[0].textContent;
+
+    if (messageContent != null && messageContent.length > 0) {
+      const sendMessage = {};
+      sendMessage['UsersMessages/' + hostName + '/' + auth?.currentUser.uid + '/UserMsgs/' + Date.now()] = messageContent;
+      update(ref_db(database), sendMessage).then(() => {
+        CreateMessageBubble(chatMessages, messageContent, "right");
+        chatMessageInput.value = null; 
+      });
     }
   });
 
@@ -825,10 +852,16 @@ window.addEventListener('load', () => {
             updateUserToken["Users/" + auth?.currentUser.uid + "/notifToken"] = currentToken;
             update(ref_db(database), updateUserToken);
 
-            // Show message notif to user when recieve on the foreground
+            // Show message notif to user when recieved on the foreground
             onMessage(messaging, (payload) => {
               console.log('Message Recieve: ', payload.data.title);
               console.log('Message: ', payload.data.body);
+              //Only show notification if the user does not have the chat page open
+              if (!chatScreen.classList.contains('show')) {
+                ShowNotifToast(payload.data.title, payload.data.body);
+              } else {
+                
+              }
             });
           } else {
             //Show notification request
@@ -872,14 +905,14 @@ window.addEventListener('load', () => {
       planningIntro.parentElement.classList.add('hide');
       planningWeekSelectParent.classList.add('hide');
       planWeekHolder.replaceChildren();
-      Loading(false);
+      Loading(mainLoader, false);
     } else {
       loginScreen.classList.remove('show');
       mainScreen.classList.remove('disable-click');
       planningBlocked.classList.add('hide');
       planningIntro.parentElement.classList.remove('hide');
       planningWeekSelectParent.classList.remove('hide');
-      Loading(true);
+      Loading(mainLoader, true);
 
       onValue(planRef, (snapshot) => {
         //Clear current data in array to avoid dups
@@ -919,7 +952,7 @@ window.addEventListener('load', () => {
             //Now Update planning intro
             UpdatePlanningIntro(hostNameArr, groupInfoArr, groupID, planningIntro);
             ShowEventContainers(uniqWeeks[0], 'planning-container');
-            Loading(false);
+            Loading(mainLoader, false);
           })
           .catch((error) => {
             console.log(error);
@@ -931,9 +964,10 @@ window.addEventListener('load', () => {
   }
 
   function UpdatePlanningIntro(hostNameArr, groupInfoArr, groupID, parentElem) {
-    parentElem.children[0].children[1].textContent = hostNameArr.find(h => h.group === groupID).host;
+    const hostName = hostNameArr.find(h => h.group === groupID).host;
+    parentElem.children[0].children[1].textContent = hostName;
     parentElem.children[0].children[2].textContent = groupInfoArr.find(g => g.group === groupID).description;
-    parentElem.children[0].children[3].setAttribute("data-groupID", groupID);
+    parentElem.children[0].children[3].setAttribute("data-host", hostName);
 
     planningImg.setAttribute('src', groupInfoArr.find(g => g.group === groupID).image);
   }
@@ -1087,6 +1121,19 @@ window.addEventListener('load', () => {
       tabPlanning.click();
     }
 
+    //Contact Button
+    const contact = e.target.closest('.contact-button');
+
+    if (contact) {
+      SetupMessagingRequirements(auth, registration);
+
+      if(!chatScreen.classList.contains('show')) {
+        tabPlanning.click(); 
+        chatScreen.classList.add('show');
+        ShowChatScreen(contact.getAttribute('data-host'));
+      }
+    }
+
     //RSVP Buttons
     const rsvp = e.target.closest('.rsvp-button');
 
@@ -1129,8 +1176,38 @@ window.addEventListener('load', () => {
       ShowChatScreen(hostContact.children[1].children[0].textContent);
     }
   });
+   
+  document.addEventListener('touchstart', e => {
+    touchStartX = e.changedTouches[0].screenX;
+  });
+  
+  document.addEventListener('touchend', e => {
+    touchEndX = e.changedTouches[0].screenX;
+    SwitchTabOnSwipe();
+  });
+
+  function SwitchTabOnSwipe() {
+    //Make sure no pop ups or overlays are being shown first
+    if (!loginScreen.classList.contains('show') && mainLoader.classList.contains('fadeOut') && !chatScreen.classList.contains('show')) {
+      if (touchEndX < touchStartX && (touchStartX - touchEndX) > 50) {
+        if (tabPlanning.checked === true) {
+          tabOverview.click();
+        } else if(tabOverview.checked === true){
+          tabProfile.click();
+        }
+      }
+      if (touchEndX > touchStartX && (touchEndX - touchStartX) > 50) {
+        if (tabProfile.checked === true) {
+          tabOverview.click();
+        } else if (tabOverview.checked === true) {
+          tabPlanning.click();
+        }
+      }
+    }  
+  }
 
   function ShowChatScreen(hostName) {
+    Loading(chatLoader, true);
     const chatHostName = chatHostProf.children[0];
 
     //First reset everything
@@ -1179,16 +1256,20 @@ window.addEventListener('load', () => {
 
         mergedMsgs.push(...userMsgs.slice(index2), ...hostMsgs.slice(index2));
 
+        var currentMsgsLabel = document.createElement('label');
+        currentMsgsLabel.textContent = "Current Messages";
+        chatMessages.appendChild(currentMsgsLabel);
+
         //Create message bubbles 
         mergedMsgs.forEach((msg) => {
-          CreateMessageBubble(chatMessages, msg);
+          CreateMessageBubble(chatMessages, msg.message, msg.side);
         });
       } else {
         var noMsgsLabel = document.createElement('label');
         noMsgsLabel.textContent = "No Messages";
         chatMessages.appendChild(noMsgsLabel);
       }
-
+      Loading(chatLoader, false);
     }).catch((error) => {
       console.log(error);
     });
@@ -1342,5 +1423,35 @@ window.addEventListener('load', () => {
       input.value = value;
     }
   }
+
+  function ShowNotifToast(title, message) {
+    //Reset just in case
+    toastElem.classList.remove('active');
+    toastProgress.classList.remove('active');
+
+    //Update toast values
+    toastMessage.children[0].textContent = title;
+    toastMessage.children[1].textContent = message;
+
+    //Now show the toast
+    toastElem.classList.add('active');
+    toastProgress.classList.add('active');
+
+    setTimeout(() => {
+      toastElem.classList.remove('active');
+    }, 5000);
+
+    setTimeout(() => {
+      toastProgress.classList.remove('active');
+    }, 5300);
+  }
+
+  toastClose.addEventListener('click', function () {
+    toastElem.classList.remove('active');
+
+    setTimeout(() => {
+      toastProgress.classList.remove('active');
+    }, 300);
+  });
   //#endregion Click Functions
 });
