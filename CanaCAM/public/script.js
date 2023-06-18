@@ -854,13 +854,23 @@ window.addEventListener('load', () => {
 
             // Show message notif to user when recieved on the foreground
             onMessage(messaging, (payload) => {
-              console.log('Message Recieve: ', payload.data.title);
-              console.log('Message: ', payload.data.body);
-              //Only show notification if the user does not have the chat page open
+              //Only show notif if the user does not have the chat view from the host open
               if (!chatScreen.classList.contains('show')) {
+                //Need to show notif, badge, status
                 ShowNotifToast(payload.data.title, payload.data.body);
-              } else {
-                
+                //Show badge
+                //Update status
+                var chatHostsArr = Array.from(chatHosts.children);
+                var msgTitle = payload.data.title.replace(" replied", "");
+                chatHostsArr.forEach((host) => {
+                  var hostName = host.getAttribute('id').replace("-chat", "");
+                  if (hostName === msgTitle) {
+                    host.classList.add('new-msg');
+                  }
+                }) 
+              } else if (chatView.classList.contains('fadeInChat')) {
+                //Only need to create message bubble
+                CreateMessageBubble(chatMessages, payload.data.body, "left");
               }
             });
           } else {
