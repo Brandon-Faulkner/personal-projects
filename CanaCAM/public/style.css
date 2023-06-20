@@ -719,6 +719,7 @@ form .btn input[type="submit"] {
     right: 100%;
   }
 }
+
 /*#endregion NOTIFICATION TOAST*/
 
 /*#region PAGE TABS*/
@@ -815,6 +816,36 @@ form .btn input[type="submit"] {
   vertical-align: top;
   margin-right: .2em;
   transition: all 0.2s ease-in-out;
+}
+
+.new-msg-notif [data-notif] {
+  position: relative;
+}
+
+.new-msg-notif [data-notif]::after,
+.responsive-table [data-notif]::after {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 5px;
+  height: 5px;
+  font-style: italic;
+  padding: 5px;
+  color: var(--white);
+  background-color: var(--red);
+  font-size: 10px;
+  border-radius: var(--border-radius);
+  content: attr(data-notif);
+  border: solid 1px var(--red);
+  box-shadow: var(--box-shadow);
+  display: flex;
+  align-items: center;
+  animation: fadeIn .25s linear forwards;
+  opacity: 1;
+}
+
+.responsive-table [data-notif]::after {
+  left: 90%;
 }
 
 .tabs-ul li label:hover,
@@ -1314,6 +1345,15 @@ li.dropdown-list-item {
   border-top: 1px solid #d8dfe3;
 }
 
+.fa-circle-user {
+  padding: 0 15px;
+  color: #eaeef0;
+  font-size: 2em;
+  font-weight: 900;
+  font-style: normal;
+  font-family: "Font Awesome 6 Free";
+}
+
 .chat-host {
   height: 70px;
   position: relative;
@@ -1468,13 +1508,15 @@ li.dropdown-list-item {
   background: var(--blue);
 }
 
-.corner-left::before, .corner-right::before,
-.corner-left::after, .corner-right::after {
+.corner-left::before,
+.corner-right::before,
+.corner-left::after,
+.corner-right::after {
   bottom: -1.6px;
   content: "";
   height: 16px;
   position: absolute;
-  
+
 }
 
 .corner-left::before {
@@ -1557,7 +1599,7 @@ li.dropdown-list-item {
   transition: .25s ease-in-out;
 }
 
-#chat-send-btn::after{
+#chat-send-btn::after {
   content: "Send";
   display: block;
   color: var(--white);
@@ -1767,6 +1809,7 @@ li.dropdown-list-item {
   cursor: pointer;
   transition: all 0.25s ease;
   margin: 0 10px;
+  position: relative;
 }
 
 .messages-button:hover {
@@ -1778,10 +1821,6 @@ li.dropdown-list-item {
   letter-spacing: 2px;
   color: var(--white);
   background: var(--green);
-}
-
-.messages-button:after {
-  content: "Messages";
 }
 
 /*Edit Info Button*/
@@ -1974,6 +2013,12 @@ li.dropdown-list-item {
 
   .tabs-ul li label svg {
     height: 1.5em;
+  }
+}
+
+@media all and (min-width: 1001px) {
+  .new-msg-notif [data-notif]::after {
+    left: 19vw;
   }
 }
 

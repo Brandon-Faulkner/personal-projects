@@ -1,6 +1,6 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-import { getDatabase, ref as ref_db, onValue, set, remove, update, get } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+import { getDatabase, ref as ref_db, onValue, set, remove, update, get, increment } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 import { getStorage, ref as ref_st, getDownloadURL, uploadBytes } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-storage.js";
 import { getAuth, onAuthStateChanged, signInAnonymously, signInWithEmailAndPassword, sendPasswordResetEmail, EmailAuthProvider, linkWithCredential, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-messaging.js";
@@ -73,7 +73,6 @@ window.addEventListener('load', () => {
   const mainScreen = document.getElementById('main-page');
 
   const tabPlanning = document.getElementById('tab-planning');
-  const planningSection = document.getElementById('planning-section');
   const planningBlocked = document.getElementById('planning-blocked');
   const planningIntro = document.getElementById('tab-planning-intro');
   const planningImg = document.getElementById('planning-image');
@@ -83,12 +82,10 @@ window.addEventListener('load', () => {
   const planWeekHolder = document.getElementById('plan-week-holder');
 
   const tabOverview = document.getElementById('tab-overview');
-  const overviewSection = document.getElementById('overview-sections');
   const overviewWeekSelection = document.getElementById('over-week-selection');
   const overviewWeekHolder = document.getElementById('overview-week-holder');
 
   const tabProfile = document.getElementById('tab-profile');
-  const profileSection = document.getElementById('profile-section');
   const profileBlocked = document.getElementById('profile-blocked');
   const profileInfo = document.getElementById('profile-info');
   const chatScreen = document.getElementById('chat-page');
@@ -102,8 +99,6 @@ window.addEventListener('load', () => {
   const chatMessageInput = document.getElementById('chat-msg-input');
   const chatSendBtn = document.getElementById('chat-send-btn');
 
-  //Timers used for notification toast
-  var timerOne = 0; var timerTwo = 0;
   //Array to hold the data of each week
   var allWeeksArr = []; var uniqWeeks = [];
   //Arrays to hold group information
@@ -112,7 +107,7 @@ window.addEventListener('load', () => {
   var touchStartX = 0; var touchEndX = 0;
   //Used to determine if Forgot Password Page is open
   var forgPass = false;
-  //Not sure if this will stay
+  //Locally keep track of total RSVP days for user
   var userTotalRSVP = 0;
 
   function Loading(loaderElem, show) {
@@ -154,6 +149,55 @@ window.addEventListener('load', () => {
         RemoveOldWeeksFromGroups(groupRef);
         RemoveOldWeeksFromUser(auth);
         OverviewSetup(groupRef, user?.isAnonymous);
+
+        // Show message notif to user when recieved on the foreground
+        onMessage(messaging, (payload) => {
+          //Only show notif if the user does not have the chat view from the host open
+          if (!chatScreen.classList.contains('show')) {
+            //Need to show notif, badge, status
+            ShowNotifToast(payload.data.title, payload.data.body);
+
+            //Update status
+            var chatHostsArr = Array.from(chatHosts.children);
+            var msgTitle = payload.data.title.replace(" replied", "");
+            chatHostsArr.forEach((host) => {
+              var hostName = host.getAttribute('id').replace("-chat", "");
+              if (hostName === msgTitle) {
+                host.children[2].classList.add('new-msg');
+              }
+            });
+
+            //Show badges
+            const messagesBtn = document.getElementById('messages-button');
+            messagesBtn.setAttribute('data-notif', '!');
+            const tabProfileLabel = document.querySelector('.tabs-ul .new-msg-notif label');
+            tabProfileLabel.setAttribute('data-notif', "!");
+
+          } else if (chatView.classList.contains('fadeInChat')) {
+            //Only need to create message bubble
+            CreateMessageBubble(chatMessages, payload.data.body, "left");
+          } else {
+            //Need to show notif, status
+            ShowNotifToast(payload.data.title, payload.data.body);
+
+            //Update status and order of hosts
+            var chatHostsArr = Array.from(chatHosts.children);
+            var msgTitle = payload.data.title.replace(" replied", "");
+            chatHostsArr.forEach((host) => {
+              var hostName = host.getAttribute('id').replace("-chat", "");
+              if (hostName === msgTitle) {
+                host.children[2].classList.add('new-msg');
+                chatHosts.appendChild(host);
+              }
+            });
+            //Now move the rest to end of list to make them on bottom
+            chatHostsArr.forEach((host) => {
+              if (!host.children[2].classList.contains('new-msg')) {
+                chatHosts.appendChild(host);
+              }
+            });
+          }
+        });
 
         //Remove listeners
         tabPlanning.removeEventListener('click', ShowLogin);
@@ -707,13 +751,13 @@ window.addEventListener('load', () => {
       profileInfo.replaceChildren();
       PlanningSetup(planRef, isAnonymous, null);
     } else {
-      loginScreen.classList.remove('show');
-      mainScreen.classList.remove('disable-click');
-      profileBlocked.classList.add('hide');
-      profileInfo.parentElement.classList.remove('hide');
-      Loading(mainLoader, true);
-
       onValue(ref_db(database, 'Users/' + auth?.currentUser.uid), (snapshot) => {
+        loginScreen.classList.remove('show');
+        mainScreen.classList.remove('disable-click');
+        profileBlocked.classList.add('hide');
+        profileInfo.parentElement.classList.remove('hide');
+        Loading(mainLoader, true);
+
         const userImage = snapshot.child("Image").val();
         const userName = snapshot.child("Name").val();
         const userEmail = auth?.currentUser.email;
@@ -726,7 +770,8 @@ window.addEventListener('load', () => {
         //Now update their schedule for each week
         snapshot.child("Schedule").forEach((week) => {
           week.forEach((day) => {
-            const weekDay = { week: decodeURIComponent(week.key), day: day.key, time: day.child('Time').val(), guests: day.child('Guests').val(), group: day.child('GroupID').val() };
+            const dayKey = day.key.split('-'); //Monday-1
+            const weekDay = { week: decodeURIComponent(week.key), day: dayKey[0], time: day.child('Time').val(), guests: day.child('Guests').val(), group: day.child('GroupID').val() };
             userScheduleArr.push(weekDay);
             AddOrRemoveNotifBadge(weekDay.group + '-' + weekDay.week + '-' + weekDay.day, 'RSVP\'d', 'add');
           });
@@ -740,19 +785,18 @@ window.addEventListener('load', () => {
             CreateProfileHeader(profileInfo, url);
             CreatProfileInfoRow(profileInfo, userName, userEmail, userPhone, userTotalRSVP);
 
-            //Now setup Planning tab
-            PlanningSetup(planRef, isAnonymous, 'Group 1', userScheduleArr);
+            //Setup planning tab and wait till completion to setup chat hosts
+            PlanningSetup(planRef, isAnonymous, 'Group 1', userScheduleArr, null);
+            //Setup each host in Contact Host section
+            chatHosts.replaceChildren();
+            hostNameArr.forEach((host) => {
+              ChatHostsSetup(chatHosts, host.host);
+            });
             Loading(mainLoader, false);
           })
           .catch((error) => {
             console.log(error);
           });
-
-        //Setup each host in Contact Host section
-        chatHosts.replaceChildren();
-        hostNameArr.forEach((host) => {
-          ChatHostsSetup(chatHosts, host.host);
-        });
       }, {
         onlyOnce: true
       });
@@ -772,7 +816,7 @@ window.addEventListener('load', () => {
     var profSignOutIcon = document.createElement('i'); profSignOutIcon.className = "fa-solid fa-right-from-bracket"; profSignOut.appendChild(profSignOutIcon);
     profCol2.appendChild(profSignOut);
     var profMessages = document.createElement('button'); profMessages.setAttribute('id', 'messages-button'); profMessages.className = "messages-button";
-    var profMessagesIcon = document.createElement('i'); profMessagesIcon.className = "fa-solid fa-message"; profMessages.appendChild(profMessagesIcon);
+    var profMessagesIcon = document.createElement('i'); profMessagesIcon.className = "fa-solid fa-message"; profMessages.appendChild(profMessagesIcon); profMessages.innerHTML += "Messages";
     profCol2.appendChild(profMessages); profileHeader.appendChild(profCol2);
 
     parentElem.appendChild(profileHeader);
@@ -797,7 +841,7 @@ window.addEventListener('load', () => {
   function ChatHostsSetup(parentElem, host) {
     var hostDiv = document.createElement('div'); hostDiv.classList.add('chat-host'); hostDiv.setAttribute('id', host + '-chat');
 
-    var hostImg = document.createElement('img'); hostImg.src = "https://s3-us-west-2.amazonaws.com/s.cdpn.io/245657/1_copy.jpg"; hostDiv.appendChild(hostImg);
+    var hostIcon = document.createElement('i'); hostIcon.className = "fa-circle-user"; hostDiv.appendChild(hostIcon);
     var hostName = document.createElement('p'); var nameText = document.createElement('strong'); nameText.textContent = host; hostName.appendChild(nameText); hostDiv.appendChild(hostName);
 
     var notifStatus = document.createElement('div'); notifStatus.classList.add('status'); notifStatus.setAttribute('id', host + '-status'); hostDiv.appendChild(notifStatus);
@@ -813,6 +857,7 @@ window.addEventListener('load', () => {
     //var timeStamp = document.createElement('span'); timeStamp.textContent = msg.timestamp; bubble.appendChild(timeStamp);
     mainDiv.appendChild(bubble);
     parentElem.appendChild(mainDiv);
+    mainDiv.scrollIntoView({ behavior: "smooth", block: "end", inline: "nearest" });
   }
 
   chatCloseBtn.addEventListener('click', function () {
@@ -837,7 +882,7 @@ window.addEventListener('load', () => {
       sendMessage['UsersMessages/' + hostName + '/' + auth?.currentUser.uid + '/UserMsgs/' + Date.now()] = messageContent;
       update(ref_db(database), sendMessage).then(() => {
         CreateMessageBubble(chatMessages, messageContent, "right");
-        chatMessageInput.value = null; 
+        chatMessageInput.value = null;
       });
     }
   });
@@ -851,28 +896,6 @@ window.addEventListener('load', () => {
             const updateUserToken = {};
             updateUserToken["Users/" + auth?.currentUser.uid + "/notifToken"] = currentToken;
             update(ref_db(database), updateUserToken);
-
-            // Show message notif to user when recieved on the foreground
-            onMessage(messaging, (payload) => {
-              //Only show notif if the user does not have the chat view from the host open
-              if (!chatScreen.classList.contains('show')) {
-                //Need to show notif, badge, status
-                ShowNotifToast(payload.data.title, payload.data.body);
-                //Show badge
-                //Update status
-                var chatHostsArr = Array.from(chatHosts.children);
-                var msgTitle = payload.data.title.replace(" replied", "");
-                chatHostsArr.forEach((host) => {
-                  var hostName = host.getAttribute('id').replace("-chat", "");
-                  if (hostName === msgTitle) {
-                    host.classList.add('new-msg');
-                  }
-                }) 
-              } else if (chatView.classList.contains('fadeInChat')) {
-                //Only need to create message bubble
-                CreateMessageBubble(chatMessages, payload.data.body, "left");
-              }
-            });
           } else {
             //Show notification request
             if (!("Notification" in window)) {
@@ -909,7 +932,7 @@ window.addEventListener('load', () => {
   //#endregion Profile Setup
 
   //#region Planning Setup
-  function PlanningSetup(planRef, isAnonymous, groupID, userScheduleArr) {
+  function PlanningSetup(planRef, isAnonymous, groupID, userScheduleArr, clickedWeek) {
     if (isAnonymous) {
       planningBlocked.classList.remove('hide');
       planningIntro.parentElement.classList.add('hide');
@@ -917,14 +940,14 @@ window.addEventListener('load', () => {
       planWeekHolder.replaceChildren();
       Loading(mainLoader, false);
     } else {
-      loginScreen.classList.remove('show');
-      mainScreen.classList.remove('disable-click');
-      planningBlocked.classList.add('hide');
-      planningIntro.parentElement.classList.remove('hide');
-      planningWeekSelectParent.classList.remove('hide');
-      Loading(mainLoader, true);
-
       onValue(planRef, (snapshot) => {
+        loginScreen.classList.remove('show');
+        mainScreen.classList.remove('disable-click');
+        planningBlocked.classList.add('hide');
+        planningIntro.parentElement.classList.remove('hide');
+        planningWeekSelectParent.classList.remove('hide');
+        Loading(mainLoader, true);
+
         //Clear current data in array to avoid dups
         groupInfoArr = [];
 
@@ -938,7 +961,6 @@ window.addEventListener('load', () => {
 
         getDownloadURL(ref_st(storage, "Groups/" + image))
           .then((url) => {
-
             //Update group array with the new data
             const data = { group: groupKey, address: address, description: description, email: email, image: url, phone: phone };
             groupInfoArr.unshift(data);
@@ -961,7 +983,8 @@ window.addEventListener('load', () => {
 
             //Now Update planning intro
             UpdatePlanningIntro(hostNameArr, groupInfoArr, groupID, planningIntro);
-            ShowEventContainers(uniqWeeks[0], 'planning-container');
+            if (clickedWeek === null) clickedWeek = uniqWeeks[0];
+            ShowEventContainers(clickedWeek, 'planning-container');
             Loading(mainLoader, false);
           })
           .catch((error) => {
@@ -1117,7 +1140,8 @@ window.addEventListener('load', () => {
           ShowEventContainers(clickedText, "overview-container");
         }
         else {
-          DropdownSelection(clickedText, hostSelection, auth);
+          const selectedWeek = document.getElementById('plan-week-selection');
+          DropdownSelection(clickedText, hostSelection, auth, selectedWeek.children[0].children[0].textContent);
         }
       }
     }
@@ -1129,19 +1153,6 @@ window.addEventListener('load', () => {
       var liTarget = row.children[2].textContent;
       DropdownSelection(liTarget, hostSelection, auth);
       tabPlanning.click();
-    }
-
-    //Contact Button
-    const contact = e.target.closest('.contact-button');
-
-    if (contact) {
-      SetupMessagingRequirements(auth, registration);
-
-      if(!chatScreen.classList.contains('show')) {
-        tabPlanning.click(); 
-        chatScreen.classList.add('show');
-        ShowChatScreen(contact.getAttribute('data-host'));
-      }
     }
 
     //RSVP Buttons
@@ -1168,14 +1179,49 @@ window.addEventListener('load', () => {
 
     if (signOutButton) { signOutButton.classList.add('button-onClick'); SignOutUser(auth); }
 
-    //Messages button 
-    const messagesButton = e.target.closest('.messages-button');
+    //Messages & Contact button 
+    var messagesButton = e.target.closest('.messages-button');
+    var contactButton = e.target.closest('.contact-button');
 
-    if (messagesButton) {
+    if (messagesButton || contactButton) {
       SetupMessagingRequirements(auth, registration);
+
+      if (!messagesButton) {
+        messagesButton = document.getElementById('messages-button');
+      }
+
+      //Sort the hosts by new-msg status
+      var chatHostsArr = Array.from(chatHosts.children);
+
+      var isNewMsgs = false;
+      //First Move hosts with new msg status to end of list
+      chatHostsArr.forEach((host) => {
+        if (host.children[2].classList.contains('new-msg')) {
+          chatHosts.appendChild(host);
+          isNewMsgs = true;
+        }
+      });
+
+      //Remove notif badges if no new messages
+      if (isNewMsgs === false) {
+        messagesButton.removeAttribute('data-notif');
+        const tabProfileLabel = document.querySelector('.tabs-ul .new-msg-notif label');
+        tabProfileLabel.removeAttribute('data-notif');
+      }
+
+      //Now move the rest to end of list to make them on bottom
+      chatHostsArr.forEach((host) => {
+        if (!host.children[2].classList.contains('new-msg')) {
+          chatHosts.appendChild(host);
+        }
+      });
 
       if (!chatScreen.classList.contains('show')) {
         chatScreen.classList.add('show');
+        if (contactButton) {
+          tabProfile.click();
+          ShowChatScreen(contactButton.getAttribute('data-host'));
+        }
       }
     }
 
@@ -1183,14 +1229,16 @@ window.addEventListener('load', () => {
     const hostContact = e.target.closest('.chat-host');
 
     if (hostContact) {
+      //Remove new msg status
+      hostContact.children[2].classList.remove('new-msg');
       ShowChatScreen(hostContact.children[1].children[0].textContent);
     }
   });
-   
+
   document.addEventListener('touchstart', e => {
     touchStartX = e.changedTouches[0].screenX;
   });
-  
+
   document.addEventListener('touchend', e => {
     touchEndX = e.changedTouches[0].screenX;
     SwitchTabOnSwipe();
@@ -1202,7 +1250,7 @@ window.addEventListener('load', () => {
       if (touchEndX < touchStartX && (touchStartX - touchEndX) > 50) {
         if (tabPlanning.checked === true) {
           tabOverview.click();
-        } else if(tabOverview.checked === true){
+        } else if (tabOverview.checked === true) {
           tabProfile.click();
         }
       }
@@ -1213,7 +1261,7 @@ window.addEventListener('load', () => {
           tabPlanning.click();
         }
       }
-    }  
+    }
   }
 
   function ShowChatScreen(hostName) {
@@ -1285,11 +1333,11 @@ window.addEventListener('load', () => {
     });
   }
 
-  function DropdownSelection(elemTarget, menu, auth) {
+  function DropdownSelection(elemTarget, menu, auth, selectedWeek) {
     if (elemTarget != null) {
       menu.children[0].children[0].textContent = elemTarget;
       if (menu === hostSelection) {
-        PlanningSetup(planRef, auth?.currentUser.isAnonymous, hostNameArr.find(h => h.host === elemTarget).group, userScheduleArr);
+        PlanningSetup(planRef, auth?.currentUser.isAnonymous, hostNameArr.find(h => h.host === elemTarget).group, userScheduleArr, selectedWeek);
       }
     }
   };
@@ -1321,7 +1369,9 @@ window.addEventListener('load', () => {
       var row = button.parentElement.parentElement;
       var dayAndTime = row.children[0].textContent.split('/');
       var groupID = button.getAttribute('data-groupID');
-      var week = encodeURIComponent(button.getAttribute('data-week'));
+      var groupNum = groupID.split(' ')[1];
+      var decodedWeek = button.getAttribute('data-week');
+      var week = encodeURIComponent(decodedWeek);
       var guests = row.children[3].children[0].children[1];
       const updates = {};
       const totalRsvpElem = document.getElementById('user-total-rsvp');
@@ -1332,18 +1382,22 @@ window.addEventListener('load', () => {
         guests.value = 0;
 
         //Remove day from user schedule in db
-        set(ref_db(database, 'Users/' + auth?.currentUser.uid + '/Schedule/' + week + '/' + dayAndTime[0]), {
+        set(ref_db(database, 'Users/' + auth?.currentUser.uid + '/Schedule/' + week + '/' + dayAndTime[0] + '-' + groupNum), {
           GroupID: null,
           Guests: null,
           Time: null,
         })
           .then(() => {
             //Subtract total day rsvp from user
-            updates['Users/' + auth?.currentUser.uid + "/Total RSVP'd"] = --userTotalRSVP;
+            updates['Users/' + auth?.currentUser.uid + "/Total RSVP'd"] = increment(-1);
             update(ref_db(database), updates).then(() => {
-              totalRsvpElem.textContent = userTotalRSVP;
+              totalRsvpElem.textContent = --userTotalRSVP;
               button.classList.remove('button-onClick');
               button.classList.add('rsvp-validate');
+
+              //Remove from userScheduleArr to keep data valid
+              const scheduleIndex = userScheduleArr.findIndex(u => u.group === groupID && u.week === decodedWeek && u.day === dayAndTime[0] && u.time === dayAndTime[1]);
+              if (scheduleIndex !== -1) userScheduleArr.splice(scheduleIndex, 1);
               setTimeout(ApproveRSVP(button, isRsvp), 450);
             });
           })
@@ -1358,18 +1412,22 @@ window.addEventListener('load', () => {
         guests.previousElementSibling.classList.add('hide');
 
         //Update user Schedule in db
-        set(ref_db(database, 'Users/' + auth?.currentUser.uid + '/Schedule/' + week + '/' + dayAndTime[0]), {
+        set(ref_db(database, 'Users/' + auth?.currentUser.uid + '/Schedule/' + week + '/' + dayAndTime[0] + '-' + groupNum), {
           GroupID: groupID,
           Guests: guests.value,
           Time: dayAndTime[1]
         })
           .then(() => {
             //Add total day rsvp from user
-            updates['Users/' + auth?.currentUser.uid + "/Total RSVP'd"] = ++userTotalRSVP;
+            updates['Users/' + auth?.currentUser.uid + "/Total RSVP'd"] = increment(1);
             update(ref_db(database), updates).then(() => {
-              totalRsvpElem.textContent = userTotalRSVP;
+              totalRsvpElem.textContent = ++userTotalRSVP;
               button.classList.remove('button-onClick');
               button.classList.add('rsvp-validate');
+
+              //Add to userScheduleArr to keep data valid
+              const scheduleDay = { week: decodedWeek, day: dayAndTime[0], time: dayAndTime[1], guests: guests.value, group: groupID };
+              userScheduleArr.push(scheduleDay);
               setTimeout(ApproveRSVP(button, isRsvp), 450);
             });
           })
@@ -1404,12 +1462,12 @@ window.addEventListener('load', () => {
   }
 
   function AddOrRemoveNotifBadge(idString, contentString, addOrRemove) {
-    const row = document.getElementById(idString);
-    if (row != null) {
+    const elem = document.getElementById(idString);
+    if (elem != null) {
       if (addOrRemove === 'add') {
-        row.setAttribute('data-badge', contentString);
+        elem.setAttribute('data-badge', contentString);
       } else if (addOrRemove === 'remove') {
-        row.removeAttribute('data-badge');
+        elem.removeAttribute('data-badge');
       }
     }
   }
