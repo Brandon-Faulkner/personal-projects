@@ -155,7 +155,7 @@ window.addEventListener('load', () => {
           //Only show notif if the user does not have the chat view from the host open
           if (!chatScreen.classList.contains('show')) {
             //Need to show notif, badge, status
-            ShowNotifToast(payload.data.title, payload.data.body);
+            ShowNotifToast(payload.data.title, "View message in profile.");
 
             //Update status
             var chatHostsArr = Array.from(chatHosts.children);
@@ -178,7 +178,7 @@ window.addEventListener('load', () => {
             CreateMessageBubble(chatMessages, payload.data.body, "left");
           } else {
             //Need to show notif, status
-            ShowNotifToast(payload.data.title, payload.data.body);
+            ShowNotifToast(payload.data.title, "View message in profile.");
 
             //Update status and order of hosts
             var chatHostsArr = Array.from(chatHosts.children);
@@ -1018,8 +1018,8 @@ window.addEventListener('load', () => {
     var headerDiv1 = document.createElement('div'); headerDiv1.className = "col"; headerDiv1.textContent = "Day/Time"; tableHeader.appendChild(headerDiv1);
     var headerDiv2 = document.createElement('div'); headerDiv2.className = "col"; headerDiv2.textContent = "Address"; tableHeader.appendChild(headerDiv2);
     var headerDiv3 = document.createElement('div'); headerDiv3.className = "col"; headerDiv3.textContent = "Status"; tableHeader.appendChild(headerDiv3);
-    var headerDiv4 = document.createElement('div'); headerDiv4.className = "col"; headerDiv4.textContent = "Guests"; tableHeader.appendChild(headerDiv4);
-    var headerDiv5 = document.createElement('div'); headerDiv5.className = "col"; headerDiv5.textContent = "Action"; tableHeader.appendChild(headerDiv5);
+    var headerDiv4 = document.createElement('div'); headerDiv4.className = "col"; headerDiv4.textContent = "I'm Going"; tableHeader.appendChild(headerDiv4);
+    var headerDiv5 = document.createElement('div'); headerDiv5.className = "col"; headerDiv5.textContent = "Friends"; tableHeader.appendChild(headerDiv5);
     parentElem.appendChild(tableHeader);
   }
 
@@ -1034,13 +1034,13 @@ window.addEventListener('load', () => {
     //First create elements, update values if needed, then add to row in order
     var col3 = document.createElement('div'); col3.className = "col"; col3.setAttribute('data-label', "Status:"); col3.textContent = "Not Going";
 
-    var col4 = document.createElement('div'); col4.className = "col"; col4.setAttribute('data-label', "Guests:");
+    var col4 = document.createElement('div'); col4.className = "col"; col4.setAttribute('data-label', "Friends:");
     var counter = document.createElement('div'); counter.className = "counter";
     var minus = document.createElement('span'); minus.className = "guest-down"; var minusIcon = document.createElement('i'); minusIcon.className = "fa-solid fa-minus"; minus.appendChild(minusIcon);
     var counterInput = document.createElement('input'); counterInput.setAttribute("id", "counter-input-" + Math.floor(Math.random() * 100000)); counterInput.setAttribute("type", "text"); counterInput.value = 0;
     var plus = document.createElement('span'); plus.className = "guest-up"; var plusIcon = document.createElement('i'); plusIcon.className = "fa-solid fa-plus"; plus.appendChild(plusIcon);
 
-    var col5 = document.createElement('div'); col5.className = "col"; col5.setAttribute('data-label', "Action:");
+    var col5 = document.createElement('div'); col5.className = "col"; col5.setAttribute('data-label', "I'm Going:");
     var rsvp = document.createElement('button'); rsvp.className = "rsvp-button"; rsvp.setAttribute('data-groupID', groupID); rsvp.setAttribute('data-week', elem.week); rsvp.setAttribute('data-day', elem.day);
 
     //Check schedule
@@ -1055,10 +1055,12 @@ window.addEventListener('load', () => {
       });
     }
 
+    //TESTING NEW LAYOUT *****************************
+    //Switching Col4 and Col5
     //Add elements to row then to parent
     row.appendChild(col3);
-    counter.appendChild(minus); counter.appendChild(counterInput); counter.appendChild(plus); col4.appendChild(counter); row.appendChild(col4);
     col5.appendChild(rsvp); row.appendChild(col5);
+    counter.appendChild(minus); counter.appendChild(counterInput); counter.appendChild(plus); col4.appendChild(counter); row.appendChild(col4);
 
     parentElem.appendChild(row);
   }
@@ -1151,7 +1153,8 @@ window.addEventListener('load', () => {
 
     if (row) {
       var liTarget = row.children[2].textContent;
-      DropdownSelection(liTarget, hostSelection, auth);
+      const selectedWeek = document.getElementById('over-week-selection');
+      DropdownSelection(liTarget, hostSelection, auth, selectedWeek.children[0].children[0].textContent);
       tabPlanning.click();
     }
 
@@ -1185,36 +1188,7 @@ window.addEventListener('load', () => {
 
     if (messagesButton || contactButton) {
       SetupMessagingRequirements(auth, registration);
-
-      if (!messagesButton) {
-        messagesButton = document.getElementById('messages-button');
-      }
-
-      //Sort the hosts by new-msg status
-      var chatHostsArr = Array.from(chatHosts.children);
-
-      var isNewMsgs = false;
-      //First Move hosts with new msg status to end of list
-      chatHostsArr.forEach((host) => {
-        if (host.children[2].classList.contains('new-msg')) {
-          chatHosts.appendChild(host);
-          isNewMsgs = true;
-        }
-      });
-
-      //Remove notif badges if no new messages
-      if (isNewMsgs === false) {
-        messagesButton.removeAttribute('data-notif');
-        const tabProfileLabel = document.querySelector('.tabs-ul .new-msg-notif label');
-        tabProfileLabel.removeAttribute('data-notif');
-      }
-
-      //Now move the rest to end of list to make them on bottom
-      chatHostsArr.forEach((host) => {
-        if (!host.children[2].classList.contains('new-msg')) {
-          chatHosts.appendChild(host);
-        }
-      });
+      SortChatHostsAndRemoveBadge(messagesButton);
 
       if (!chatScreen.classList.contains('show')) {
         chatScreen.classList.add('show');
@@ -1231,6 +1205,7 @@ window.addEventListener('load', () => {
     if (hostContact) {
       //Remove new msg status
       hostContact.children[2].classList.remove('new-msg');
+      SortChatHostsAndRemoveBadge(null);
       ShowChatScreen(hostContact.children[1].children[0].textContent);
     }
   });
@@ -1262,6 +1237,38 @@ window.addEventListener('load', () => {
         }
       }
     }
+  }
+
+  function SortChatHostsAndRemoveBadge(messagesButton) {
+    if (!messagesButton) {
+      messagesButton = document.getElementById('messages-button');
+    }
+    
+    //Sort the hosts by new-msg status
+    var chatHostsArr = Array.from(chatHosts.children);
+
+    var isNewMsgs = false;
+    //First Move hosts with new msg status to end of list
+    chatHostsArr.forEach((host) => {
+      if (host.children[2].classList.contains('new-msg')) {
+        chatHosts.appendChild(host);
+        isNewMsgs = true;
+      }
+    });
+
+    //Remove notif badges if no new messages
+    if (isNewMsgs === false) {
+      messagesButton.removeAttribute('data-notif');
+      const tabProfileLabel = document.querySelector('.tabs-ul .new-msg-notif label');
+      tabProfileLabel.removeAttribute('data-notif');
+    }
+
+    //Now move the rest to end of list to make them on bottom
+    chatHostsArr.forEach((host) => {
+      if (!host.children[2].classList.contains('new-msg')) {
+        chatHosts.appendChild(host);
+      }
+    });
   }
 
   function ShowChatScreen(hostName) {
@@ -1497,7 +1504,7 @@ window.addEventListener('load', () => {
     toastElem.classList.remove('active');
     toastProgress.classList.remove('active');
 
-    //Update toast values
+    //Update toast title
     toastMessage.children[0].textContent = title;
     toastMessage.children[1].textContent = message;
 

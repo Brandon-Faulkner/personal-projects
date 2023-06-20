@@ -3,6 +3,7 @@
     "rules": "database.rules.json"
   },
   "hosting": {
+    "public": "public",
     "headers": [
       {
         "source": "/service-worker.js",
@@ -21,16 +22,17 @@
             "value": "*"
           }
         ]
-      }, 
+      },
       {
         "source": "**/*.@(jpg|jpeg|gif|png|webp)",
-        "headers": [ {
-          "key": "Cache-Control",
-          "value": "max-age=604800"
-        } ]
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=604800"
+          }
+        ]
       }
     ],
-    "public": "public",
     "ignore": [
       "firebase.json",
       "**/.*",

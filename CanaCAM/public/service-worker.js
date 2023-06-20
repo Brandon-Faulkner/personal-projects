@@ -33,7 +33,7 @@ const messaging = firebase.messaging();
 const OFFLINE_VERSION = 1;
 const CACHE_NAME = 'cana-cam-offline';
 // Customize this with a different URL if needed.
-const OFFLINE_URL = 'index-offline.html';
+const OFFLINE_URL = 'offline.html';
 
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {

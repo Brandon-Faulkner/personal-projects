@@ -1,5 +1,18 @@
 {
   "projects": {
     "default": "cana-cam"
-  }
+  },
+  "targets": {
+    "cana-cam": {
+      "hosting": {
+        "user": [
+          "cana-cam"
+        ],
+        "admin": [
+          "cana-cam-admin"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
