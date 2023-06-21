@@ -1350,10 +1350,6 @@ li.dropdown-list-item {
   height: 100%;
 }
 
-.chat-host-list-notAdmin {
-  grid-template-rows: 12.5% 87.5%;
-}
-
 #chat-host-title {
   height: 100%;
   width: 100%;
@@ -1453,7 +1449,7 @@ li.dropdown-list-item {
   background: var(--green);
 }
 
-.chat-slider {
+#chat-slider {
   position: relative;
   display: flex;
   height: 100%;
@@ -1463,7 +1459,7 @@ li.dropdown-list-item {
   border-radius: var(--border-radius);
 }
 
-.chat-slider .chat-slide {
+#chat-slider .chat-slide {
   height: 100%;
   width: 100%;
   color: var(--white);
@@ -1476,11 +1472,11 @@ li.dropdown-list-item {
   transition: all 0.6s ease;
 }
 
-.chat-slider label.slide-users {
+#chat-slider label.slide-users {
   color: var(--white-hover);
 }
 
-.chat-slider .chat-slider-tab {
+#chat-slider .chat-slider-tab {
   position: absolute;
   height: 100%;
   width: 50%;

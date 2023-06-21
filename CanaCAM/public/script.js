@@ -95,6 +95,7 @@ window.addEventListener('load', () => {
   const chatCloseBtn = document.getElementById('chat-close-btn');
   const chatHostsList = document.getElementById('chat-host-list');
   const chatHosts = document.getElementById('chat-hosts');
+  const chatSlider = document.getElementById('chat-slider');
   const chatView = document.getElementById('chat-view');
   const chatLoader = document.getElementById('chat-loader');
   const chatHostProf = document.getElementById('chat-host-profile');
@@ -861,6 +862,15 @@ window.addEventListener('load', () => {
     var profMessagesIcon = document.createElement('i'); profMessagesIcon.className = "fa-solid fa-message"; profMessages.appendChild(profMessagesIcon); profMessages.innerHTML += "Messages";
     profCol2.appendChild(profMessages); profileHeader.appendChild(profCol2);
 
+    //Disable the chat sliders if not admin
+    if (isAdmin === true) {
+      chatHostsList.style = null;
+      chatSlider.style = null;
+    } else {
+      chatHostsList.style = "grid-template-rows: 12.5% 87.5%;";
+      chatSlider.style = "display: none";
+    }
+
     parentElem.appendChild(profileHeader);
   }
 
@@ -869,7 +879,7 @@ window.addEventListener('load', () => {
     profileHeader.classList.add('profile-host');
 
     var title = document.createElement('h2'); title.textContent = "Host Dashboard"; profileHeader.appendChild(title);
-    var description = document.createElement('p'); description.style.padding="0"; description.textContent = "View current RSVP'd users, reply to questions, or open your house to more days."; profileHeader.appendChild(description);
+    var description = document.createElement('p'); description.style.padding = "0"; description.textContent = "View current RSVP'd users, reply to questions, or open your house to more days."; profileHeader.appendChild(description);
     var profCol = document.createElement('div'); profCol.className = "profile-col";
     var dashBtn = document.createElement('button'); dashBtn.setAttribute('id', 'dashboard-button'); dashBtn.className = "dashboard-button";
     var dashIcon = document.createElement('i'); dashIcon.className = "fa-solid fa-gear"; dashBtn.appendChild(dashIcon); dashBtn.innerHTML += "Dashboard";
@@ -1262,6 +1272,18 @@ window.addEventListener('load', () => {
           tabProfile.click();
           ShowChatScreen(contactButton.getAttribute('data-host'));
         }
+      }
+    }
+
+    //Chat sliders
+    if (isAdmin === true) {
+      const chatSliderHosts = document.getElementById('chat-slider-hosts');
+      const chatSliderUsers = document.getElementById('chat-slider-users');
+
+      if (chatSliderHosts && chatSliderHosts.checked === true) {
+        chatHostsList.children[0].textContent = "Contact Hosts";
+      } else if (chatSliderUsers && chatSliderUsers.checked === true) {
+        chatHostsList.children[0].textContent = "Contact Users";
       }
     }
 
