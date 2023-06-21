@@ -623,6 +623,41 @@ form .btn input[type="submit"] {
 
 /*#endregion LOGIN SCREEN*/
 
+/*#region DASHBOARD*/
+.dashboard-wrapper {
+  overflow: auto;
+  max-width: 90%;
+  height: 95%;
+  background: var(--dropdown-background);
+  padding: 30px;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  display: inline-grid;
+  justify-content: center;
+  align-content: center;
+  margin: auto;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+#dashboard-close-btn {
+  outline: 0;
+  position: absolute;
+  right: 10px;
+  width: 10%;
+  height: 12.5%;
+  border: 0;
+  background: 0;
+  padding: 0;
+  cursor: pointer;
+  fill: var(--white);
+  z-index: 1;
+}
+/*#endregion DASHBOARD*/
+
 /*#region NOTIFICATION TOAST*/
 .toast {
   position: absolute;
@@ -1260,6 +1295,16 @@ li.dropdown-list-item {
 .profile-col {
   flex-basis: 35%;
   color: var(--white);
+  padding-top: 10px;
+  display: inline-flex;
+  justify-content: center;
+}
+
+.profile-host {
+  background-color: var(--background);
+  box-shadow: var(--box-shadow);
+  display: block !important;
+  font-size: calc(1vw + 1vh);
 }
 
 .profile-row {
@@ -1296,6 +1341,7 @@ li.dropdown-list-item {
 
 #chat-host-list {
   display: inline-grid;
+  grid-template-rows: 12.5% 77.5% 10%;
   opacity: 1;
   position: absolute;
   top: 0;
@@ -1304,8 +1350,12 @@ li.dropdown-list-item {
   height: 100%;
 }
 
+.chat-host-list-notAdmin {
+  grid-template-rows: 12.5% 87.5%;
+}
+
 #chat-host-title {
-  height: 12.5%;
+  height: 100%;
   width: 100%;
   display: flex;
   align-items: center;
@@ -1334,14 +1384,9 @@ li.dropdown-list-item {
 }
 
 #chat-hosts {
-  height: auto;
+  height: 100%;
   width: 100%;
   overflow: overlay;
-  position: absolute;
-  top: 12.5%;
-  bottom: 0;
-  right: 0;
-  left: 0;
   border-top: 1px solid #d8dfe3;
 }
 
@@ -1406,6 +1451,67 @@ li.dropdown-list-item {
 
 .chat-host .status.new-msg {
   background: var(--green);
+}
+
+.chat-slider {
+  position: relative;
+  display: flex;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  border-top: 1px solid #d8dfe3;
+  border-radius: var(--border-radius);
+}
+
+.chat-slider .chat-slide {
+  height: 100%;
+  width: 100%;
+  color: var(--white);
+  font-size: 18px;
+  font-weight: 500;
+  text-align: center;
+  line-height: 48px;
+  cursor: pointer;
+  z-index: 1;
+  transition: all 0.6s ease;
+}
+
+.chat-slider label.slide-users {
+  color: var(--white-hover);
+}
+
+.chat-slider .chat-slider-tab {
+  position: absolute;
+  height: 100%;
+  width: 50%;
+  left: 0;
+  z-index: 0;
+  border-radius: 15px;
+  background: var(--green);
+  transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+#chat-slider-users:checked~.chat-slider-tab {
+  left: 50%;
+}
+
+#chat-slider-users:checked~label.slide-users {
+  color: var(--white);
+  cursor: default;
+  user-select: none;
+}
+
+#chat-slider-users:checked~label.slide-hosts {
+  color: var(--white-hover);
+}
+
+#chat-slider-hosts:checked~label.slide-users {
+  color: var(--white-hover);
+}
+
+#chat-slider-hosts:checked~label.slide-hosts {
+  cursor: default;
+  user-select: none;
 }
 
 #chat-view {
@@ -1791,8 +1897,9 @@ li.dropdown-list-item {
   content: "Sign Out";
 }
 
-/*Messages Button*/
-.messages-button {
+/*Messages & Dashboard Buttons*/
+.messages-button,
+.dashboard-button {
   outline: none;
   height: 40px;
   text-align: center;
@@ -1812,12 +1919,14 @@ li.dropdown-list-item {
   position: relative;
 }
 
-.messages-button:hover {
+.messages-button:hover,
+.dashboard-button:hover {
   color: var(--background);
   background: var(--white);
 }
 
-.messages-button:active {
+.messages-button:active,
+.dashboard-button:active {
   letter-spacing: 2px;
   color: var(--white);
   background: var(--green);
@@ -1920,6 +2029,10 @@ li.dropdown-list-item {
 @media all and (max-width: 767px) {
   .login-wrapper {
     transform: scale(0.75);
+  }
+
+  .dashboard-wrapper {
+    transform: scale(0.90);
   }
 
   .main-page {

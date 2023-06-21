@@ -1,24 +1,30 @@
 {
   "rules": {
+    "Admins": {
+      "$uid":{
+        ".read": "$uid === auth.uid",
+      	".write": "false"
+      }
+    },
     "Groups":{
       ".read": "auth != null",
-      ".write": "auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && root.child('Users').child(auth.uid).child('isAdmin').val() === true"
+      ".write": "auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && root.child('Admins').child(auth.uid).exists()"
     },
     "GroupsInfo": {
       ".read": "auth != null && auth.token.firebase.sign_in_provider != 'anonymous'",
-      ".write": "root.child('Users').child(auth.uid).child('isAdmin').val() === true" 
+      ".write": "root.child('Admins').child(auth.uid).exists()" 
     },
     "Users": {
       "$uid": {
-        ".read": "$uid === auth.uid || root.child('Users').child(auth.uid).child('isAdmin').val() === true",
-        ".write": "$uid === auth.uid || root.child('Users').child(auth.uid).child('isAdmin').val() === true"
+        ".read": "$uid === auth.uid || root.child('Admins').child(auth.uid).exists()",
+        ".write": "$uid === auth.uid || root.child('Admins').child(auth.uid).exists()"
       }
     },
     "UsersMessages": {
       "$groupID": {
         "$uid": {
-          ".read": "$uid === auth.uid || root.child('Users').child(auth.uid).child('isAdmin').val() === true",
-          ".write": "$uid === auth.uid || root.child('Users').child(auth.uid).child('isAdmin').val() === true"
+          ".read": "$uid === auth.uid || root.child('Admins').child(auth.uid).exists()",
+          ".write": "$uid === auth.uid || root.child('Admins').child(auth.uid).exists()"
         }
       }
     }

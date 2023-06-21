@@ -72,6 +72,9 @@ window.addEventListener('load', () => {
 
   const mainScreen = document.getElementById('main-page');
 
+  const dashboardPage = document.getElementById('dashboard-page');
+  const dashboardCloseBtn = document.getElementById('dashboard-close-btn');
+
   const tabPlanning = document.getElementById('tab-planning');
   const planningBlocked = document.getElementById('planning-blocked');
   const planningIntro = document.getElementById('tab-planning-intro');
@@ -109,6 +112,8 @@ window.addEventListener('load', () => {
   var forgPass = false;
   //Locally keep track of total RSVP days for user
   var userTotalRSVP = 0;
+  //Locally keep track of admin status
+  var isAdmin = false; var adminGroup = null;
 
   function Loading(loaderElem, show) {
     if (show) {
@@ -148,7 +153,10 @@ window.addEventListener('load', () => {
         //Signed in with Account
         RemoveOldWeeksFromGroups(groupRef);
         RemoveOldWeeksFromUser(auth);
-        OverviewSetup(groupRef, user?.isAnonymous);
+
+        //Check users admin status, then setup pages
+        CheckAdminStatus(user);
+        //OverviewSetup(groupRef, user?.isAnonymous);
 
         // Show message notif to user when recieved on the foreground
         onMessage(messaging, (payload) => {
@@ -303,7 +311,7 @@ window.addEventListener('load', () => {
     signOut(auth).then(() => {
 
     }).catch((error) => {
-
+      console.log(error);
     });
   }
 
@@ -316,6 +324,22 @@ window.addEventListener('load', () => {
       .catch((error) => {
         console.log("Error with Forgot Password: ", error);
       });
+  }
+
+  function CheckAdminStatus(user) {
+    onValue(ref_db(database, 'Admins/' + user?.uid), (snapshot) => {
+      if (snapshot.exists()) {
+        isAdmin = true;
+        adminGroup = snapshot.val();
+      }
+      else {
+        isAdmin = false;
+        adminGroup = null;
+      }
+
+      //Now proceed with setting up the app
+      OverviewSetup(groupRef, user?.isAnonymous);
+    });
   }
   //#endregion Authentication Functions
 
@@ -639,17 +663,34 @@ window.addEventListener('load', () => {
         const hostName = childSnapshot.child("Hosts").val();
         const genLocation = childSnapshot.child("Location").val();
 
-        //Keep track of just host names for dropdown
-        const host = { group: groupKey, host: hostName };
-        hostNameArr.push(host);
+        //Verify if the user is a host so we dont show their group
+        if (isAdmin === true && adminGroup != null) {
+          if (groupKey !== adminGroup) {
+            //Keep track of just host names for dropdown
+            const host = { group: groupKey, host: hostName };
+            hostNameArr.push(host);
 
-        //Get the day and times for each week
-        childSnapshot.child("Weeks").forEach((week) => {
-          week.forEach((day) => {
-            const weekData = { group: groupKey, week: decodeURIComponent(week.key), day: day.key, time: day.val(), host: hostName, location: genLocation };
-            allWeeksArr.push(weekData);
+            //Get the day and times for each week
+            childSnapshot.child("Weeks").forEach((week) => {
+              week.forEach((day) => {
+                const weekData = { group: groupKey, week: decodeURIComponent(week.key), day: day.key, time: day.val(), host: hostName, location: genLocation };
+                allWeeksArr.push(weekData);
+              });
+            });
+          }
+        } else {
+          //Keep track of just host names for dropdown
+          const host = { group: groupKey, host: hostName };
+          hostNameArr.push(host);
+
+          //Get the day and times for each week
+          childSnapshot.child("Weeks").forEach((week) => {
+            week.forEach((day) => {
+              const weekData = { group: groupKey, week: decodeURIComponent(week.key), day: day.key, time: day.val(), host: hostName, location: genLocation };
+              allWeeksArr.push(weekData);
+            });
           });
-        });
+        }
       });
 
       //Clear current elements
@@ -783,10 +824,11 @@ window.addEventListener('load', () => {
             profileInfo.replaceChildren();
 
             CreateProfileHeader(profileInfo, url);
+            isAdmin === true ? CreateProfileDashboardHeader(profileInfo) : null;
             CreatProfileInfoRow(profileInfo, userName, userEmail, userPhone, userTotalRSVP);
 
             //Setup planning tab and wait till completion to setup chat hosts
-            PlanningSetup(planRef, isAnonymous, 'Group 1', userScheduleArr, null);
+            PlanningSetup(planRef, isAnonymous, allWeeksArr[0].group, userScheduleArr, null);
             //Setup each host in Contact Host section
             chatHosts.replaceChildren();
             hostNameArr.forEach((host) => {
@@ -811,13 +853,27 @@ window.addEventListener('load', () => {
     var profImg = document.createElement('img'); profImg.src = imgUrl; profImg.className = "profile-image";
     profCol1.appendChild(profImg); profileHeader.appendChild(profCol1);
 
-    var profCol2 = document.createElement('div'); profCol2.className = "profile-col"; profCol2.style = "padding-top: 10px; display: inline-flex; justify-content: center;";
+    var profCol2 = document.createElement('div'); profCol2.className = "profile-col";
     var profSignOut = document.createElement('button'); profSignOut.setAttribute('id', 'signout-button'); profSignOut.className = "signout-button";
     var profSignOutIcon = document.createElement('i'); profSignOutIcon.className = "fa-solid fa-right-from-bracket"; profSignOut.appendChild(profSignOutIcon);
     profCol2.appendChild(profSignOut);
     var profMessages = document.createElement('button'); profMessages.setAttribute('id', 'messages-button'); profMessages.className = "messages-button";
     var profMessagesIcon = document.createElement('i'); profMessagesIcon.className = "fa-solid fa-message"; profMessages.appendChild(profMessagesIcon); profMessages.innerHTML += "Messages";
     profCol2.appendChild(profMessages); profileHeader.appendChild(profCol2);
+
+    parentElem.appendChild(profileHeader);
+  }
+
+  function CreateProfileDashboardHeader(parentElem) {
+    var profileHeader = document.createElement('li');
+    profileHeader.classList.add('profile-host');
+
+    var title = document.createElement('h2'); title.textContent = "Host Dashboard"; profileHeader.appendChild(title);
+    var description = document.createElement('p'); description.style.padding="0"; description.textContent = "View current RSVP'd users, reply to questions, or open your house to more days."; profileHeader.appendChild(description);
+    var profCol = document.createElement('div'); profCol.className = "profile-col";
+    var dashBtn = document.createElement('button'); dashBtn.setAttribute('id', 'dashboard-button'); dashBtn.className = "dashboard-button";
+    var dashIcon = document.createElement('i'); dashIcon.className = "fa-solid fa-gear"; dashBtn.appendChild(dashIcon); dashBtn.innerHTML += "Dashboard";
+    profCol.appendChild(dashBtn); profileHeader.appendChild(profCol);
 
     parentElem.appendChild(profileHeader);
   }
@@ -929,6 +985,16 @@ window.addEventListener('load', () => {
 
     return true;
   }
+
+  //Admin Dashboard
+  dashboardCloseBtn.addEventListener('click', function () {
+    if (!dashboardPage.classList.contains('show')) {
+      dashboardPage.classList.add('show');
+    } else {
+      dashboardPage.classList.remove('show');
+    }
+  });
+
   //#endregion Profile Setup
 
   //#region Planning Setup
@@ -1199,6 +1265,17 @@ window.addEventListener('load', () => {
       }
     }
 
+    //Admin dashboard button
+    var dashboardButton = e.target.closest('.dashboard-button');
+
+    if (dashboardButton) {
+      if (!dashboardPage.classList.contains('show')) {
+        dashboardPage.classList.add('show');
+      } else {
+        dashboardPage.classList.remove('show');
+      }
+    }
+
     //Host Contact From Messages
     const hostContact = e.target.closest('.chat-host');
 
@@ -1243,7 +1320,7 @@ window.addEventListener('load', () => {
     if (!messagesButton) {
       messagesButton = document.getElementById('messages-button');
     }
-    
+
     //Sort the hosts by new-msg status
     var chatHostsArr = Array.from(chatHosts.children);
 
