@@ -8,7 +8,7 @@
     },
     "Groups":{
       ".read": "auth != null",
-      ".write": "auth != null && auth.token.firebase.sign_in_provider != 'anonymous' && root.child('Admins').child(auth.uid).exists()"
+      ".write": "root.child('Admins').child(auth.uid).exists()"
     },
     "GroupsInfo": {
       ".read": "auth != null && auth.token.firebase.sign_in_provider != 'anonymous'",
@@ -17,11 +17,12 @@
     "Users": {
       "$uid": {
         ".read": "$uid === auth.uid || root.child('Admins').child(auth.uid).exists()",
-        ".write": "$uid === auth.uid || root.child('Admins').child(auth.uid).exists()"
+        ".write": "$uid === auth.uid"
       }
     },
     "UsersMessages": {
       "$groupID": {
+        ".read": "root.child('Admins').child(auth.uid).exists()",
         "$uid": {
           ".read": "$uid === auth.uid || root.child('Admins').child(auth.uid).exists()",
           ".write": "$uid === auth.uid || root.child('Admins').child(auth.uid).exists()"

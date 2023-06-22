@@ -1395,6 +1395,24 @@ li.dropdown-list-item {
   font-family: "Font Awesome 6 Free";
 }
 
+.chat-user-icon {
+  padding: 0 15px;
+  color: #eaeef0;
+  font-size: 1.5em;
+  font-weight: 900;
+  font-style: normal;
+  font-family: "Font Awesome 6 Free";
+}
+
+.slide-icons {
+  padding-right: 10px;
+  color: var(--white);
+  font-size: 1.15em;
+  font-weight: 900;
+  font-style: normal;
+  font-family: "Font Awesome 6 Free";
+}
+
 .chat-host {
   height: 70px;
   position: relative;
@@ -1470,6 +1488,9 @@ li.dropdown-list-item {
   cursor: pointer;
   z-index: 1;
   transition: all 0.6s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 #chat-slider label.slide-users {
@@ -1497,11 +1518,13 @@ li.dropdown-list-item {
   user-select: none;
 }
 
-#chat-slider-users:checked~label.slide-hosts {
+#chat-slider-users:checked~label.slide-hosts,
+#chat-slider-users:checked~label.slide-hosts>i {
   color: var(--white-hover);
 }
 
-#chat-slider-hosts:checked~label.slide-users {
+#chat-slider-hosts:checked~label.slide-users,
+#chat-slider-hosts:checked~label.slide-users>i {
   color: var(--white-hover);
 }
 

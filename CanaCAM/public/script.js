@@ -96,6 +96,8 @@ window.addEventListener('load', () => {
   const chatHostsList = document.getElementById('chat-host-list');
   const chatHosts = document.getElementById('chat-hosts');
   const chatSlider = document.getElementById('chat-slider');
+  const chatSliderHosts = document.getElementById('chat-slider-hosts');
+  const chatSliderUsers = document.getElementById('chat-slider-users');
   const chatView = document.getElementById('chat-view');
   const chatLoader = document.getElementById('chat-loader');
   const chatHostProf = document.getElementById('chat-host-profile');
@@ -114,7 +116,7 @@ window.addEventListener('load', () => {
   //Locally keep track of total RSVP days for user
   var userTotalRSVP = 0;
   //Locally keep track of admin status
-  var isAdmin = false; var adminGroup = null;
+  var isAdmin = false; var adminGroup = null; var adminHostName = null; var userNameArr = [];
 
   function Loading(loaderElem, show) {
     if (show) {
@@ -184,7 +186,7 @@ window.addEventListener('load', () => {
 
           } else if (chatView.classList.contains('fadeInChat')) {
             //Only need to create message bubble
-            CreateMessageBubble(chatMessages, payload.data.body, "left");
+            CreateMessageBubble(chatMessages, payload.data.body, "left", payload.data.time);
           } else {
             //Need to show notif, status
             ShowNotifToast(payload.data.title, "View message in profile.");
@@ -336,6 +338,7 @@ window.addEventListener('load', () => {
       else {
         isAdmin = false;
         adminGroup = null;
+        adminHostName = null;
       }
 
       //Now proceed with setting up the app
@@ -678,6 +681,8 @@ window.addEventListener('load', () => {
                 allWeeksArr.push(weekData);
               });
             });
+          } else {
+            adminHostName = hostName;
           }
         } else {
           //Keep track of just host names for dropdown
@@ -915,12 +920,15 @@ window.addEventListener('load', () => {
     parentElem.appendChild(hostDiv);
   }
 
-  function CreateMessageBubble(parentElem, msg, side) {
+  function CreateMessageBubble(parentElem, msg, side, time) {
     var mainDiv = document.createElement('div'); side === "right" ? mainDiv.className = "message right" : mainDiv.className = "message";
 
     var bubble = document.createElement('div'); bubble.className = "bubble"; bubble.textContent = msg;
     var bubbleCorner = document.createElement('div'); bubbleCorner.className = "corner-" + side; bubble.appendChild(bubbleCorner);
-    //var timeStamp = document.createElement('span'); timeStamp.textContent = msg.timestamp; bubble.appendChild(timeStamp);
+    var bubbleTime = document.createElement('span'); var timestamp = new Date(parseInt(time));
+    bubbleTime.textContent = timestamp.toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
+    side === "left" ? bubbleTime.style = "left:0;" : null; bubble.appendChild(bubbleTime);
+
     mainDiv.appendChild(bubble);
     parentElem.appendChild(mainDiv);
     mainDiv.scrollIntoView({ behavior: "smooth", block: "end", inline: "nearest" });
@@ -944,12 +952,22 @@ window.addEventListener('load', () => {
     const hostName = chatHostProf.children[0].textContent;
 
     if (messageContent != null && messageContent.length > 0) {
-      const sendMessage = {};
-      sendMessage['UsersMessages/' + hostName + '/' + auth?.currentUser.uid + '/UserMsgs/' + Date.now()] = messageContent;
-      update(ref_db(database), sendMessage).then(() => {
-        CreateMessageBubble(chatMessages, messageContent, "right");
-        chatMessageInput.value = null;
-      });
+      if (isAdmin === true && chatSliderUsers.checked === true) {
+        const userID = userNameArr.find(u => u.name === hostName).uid;
+        const sendMessage = {};
+        sendMessage['UsersMessages/' + adminHostName + '/' + userID + '/HostMsgs/' + Date.now()] = messageContent;
+        update(ref_db(database), sendMessage).then(() => {
+          CreateMessageBubble(chatMessages, messageContent, "right", Date.now());
+          chatMessageInput.value = null;
+        });
+      } else {
+        const sendMessage = {};
+        sendMessage['UsersMessages/' + hostName + '/' + auth?.currentUser.uid + '/UserMsgs/' + Date.now()] = messageContent;
+        update(ref_db(database), sendMessage).then(() => {
+          CreateMessageBubble(chatMessages, messageContent, "right", Date.now());
+          chatMessageInput.value = null;
+        });
+      }
     }
   });
 
@@ -1004,6 +1022,17 @@ window.addEventListener('load', () => {
       dashboardPage.classList.remove('show');
     }
   });
+
+  function ChatUsersSetup(parentElem, user) {
+    var userDiv = document.createElement('div'); userDiv.classList.add('chat-host'); userDiv.setAttribute('id', user + '-chat');
+
+    var userIcon = document.createElement('i'); userIcon.className = "fa-user chat-user-icon"; userDiv.appendChild(userIcon);
+    var userName = document.createElement('p'); var nameText = document.createElement('strong'); nameText.textContent = user; userName.appendChild(nameText); userDiv.appendChild(userName);
+
+    var notifStatus = document.createElement('div'); notifStatus.classList.add('status'); notifStatus.setAttribute('id', user + '-status'); userDiv.appendChild(notifStatus);
+
+    parentElem.appendChild(userDiv);
+  }
 
   //#endregion Profile Setup
 
@@ -1263,27 +1292,55 @@ window.addEventListener('load', () => {
     var contactButton = e.target.closest('.contact-button');
 
     if (messagesButton || contactButton) {
+      if (contactButton && chatSliderHosts.checked === false) {
+        chatSliderHosts.checked = true;
+        chatSliderUsers.checked = false;
+
+        //Setup each host in Contact Host section
+        chatHosts.replaceChildren();
+        hostNameArr.forEach((host) => {
+          ChatHostsSetup(chatHosts, host.host);
+        });
+      }
+
       SetupMessagingRequirements(auth, registration);
-      SortChatHostsAndRemoveBadge(messagesButton);
+
+      if (isAdmin === true && chatSliderUsers.checked === true) {
+        chatHosts.replaceChildren();
+        GetContactUsersFromDB(adminHostName);
+      }
+
+      SortChatHostsAndRemoveBadge(messagesButton, chatHosts);
 
       if (!chatScreen.classList.contains('show')) {
         chatScreen.classList.add('show');
         if (contactButton) {
           tabProfile.click();
-          ShowChatScreen(contactButton.getAttribute('data-host'));
+          ShowChatScreen(contactButton.getAttribute('data-host'), auth?.currentUser.uid);
+        }
+        if (isAdmin === true) {
+
         }
       }
     }
 
     //Chat sliders
     if (isAdmin === true) {
-      const chatSliderHosts = document.getElementById('chat-slider-hosts');
-      const chatSliderUsers = document.getElementById('chat-slider-users');
+      const slideHost = e.target.closest('.slide-hosts');
+      const slideUser = e.target.closest('.slide-users');
 
-      if (chatSliderHosts && chatSliderHosts.checked === true) {
+      if (slideHost && chatSliderHosts.checked === false) {
         chatHostsList.children[0].textContent = "Contact Hosts";
-      } else if (chatSliderUsers && chatSliderUsers.checked === true) {
+        //Setup each host in Contact Host section
+        chatHosts.replaceChildren();
+        hostNameArr.forEach((host) => {
+          ChatHostsSetup(chatHosts, host.host);
+        });
+      } else if (slideUser && chatSliderUsers.checked === false) {
         chatHostsList.children[0].textContent = "Contact Users";
+        //Setup each user who asked a question in Contact User Section
+        chatHosts.replaceChildren();
+        GetContactUsersFromDB(adminHostName);
       }
     }
 
@@ -1298,14 +1355,24 @@ window.addEventListener('load', () => {
       }
     }
 
-    //Host Contact From Messages
-    const hostContact = e.target.closest('.chat-host');
+    //Contact From Messages
+    const contact = e.target.closest('.chat-host');
 
-    if (hostContact) {
+    if (contact) {
       //Remove new msg status
-      hostContact.children[2].classList.remove('new-msg');
-      SortChatHostsAndRemoveBadge(null);
-      ShowChatScreen(hostContact.children[1].children[0].textContent);
+      contact.children[2].classList.remove('new-msg');
+      const contactName = contact.children[1].children[0].textContent;
+
+      SortChatHostsAndRemoveBadge(null, chatHosts);
+      if (isAdmin === true) {
+        if (chatSliderHosts.checked === true) {
+          ShowChatScreen(contactName, contactName, auth?.currentUser.uid);
+        } else if (chatSliderUsers.checked === true) {
+          ShowChatScreen(adminHostName, contactName, userNameArr.find(u => u.name === contactName).uid);
+        }
+      } else {
+        ShowChatScreen(contactName, contactName, auth?.currentUser.uid);
+      }
     }
   });
 
@@ -1338,19 +1405,19 @@ window.addEventListener('load', () => {
     }
   }
 
-  function SortChatHostsAndRemoveBadge(messagesButton) {
+  function SortChatHostsAndRemoveBadge(messagesButton, arrElem) {
     if (!messagesButton) {
       messagesButton = document.getElementById('messages-button');
     }
 
-    //Sort the hosts by new-msg status
-    var chatHostsArr = Array.from(chatHosts.children);
+    //Sort the contacts by new-msg status
+    var chatContactsArr = Array.from(arrElem.children);
 
     var isNewMsgs = false;
-    //First Move hosts with new msg status to end of list
-    chatHostsArr.forEach((host) => {
-      if (host.children[2].classList.contains('new-msg')) {
-        chatHosts.appendChild(host);
+    //First Move contacts with new msg status to end of list
+    chatContactsArr.forEach((contact) => {
+      if (contact.children[2].classList.contains('new-msg')) {
+        arrElem.appendChild(contact);
         isNewMsgs = true;
       }
     });
@@ -1363,14 +1430,14 @@ window.addEventListener('load', () => {
     }
 
     //Now move the rest to end of list to make them on bottom
-    chatHostsArr.forEach((host) => {
-      if (!host.children[2].classList.contains('new-msg')) {
-        chatHosts.appendChild(host);
+    chatContactsArr.forEach((contact) => {
+      if (!contact.children[2].classList.contains('new-msg')) {
+        arrElem.appendChild(contact);
       }
     });
   }
 
-  function ShowChatScreen(hostName) {
+  function ShowChatScreen(hostName, displayName, userID) {
     Loading(chatLoader, true);
     const chatHostName = chatHostProf.children[0];
 
@@ -1390,24 +1457,24 @@ window.addEventListener('load', () => {
       chatMessages.classList.add('animate');
     }, 150);
 
-    chatHostName.textContent = hostName;
+    chatHostName.textContent = displayName;
     chatHostsList.classList.add('fadeOut');
     chatView.style.display = 'inline-grid'; chatView.classList.add('fadeInChat');
 
     //Get messages from db and Update UI
-    get(ref_db(database, 'UsersMessages/' + hostName + '/' + auth?.currentUser.uid + '/')).then((snapshot) => {
+    get(ref_db(database, 'UsersMessages/' + hostName + '/' + userID + '/')).then((snapshot) => {
       chatMessages.replaceChildren();
       if (snapshot.size > 0) {
         //Host messages
         const hostMsgs = [];
         snapshot.child('HostMsgs').forEach((msg) => {
-          hostMsgs.push({ timestamp: msg.key, message: msg.val(), side: "left" });
+          hostMsgs.push({ timestamp: msg.key, message: msg.val(), side: isAdmin === true ? "right" : "left" });
         });
 
         //User messages
         const userMsgs = [];
         snapshot.child('UserMsgs').forEach((msg) => {
-          userMsgs.push({ timestamp: msg.key, message: msg.val(), side: "right" });
+          userMsgs.push({ timestamp: msg.key, message: msg.val(), side: isAdmin === true ? "left" : "right" });
         });
 
         //Merge the two arrays together in order
@@ -1415,10 +1482,18 @@ window.addEventListener('load', () => {
         var index1, index2 = Math.min(hostMsgs.length, userMsgs.length);
 
         for (index1 = 0; index1 < index2; index1++) {
-          mergedMsgs.push(userMsgs[index1], hostMsgs[index1]);
+          if (isAdmin === true) {
+            mergedMsgs.push(hostMsgs[index1], userMsgs[index1]);
+          } else {
+            mergedMsgs.push(userMsgs[index1], hostMsgs[index1]);
+          }
         }
 
-        mergedMsgs.push(...userMsgs.slice(index2), ...hostMsgs.slice(index2));
+        if (isAdmin === true) {
+          mergedMsgs.push(...hostMsgs.slice(index2), ...userMsgs.slice(index2));
+        } else {
+          mergedMsgs.push(...userMsgs.slice(index2), ...hostMsgs.slice(index2));
+        }
 
         var currentMsgsLabel = document.createElement('label');
         currentMsgsLabel.textContent = "Current Messages";
@@ -1426,7 +1501,7 @@ window.addEventListener('load', () => {
 
         //Create message bubbles 
         mergedMsgs.forEach((msg) => {
-          CreateMessageBubble(chatMessages, msg.message, msg.side);
+          CreateMessageBubble(chatMessages, msg.message, msg.side, msg.timestamp);
         });
       } else {
         var noMsgsLabel = document.createElement('label');
@@ -1434,6 +1509,26 @@ window.addEventListener('load', () => {
         chatMessages.appendChild(noMsgsLabel);
       }
       Loading(chatLoader, false);
+    }).catch((error) => {
+      console.log(error);
+    });
+  }
+
+  function GetContactUsersFromDB(hostName) {
+    get(ref_db(database, 'UsersMessages/' + hostName + '/')).then((snapshot) => {
+      if (snapshot.size > 0) {
+        userNameArr = [];
+        //Get each username and setup in chat
+        snapshot.forEach((userID) => {
+          get(ref_db(database, 'Users/' + userID.key + '/Name')).then((userName) => {
+            const userData = { uid: userID.key, name: userName.val() };
+            userNameArr.push(userData);
+            ChatUsersSetup(chatHosts, userName.val());
+          }).catch((error) => {
+            console.log(error);
+          });
+        });
+      }
     }).catch((error) => {
       console.log(error);
     });
