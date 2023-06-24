@@ -1,10 +1,10 @@
 {
   "rules": {
-    "Admins": {
-      "$uid":{
-        ".read": "$uid === auth.uid",
-      	".write": "false"
-      }
+    "Admins": {    
+      ".read": "root.child('Admins').child(auth.uid).exists()",
+        "$uid": {
+          ".write" : "$uid === auth.uid"
+				}
     },
     "Groups":{
       ".read": "auth != null",

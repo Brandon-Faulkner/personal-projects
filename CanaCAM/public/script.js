@@ -117,6 +117,8 @@ window.addEventListener('load', () => {
   var userTotalRSVP = 0;
   //Locally keep track of admin status
   var isAdmin = false; var adminGroup = null; var adminHostName = null; var userNameArr = [];
+  //Used to stop user from recieving messages on an authChange state
+  var unsubscribe = null;
 
   function Loading(loaderElem, show) {
     if (show) {
@@ -145,6 +147,13 @@ window.addEventListener('load', () => {
       if (user?.isAnonymous) {
         ClearLoginAndSignupInputs();
         RemoveOldWeeksFromGroups(groupRef);
+
+        //Reset admin vars and remove onMessage listener just incase
+        isAdmin = false;
+        adminGroup = null;
+        adminHostName = null;
+        userNameArr = [];
+        unsubscribe === null ? null : unsubscribe();
         OverviewSetup(groupRef, user?.isAnonymous);
 
         //Add listeners
@@ -158,11 +167,10 @@ window.addEventListener('load', () => {
         RemoveOldWeeksFromUser(auth);
 
         //Check users admin status, then setup pages
-        CheckAdminStatus(user);
-        //OverviewSetup(groupRef, user?.isAnonymous);
+        CheckAdminStatus();
 
         // Show message notif to user when recieved on the foreground
-        onMessage(messaging, (payload) => {
+        unsubscribe = onMessage(messaging, (payload) => {
           //Only show notif if the user does not have the chat view from the host open
           if (!chatScreen.classList.contains('show')) {
             //Need to show notif, badge, status
@@ -184,8 +192,8 @@ window.addEventListener('load', () => {
             const tabProfileLabel = document.querySelector('.tabs-ul .new-msg-notif label');
             tabProfileLabel.setAttribute('data-notif', "!");
 
-          } else if (chatView.classList.contains('fadeInChat')) {
-            //Only need to create message bubble
+          } else if (chatView.classList.contains('fadeInChat') && chatHostProf.children[0].textContent === payload.data.title.replace(" replied", "")) {
+            //Only need to create message bubble if the right convo is open
             CreateMessageBubble(chatMessages, payload.data.body, "left", payload.data.time);
           } else {
             //Need to show notif, status
@@ -329,11 +337,13 @@ window.addEventListener('load', () => {
       });
   }
 
-  function CheckAdminStatus(user) {
-    onValue(ref_db(database, 'Admins/' + user?.uid), (snapshot) => {
+  function CheckAdminStatus() {
+    onValue(ref_db(database, 'Admins/' + auth?.currentUser.uid), (snapshot) => {
       if (snapshot.exists()) {
         isAdmin = true;
-        adminGroup = snapshot.val();
+        const hostData = snapshot.child("groupData").val().split(" | ");
+        adminGroup = hostData[1];
+        adminHostName = hostData[0];
       }
       else {
         isAdmin = false;
@@ -342,7 +352,16 @@ window.addEventListener('load', () => {
       }
 
       //Now proceed with setting up the app
-      OverviewSetup(groupRef, user?.isAnonymous);
+      OverviewSetup(groupRef, auth?.currentUser.isAnonymous);
+    }, (error) => {
+      if (error.code === "PERMISSION_DENIED") {
+        //User is not admin, but they are still possibly authenticated and able to use app
+        var isAnonymous = true;
+        auth.currentUser === null ? isAnonymous = true : isAnonymous = auth?.currentUser.isAnonymous;
+        OverviewSetup(groupRef, isAnonymous);
+      } else {
+        console.log(error);
+      }
     });
   }
   //#endregion Authentication Functions
@@ -681,8 +700,6 @@ window.addEventListener('load', () => {
                 allWeeksArr.push(weekData);
               });
             });
-          } else {
-            adminHostName = hostName;
           }
         } else {
           //Keep track of just host names for dropdown
@@ -976,9 +993,12 @@ window.addEventListener('load', () => {
       getToken(messaging, { serviceWorkerRegistration: reg, vapidKey: "BPN_vJi33qNLzcxQdUGrfBckm5ONtGrKXgtJqDmIWBuLNjQbT79i8eBYFoFUHffm-93MieygaJm6_fCfQKH5tAM" })
         .then((currentToken) => {
           if (currentToken) {
-            //Send to db
+            //Send to db in users data and admin data if they are one
             const updateUserToken = {};
             updateUserToken["Users/" + auth?.currentUser.uid + "/notifToken"] = currentToken;
+            if (isAdmin === true) {
+              updateUserToken["Admins/" + auth?.currentUser.uid + "/notifToken"] = currentToken;
+            }
             update(ref_db(database), updateUserToken);
           } else {
             //Show notification request
@@ -1377,12 +1397,16 @@ window.addEventListener('load', () => {
   });
 
   document.addEventListener('touchstart', e => {
-    touchStartX = e.changedTouches[0].screenX;
+    if (e.touches.length <= 1) {
+      touchStartX = e.changedTouches[0].screenX;
+    }   
   });
 
   document.addEventListener('touchend', e => {
-    touchEndX = e.changedTouches[0].screenX;
-    SwitchTabOnSwipe();
+    if (e.touches.length <= 1) {
+      touchEndX = e.changedTouches[0].screenX;
+      SwitchTabOnSwipe();
+    }   
   });
 
   function SwitchTabOnSwipe() {
@@ -1468,13 +1492,23 @@ window.addEventListener('load', () => {
         //Host messages
         const hostMsgs = [];
         snapshot.child('HostMsgs').forEach((msg) => {
-          hostMsgs.push({ timestamp: msg.key, message: msg.val(), side: isAdmin === true ? "right" : "left" });
+          if (isAdmin === true && chatSliderUsers.checked === true) {
+            hostMsgs.push({ timestamp: msg.key, message: msg.val(), side: "right" });
+          } else {
+            hostMsgs.push({ timestamp: msg.key, message: msg.val(), side: "left" });
+          }       
         });
 
         //User messages
         const userMsgs = [];
         snapshot.child('UserMsgs').forEach((msg) => {
-          userMsgs.push({ timestamp: msg.key, message: msg.val(), side: isAdmin === true ? "left" : "right" });
+          if (isAdmin === true && chatSliderHosts.checked === true) {
+            userMsgs.push({ timestamp: msg.key, message: msg.val(), side: "right" });
+          } else if(isAdmin === true && chatSliderUsers.checked === true) {
+            userMsgs.push({ timestamp: msg.key, message: msg.val(), side: "left" });
+          } else {
+            userMsgs.push({ timestamp: msg.key, message: msg.val(), side: "right" });
+          }       
         });
 
         //Merge the two arrays together in order

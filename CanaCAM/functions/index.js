@@ -3,7 +3,7 @@ const functions = require("firebase-functions");
 
 admin.initializeApp(functions.config().firebase);
 
-exports.sendListenerPostNotification = functions.database.ref('/UsersMessages/{host}/{uid}/HostMsgs/{timestamp}').onCreate((snapshot, context) => {
+exports.sendUserNotification = functions.database.ref('/UsersMessages/{host}/{uid}/HostMsgs/{timestamp}').onCreate((snapshot, context) => {
     const userID = context.params.uid;
     const hostName = context.params.host;
     const messageContent = snapshot.val();
@@ -21,7 +21,7 @@ exports.sendListenerPostNotification = functions.database.ref('/UsersMessages/{h
             data: {
                 title: hostName + " replied",
                 body: messageContent,
-                time: Date.now(),
+                time: Date.now().toString(),
             }
         };
 
@@ -34,37 +34,61 @@ exports.sendListenerPostNotification = functions.database.ref('/UsersMessages/{h
     });
 });
 
-exports.sendListenerPostNotification = functions.database.ref('/UsersMessages/{host}/{uid}/UserMsgs/{timestamp}').onCreate((snapshot, context) => {
-    const userID = context.params.uid;
+exports.sendHostNotification = functions.database.ref('/UsersMessages/{host}/{uid}/UserMsgs/{timestamp}').onCreate((snapshot, context) => {
+    const senderID = context.params.uid;
+    const host = context.params.host;
+    const hostsDataArr = [];
     const messageContent = snapshot.val();
+    const messagesArr = [];
 
     //Get user's name
-    return admin.database().ref('/Users/' + userID + '/Name').once('value').then(name => {
+    return admin.database().ref('/Users/' + senderID + '/Name').once('value').then(name => {
         const userName = name.val();
 
-        //Get host's notification token
-        return admin.database().ref('/Users/3Ec0DuixwHfyRBKJmp2qKgtMvSL2/notifToken').once('value').then(token => {
-            //Make sure token exists
-            if (!token) {
-                return console.log('No notif token to send notifications to.');
+        //Get the info of both hosts from "Admins" in db
+        return admin.database().ref('/Admins/').once('value').then(hostIDs => {
+            hostIDs.forEach((data) => {
+                if (data.child('groupData').val().split(" | ")[0] === host) {
+                    const hostData = { id: data.key, token: data.child('notifToken').val() };
+                    hostsDataArr.push(hostData);
+                }
+            });
+
+            if (hostsDataArr[0].token !== "null") {
+                const message = {
+                    token: hostsDataArr[0].token,
+                    data: {
+                        title: userName + " replied",
+                        body: messageContent,
+                        time: Date.now().toString(),
+                    }
+                }
+                messagesArr.push(message);
+            } else {
+                console.log('No notif token to send notifications to.');
             }
 
-            //Notification details
-            const message = {
-                token: token.val(),
-                data: {
-                    title: userName + " replied",
-                    body: messageContent,
-                    time: '1687469418828',
+            if (hostsDataArr.length === 2) {
+                if (hostsDataArr[1].token !== "null") {
+                    const message = {
+                        token: hostsDataArr[1].token,
+                        data: {
+                            title: userName + " replied",
+                            body: messageContent,
+                            time: Date.now().toString(),
+                        }
+                    }
+                    messagesArr.push(message);
+                } else {
+                    console.log('No notif token to send notifications to.');
                 }
-            };
+            }
 
-            //Send notification to device
-            return admin.messaging().send(message).then((response) => {
-                console.log('Sent notification:', response);
-            }).catch((error) => {
-                console.log('Error sending notification: ', error);
+            return admin.messaging().sendEach(messagesArr).then((response) => {
+                console.log('Sent notification: ', response);
             });
         });
-    });
+    }).catch((error) => {
+        console.log('Error sending notification: ', error);
+    });;
 });
