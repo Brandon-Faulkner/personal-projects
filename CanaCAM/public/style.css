@@ -1681,6 +1681,7 @@ li.dropdown-list-item {
   position: absolute;
   right: 0;
   bottom: -22px;
+  white-space: nowrap;
 }
 
 #chat-msg-input {

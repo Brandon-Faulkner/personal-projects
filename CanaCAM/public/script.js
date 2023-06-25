@@ -1397,16 +1397,20 @@ window.addEventListener('load', () => {
   });
 
   document.addEventListener('touchstart', e => {
-    if (e.touches.length <= 1) {
+    if (e.touches.length > 1) {
+      e.preventDefault();     
+    } else {
       touchStartX = e.changedTouches[0].screenX;
-    }   
+    }
   });
 
   document.addEventListener('touchend', e => {
-    if (e.touches.length <= 1) {
+    if (e.touches.length > 1) {
+      e.preventDefault();
+    } else {
       touchEndX = e.changedTouches[0].screenX;
       SwitchTabOnSwipe();
-    }   
+    }
   });
 
   function SwitchTabOnSwipe() {
@@ -1489,52 +1493,41 @@ window.addEventListener('load', () => {
     get(ref_db(database, 'UsersMessages/' + hostName + '/' + userID + '/')).then((snapshot) => {
       chatMessages.replaceChildren();
       if (snapshot.size > 0) {
+        //Array used to hold all messages. After obtaining
+        //all msgs, sort the array by the msg timestamp
+        const allMsgsArr = [];
+
         //Host messages
-        const hostMsgs = [];
         snapshot.child('HostMsgs').forEach((msg) => {
           if (isAdmin === true && chatSliderUsers.checked === true) {
-            hostMsgs.push({ timestamp: msg.key, message: msg.val(), side: "right" });
+            allMsgsArr.push({ timestamp: msg.key, message: msg.val(), side: "right" });
           } else {
-            hostMsgs.push({ timestamp: msg.key, message: msg.val(), side: "left" });
+            allMsgsArr.push({ timestamp: msg.key, message: msg.val(), side: "left" });
           }       
         });
 
         //User messages
-        const userMsgs = [];
         snapshot.child('UserMsgs').forEach((msg) => {
           if (isAdmin === true && chatSliderHosts.checked === true) {
-            userMsgs.push({ timestamp: msg.key, message: msg.val(), side: "right" });
+            allMsgsArr.push({ timestamp: msg.key, message: msg.val(), side: "right" });
           } else if(isAdmin === true && chatSliderUsers.checked === true) {
-            userMsgs.push({ timestamp: msg.key, message: msg.val(), side: "left" });
+            allMsgsArr.push({ timestamp: msg.key, message: msg.val(), side: "left" });
           } else {
-            userMsgs.push({ timestamp: msg.key, message: msg.val(), side: "right" });
+            allMsgsArr.push({ timestamp: msg.key, message: msg.val(), side: "right" });
           }       
         });
 
-        //Merge the two arrays together in order
-        const mergedMsgs = [];
-        var index1, index2 = Math.min(hostMsgs.length, userMsgs.length);
-
-        for (index1 = 0; index1 < index2; index1++) {
-          if (isAdmin === true) {
-            mergedMsgs.push(hostMsgs[index1], userMsgs[index1]);
-          } else {
-            mergedMsgs.push(userMsgs[index1], hostMsgs[index1]);
-          }
-        }
-
-        if (isAdmin === true) {
-          mergedMsgs.push(...hostMsgs.slice(index2), ...userMsgs.slice(index2));
-        } else {
-          mergedMsgs.push(...userMsgs.slice(index2), ...hostMsgs.slice(index2));
-        }
+        //Sort the array by timestamp
+        allMsgsArr.sort(function sortByTimestamp(a, b) {
+          return a.timestamp - b.timestamp;
+        });
 
         var currentMsgsLabel = document.createElement('label');
         currentMsgsLabel.textContent = "Current Messages";
         chatMessages.appendChild(currentMsgsLabel);
 
         //Create message bubbles 
-        mergedMsgs.forEach((msg) => {
+        allMsgsArr.forEach((msg) => {
           CreateMessageBubble(chatMessages, msg.message, msg.side, msg.timestamp);
         });
       } else {
