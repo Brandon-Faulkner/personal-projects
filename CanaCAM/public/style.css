@@ -37,6 +37,7 @@ html {
   right: 0;
   top: 0;
   bottom: 0;
+  overflow: auto;
   background: var(--background-light);
   display: none;
   -webkit-animation-name: content;
@@ -255,6 +256,7 @@ p {
   overflow: auto;
   max-width: 445px;
   height: max-content;
+  height: -webkit-max-content;
   background: var(--white);
   padding: 30px;
   border-radius: var(--border-radius);
@@ -452,6 +454,26 @@ input[type="radio"] {
   width: 100%;
   margin-top: 20px;
   display: inline-flex;
+}
+
+.login-click {
+  left: 45%;
+  margin-bottom: 10px;
+  width: 50px !important;
+  border-radius: 40px !important;
+  animation: rotating .75s 0.25s linear infinite;
+}
+
+.login-click > div {
+  height: 0 !important;
+  width: 0 !important;
+}
+
+.login-click > input {
+  border-left-color: var(--blue) !important;
+  border-width: 3px !important;
+  border-left-style: solid !important;
+  border-radius: 40px !important;
 }
 
 .login-form-inner form .field input {

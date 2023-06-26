@@ -285,10 +285,13 @@ window.addEventListener('load', () => {
                 tabPlanning.removeEventListener('click', ShowLogin);
                 tabProfile.removeEventListener('click', ShowLogin);
                 loginCloseBtn.removeEventListener('click', ShowLogin);
+
+                signupButton.parentElement.classList.remove('login-click');
               });
           });
       }).catch((error) => {
         console.log("Error upgrading anonymous account:", error);
+        signupButton.parentElement.classList.remove('login-click');
       });
   }
 
@@ -297,6 +300,7 @@ window.addEventListener('load', () => {
       .then((userCredential) => {
         // Signed in 
         loginText.textContent = "Welcome Back!";
+        loginButton.parentElement.classList.remove('login-click');
       })
       .catch((error) => {
         // Unsuccessful Sign In
@@ -315,6 +319,8 @@ window.addEventListener('load', () => {
             loginPassword.classList.add('login-error');
             break;
         }
+
+        loginButton.parentElement.classList.remove('login-click');
       });
   }
 
@@ -390,11 +396,15 @@ window.addEventListener('load', () => {
     loginText.classList.remove('login-error');
     loginEmail.classList.remove('login-error');
     loginPassword.classList.remove('login-error');
+    loginButton.parentElement.classList.add('login-click');
     SignInEmailAndPassword(auth, loginEmail.value, loginPassword.value);
   });
 
   signupButton.addEventListener('click', function (e) {
     e.preventDefault();
+
+    signupButton.parentElement.classList.add('login-click');
+
     const name = signupName.value.trim();
     const phone = signupPhone.value.trim();
     const img = ValidateImg(signupImg.files[0]);
@@ -412,6 +422,8 @@ window.addEventListener('load', () => {
     if (isNameValid && isPhoneValid && isEmailValid && isPasswordValid && img != null) {
       const credential = EmailAuthProvider.credential(email, password);
       UpgradeAnonymous(auth, credential, img, imgName, name, phone);
+    } else {
+      signupButton.parentElement.classList.remove('login-click');
     }
   });
 
@@ -901,7 +913,7 @@ window.addEventListener('load', () => {
     profileHeader.classList.add('profile-host');
 
     var title = document.createElement('h2'); title.textContent = "Host Dashboard"; profileHeader.appendChild(title);
-    var description = document.createElement('p'); description.style.padding = "0"; description.textContent = "View current RSVP'd users, reply to questions, or open your house to more days."; profileHeader.appendChild(description);
+    var description = document.createElement('p'); description.style.padding = "0"; description.textContent = "View current RSVPs, send a message to all RSVP'd users at once, or open your house to more days."; profileHeader.appendChild(description);
     var profCol = document.createElement('div'); profCol.className = "profile-col";
     var dashBtn = document.createElement('button'); dashBtn.setAttribute('id', 'dashboard-button'); dashBtn.className = "dashboard-button";
     var dashIcon = document.createElement('i'); dashIcon.className = "fa-solid fa-gear"; dashBtn.appendChild(dashIcon); dashBtn.innerHTML += "Dashboard";
@@ -1336,10 +1348,7 @@ window.addEventListener('load', () => {
         chatScreen.classList.add('show');
         if (contactButton) {
           tabProfile.click();
-          ShowChatScreen(contactButton.getAttribute('data-host'), auth?.currentUser.uid);
-        }
-        if (isAdmin === true) {
-
+          ShowChatScreen(contactButton.getAttribute('data-host'),contactButton.getAttribute('data-host'), auth?.currentUser.uid);
         }
       }
     }
@@ -1396,18 +1405,22 @@ window.addEventListener('load', () => {
     }
   });
 
+  var isZooming = false;
+
   document.addEventListener('touchstart', e => {
     if (e.touches.length > 1) {
-      e.preventDefault();     
-    } else {
+      isZooming = true;
+    } else if (e.touches.length === 1) {  
+      isZooming = false;  
       touchStartX = e.changedTouches[0].screenX;
     }
   });
 
   document.addEventListener('touchend', e => {
     if (e.touches.length > 1) {
-      e.preventDefault();
-    } else {
+      isZooming = true;
+    } else if (e.touches.length === 1) {
+      isZooming = false;
       touchEndX = e.changedTouches[0].screenX;
       SwitchTabOnSwipe();
     }
@@ -1415,7 +1428,7 @@ window.addEventListener('load', () => {
 
   function SwitchTabOnSwipe() {
     //Make sure no pop ups or overlays are being shown first
-    if (!loginScreen.classList.contains('show') && mainLoader.classList.contains('fadeOut') && !chatScreen.classList.contains('show')) {
+    if (!loginScreen.classList.contains('show') && mainLoader.classList.contains('fadeOut') && !chatScreen.classList.contains('show') && isZooming === false) {
       if (touchEndX < touchStartX && (touchStartX - touchEndX) > 50) {
         if (tabPlanning.checked === true) {
           tabOverview.click();
