@@ -139,13 +139,72 @@
 
   <div id="dashboard-page" class="pop-up">
     <div id="dashboard-wrapper" class="dashboard-wrapper">
-      <button id="dashboard-close-btn">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
-          <path
-            d="M 25 3 C 12.86158 3 3 12.86158 3 25 C 3 37.13842 12.86158 47 25 47 C 37.13842 47 47 37.13842 47 25 C 47 12.86158 37.13842 3 25 3 z M 25 5 C 36.05754 5 45 13.94246 45 25 C 45 36.05754 36.05754 45 25 45 C 13.94246 45 5 36.05754 5 25 C 5 13.94246 13.94246 5 25 5 z M 16.990234 15.990234 A 1.0001 1.0001 0 0 0 16.292969 17.707031 L 23.585938 25 L 16.292969 32.292969 A 1.0001 1.0001 0 1 0 17.707031 33.707031 L 25 26.414062 L 32.292969 33.707031 A 1.0001 1.0001 0 1 0 33.707031 32.292969 L 26.414062 25 L 33.707031 17.707031 A 1.0001 1.0001 0 0 0 32.980469 15.990234 A 1.0001 1.0001 0 0 0 32.292969 16.292969 L 25 23.585938 L 17.707031 16.292969 A 1.0001 1.0001 0 0 0 16.990234 15.990234 z">
-          </path>
-        </svg>
-      </button>
+      <div id="dashboard-content">
+        <div id="dashboard-title">
+          Host Dashboard
+          <button id="dashboard-close-btn">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
+              <path d="M 25 3 C 12.86158 3 3 12.86158 3 25 C 3 37.13842 12.86158 47 25 47 C 37.13842 47 47 37.13842 47 25 C 47 12.86158 37.13842 3 25 3 z M 25 5 C 36.05754 5 45 13.94246 45 25 C 45 36.05754 36.05754 45 25 45 C 13.94246 45 5 36.05754 5 25 C 5 13.94246 13.94246 5 25 5 z M 16.990234 15.990234 A 1.0001 1.0001 0 0 0 16.292969 17.707031 L 23.585938 25 L 16.292969 32.292969 A 1.0001 1.0001 0 1 0 17.707031 33.707031 L 25 26.414062 L 32.292969 33.707031 A 1.0001 1.0001 0 1 0 33.707031 32.292969 L 26.414062 25 L 33.707031 17.707031 A 1.0001 1.0001 0 0 0 32.980469 15.990234 A 1.0001 1.0001 0 0 0 32.292969 16.292969 L 25 23.585938 L 17.707031 16.292969 A 1.0001 1.0001 0 0 0 16.990234 15.990234 z">
+              </path>
+            </svg>
+          </button>
+        </div>
+        <div id="dashboard-rsvps">
+          <div class="week-select-grid" style="max-width: none;">
+            <h2 style="color: var(--white); font-size: calc(1.25vw + 1.5vh);">RSVP'd Users By Week</h2>
+            <label class="dropdown" for="dashboard-rsvp-drop">
+              <select id="dashboard-rsvp-drop" required="required">
+                <option value="default">Week Dates</option>
+              </select>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                <path
+                  d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
+              </svg>
+            </label>
+          </div>
+          <div id="dashboard-rsvp-content">
+            <p style="padding: 0 20px;">No RSVP's Yet</p>
+          </div>
+        </div>
+        <div id="dashboard-message">
+          <h2 style="color: var(--white); font-size: calc(1.25vw + 1.5vh);">Message All RSVP'd Users</h2>
+          <div class="week-select-grid" style="max-width: none;">
+            <label class="dropdown" for="dashboard-msg-weeks">
+              <select id="dashboard-msg-weeks" required="required">
+                <option value="default">Week Dates</option>
+              </select>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                <path
+                  d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
+              </svg>
+            </label>
+            <label class="dropdown" for="dashboard-msg-days">
+              <select id="dashboard-msg-days" required="required">
+                <option value="default">Week Dates</option>
+              </select>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                <path
+                  d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
+              </svg>
+            </label>
+          </div>
+          <div id="dashboard-send-message">
+            <textarea id="dashboard-msg-input" type="text" placeholder="Send a message..." maxlength="240"></textarea>
+            <button id="dashboard-send-btn"><svg xmlns="http://www.w3.org/2000/svg" height="1em"
+                viewBox="0 0 512 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
+                <path
+                  d="M205 34.8c11.5 5.1 19 16.6 19 29.2v64H336c97.2 0 176 78.8 176 176c0 113.3-81.5 163.9-100.2 174.1c-2.5 1.4-5.3 1.9-8.1 1.9c-10.9 0-19.7-8.9-19.7-19.7c0-7.5 4.3-14.4 9.8-19.5c9.4-8.8 22.2-26.4 22.2-56.7c0-53-43-96-96-96H224v64c0 12.6-7.4 24.1-19 29.2s-25 3-34.4-5.4l-160-144C3.9 225.7 0 217.1 0 208s3.9-17.7 10.6-23.8l160-144c9.4-8.5 22.9-10.6 34.4-5.4z" />
+              </svg></button>
+          </div>
+        </div>
+        <div id="dashboard-add-days">
+          <div id="dashboard-datetime">
+            <input type="date" id="dashboard-date" value="">
+            <span></span>
+            <input type="time" id="dashboard-time" value="">
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -192,38 +251,24 @@
             </ul>
           </div>
           <div id="plan-week-select-grid" class="week-select-grid">
-            <div id="host-selection" class="dropdown-container">
-              <button class="dropdown-button main-button">
-                <span class="dropdown-title text-truncate">Hosts</span>
-                <span class="dropdown-arrow">
-                  <svg class="dropdown-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
-                    <path
-                      d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
-                  </svg>
-                </span>
-              </button>
-              <div id="host-list-container" class="dropdown-list-container">
-                <div class="dropdown-list-wrapper">
-                  <ul class="dropdown-list"></ul>
-                </div>
-              </div>
-            </div>
-            <div id="plan-week-selection" class="dropdown-container">
-              <button class="dropdown-button main-button">
-                <span class="dropdown-title text-truncate">Week Dates</span>
-                <span class="dropdown-arrow">
-                  <svg class="dropdown-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
-                    <path
-                      d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
-                  </svg>
-                </span>
-              </button>
-              <div id="week-list-container" class="dropdown-list-container">
-                <div class="dropdown-list-wrapper">
-                  <ul class="dropdown-list"></ul>
-                </div>
-              </div>
-            </div>
+            <label class="dropdown" for="host-selection">
+              <select id="host-selection" required="required">
+                <option value="default">Week Dates</option>
+              </select>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                <path
+                  d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
+              </svg>
+            </label>
+            <label class="dropdown" for="plan-week-selection">
+              <select id="plan-week-selection" required="required">
+                <option value="default">Week Dates</option>
+              </select>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                <path
+                  d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
+              </svg>
+            </label>
           </div>
           <div id="plan-week-holder" class="container-holders">
             <div class="event-container" name="planning-container">
@@ -236,22 +281,15 @@
           <h1>Overview</h1>
           <p>This is a description of how this page works and maybe about the planning one.</p>
           <div class="week-select-grid week-select-grid-overview">
-            <div id="over-week-selection" class="dropdown-container">
-              <button class="dropdown-button main-button">
-                <span class="dropdown-title text-truncate">Week Dates</span>
-                <span class="dropdown-arrow">
-                  <svg class="dropdown-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
-                    <path
-                      d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
-                  </svg>
-                </span>
-              </button>
-              <div class="dropdown-list-container">
-                <div class="dropdown-list-wrapper">
-                  <ul class="dropdown-list"></ul>
-                </div>
-              </div>
-            </div>
+            <label class="dropdown" for="over-week-selection">
+              <select id="over-week-selection" required="required">
+                <option value="default">Week Dates</option>
+              </select>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                <path
+                  d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
+              </svg>
+            </label>
           </div>
           <div id="overview-week-holder" class="container-holders">
             <div class="event-container" name="overview-container">

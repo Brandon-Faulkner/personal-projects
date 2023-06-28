@@ -1205,23 +1205,18 @@ window.addEventListener('load', () => {
 
   //#region Week Menu Dropdown
   function SetupDropdowns(select, optionsArr, isHostArr) {
-    let mainBtn = select.children[0],
-      dropdownTitle = mainBtn.children[0],
-      dropdownList = select.children[1].children[0].children[0];
-
     //Create List item options
-    dropdownList.replaceChildren(); var index = 0;
+    select.replaceChildren();
     optionsArr.forEach((elem) => {
-      var li = document.createElement('li'); li.className = "dropdown-list-item";
-      var btn = document.createElement('button'); btn.className = "dropdown-button list-button"; btn.setAttribute('data-translate-value', (100 * index) + "%");
-      var span = document.createElement('span'); span.className = "text-truncate"; span.textContent = isHostArr === true ? elem.host : elem;
-      btn.appendChild(span); li.appendChild(btn);
-      dropdownList.appendChild(li);
-
-      index++;
+      var option = document.createElement('option');
+      option.value = isHostArr === true ? elem.host : elem;
+      option.innerText = isHostArr === true ? elem.host : elem;
+      select.appendChild(option);
     });
 
-    dropdownTitle.textContent = isHostArr === true ? optionsArr[0].host : optionsArr[0];
+    select[0].selected = 'selected';
+    select.removeEventListener('change', HandleSelectChange);
+    select.addEventListener('change', HandleSelectChange);
 
     // Show the first container from the first option in lists
     if (!isHostArr) {
@@ -1232,58 +1227,26 @@ window.addEventListener('load', () => {
   //#endregion
 
   //#region Click Functions
+  function HandleSelectChange(event) {
+    const selectElem = event.target;
+
+    if (selectElem === overviewWeekSelection || selectElem === planWeekSelection) {
+      //Make sure both week selects for plan and overview are equal
+      overviewWeekSelection.value = selectElem.value;
+      planWeekSelection.value = selectElem.value;
+
+      // Switch Event Containers based on selection
+      ShowEventContainers(selectElem.value, "planning-container");
+      ShowEventContainers(selectElem.value, "overview-container");
+    }
+    else {
+      const selectedWeek = document.getElementById('plan-week-selection');
+      PlanningSetup(planRef, auth?.currentUser.isAnonymous, hostNameArr.find(h => h.host === selectElem.value).group, userScheduleArr, selectedWeek.value);
+    }
+  }
+
   document.addEventListener('click', function (e) {
     e.stopPropagation();
-
-    //Dropdown menus
-    const menu = e.target.closest('.dropdown-container');
-    const allMenus = document.querySelectorAll('.dropdown-container');
-
-    if (menu) {
-      if (!menu.children[1].classList.contains('open')) {
-        menu.children[1].classList.add('open');
-        menu.children[0].children[1].classList.add('flip-arrow');
-
-        //Close other menus 
-        allMenus.forEach(function (otherMenu) {
-          if (menu != otherMenu) {
-            otherMenu.children[1].classList.remove('open');
-            otherMenu.children[0].children[1].classList.remove('flip-arrow');
-          }
-        });
-      } else {
-        menu.children[1].classList.remove('open');
-        menu.children[0].children[1].classList.remove('flip-arrow');
-      }
-    } else {
-      allMenus.forEach(function (menu) {
-        menu.children[1].classList.remove('open');
-        menu.children[0].children[1].classList.remove('flip-arrow');
-      });
-    }
-
-    const li = e.target.closest('.dropdown-list-item');
-
-    if (li) {
-      const liParent = li.parentNode.parentNode.parentNode.parentNode;
-      const clickedText = li.children[0].children[0].textContent;
-
-      //Make sure it is not the already selected item
-      if (liParent.children[0].children[0].textContent != clickedText) {
-        if (liParent === overviewWeekSelection || liParent === planWeekSelection) {
-          DropdownSelection(clickedText, overviewWeekSelection, auth);
-          DropdownSelection(clickedText, planWeekSelection, auth);
-
-          // Switch Event Containers based on selection
-          ShowEventContainers(clickedText, "planning-container");
-          ShowEventContainers(clickedText, "overview-container");
-        }
-        else {
-          const selectedWeek = document.getElementById('plan-week-selection');
-          DropdownSelection(clickedText, hostSelection, auth, selectedWeek.children[0].children[0].textContent);
-        }
-      }
-    }
 
     //Clickable rows
     const row = e.target.closest('.clickable-row');
@@ -1291,7 +1254,8 @@ window.addEventListener('load', () => {
     if (row) {
       var liTarget = row.children[2].textContent;
       const selectedWeek = document.getElementById('over-week-selection');
-      DropdownSelection(liTarget, hostSelection, auth, selectedWeek.children[0].children[0].textContent);
+      //DropdownSelection(liTarget, hostSelection, auth, selectedWeek.children[0].children[0].textContent);
+      PlanningSetup(planRef, auth?.currentUser.isAnonymous, hostNameArr.find(h => h.host === liTarget).group, userScheduleArr, selectedWeek.value);
       tabPlanning.click();
     }
 
@@ -1348,7 +1312,7 @@ window.addEventListener('load', () => {
         chatScreen.classList.add('show');
         if (contactButton) {
           tabProfile.click();
-          ShowChatScreen(contactButton.getAttribute('data-host'),contactButton.getAttribute('data-host'), auth?.currentUser.uid);
+          ShowChatScreen(contactButton.getAttribute('data-host'), contactButton.getAttribute('data-host'), auth?.currentUser.uid);
         }
       }
     }
@@ -1410,8 +1374,8 @@ window.addEventListener('load', () => {
   document.addEventListener('touchstart', e => {
     if (e.touches.length > 1) {
       isZooming = true;
-    } else if (e.touches.length === 1) {  
-      isZooming = false;  
+    } else if (e.touches.length === 1) {
+      isZooming = false;
       touchStartX = e.changedTouches[0].screenX;
     }
   });
@@ -1516,18 +1480,18 @@ window.addEventListener('load', () => {
             allMsgsArr.push({ timestamp: msg.key, message: msg.val(), side: "right" });
           } else {
             allMsgsArr.push({ timestamp: msg.key, message: msg.val(), side: "left" });
-          }       
+          }
         });
 
         //User messages
         snapshot.child('UserMsgs').forEach((msg) => {
           if (isAdmin === true && chatSliderHosts.checked === true) {
             allMsgsArr.push({ timestamp: msg.key, message: msg.val(), side: "right" });
-          } else if(isAdmin === true && chatSliderUsers.checked === true) {
+          } else if (isAdmin === true && chatSliderUsers.checked === true) {
             allMsgsArr.push({ timestamp: msg.key, message: msg.val(), side: "left" });
           } else {
             allMsgsArr.push({ timestamp: msg.key, message: msg.val(), side: "right" });
-          }       
+          }
         });
 
         //Sort the array by timestamp
