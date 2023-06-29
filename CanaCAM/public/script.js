@@ -74,6 +74,11 @@ window.addEventListener('load', () => {
 
   const dashboardPage = document.getElementById('dashboard-page');
   const dashboardCloseBtn = document.getElementById('dashboard-close-btn');
+  const dashboardRsvpWeeks = document.getElementById('dashboard-rsvp-drop');
+  const dashboardMsgWeeks = document.getElementById('dashboard-msg-weeks');
+  const dashboardMsgDays = document.getElementById('dashboard-msg-days');
+  const dashboardDate = document.getElementById('dashboard-date');
+  const dashboardTime = document.getElementById('dashboard-time');
 
   const tabPlanning = document.getElementById('tab-planning');
   const planningBlocked = document.getElementById('planning-blocked');
@@ -116,7 +121,8 @@ window.addEventListener('load', () => {
   //Locally keep track of total RSVP days for user
   var userTotalRSVP = 0;
   //Locally keep track of admin status
-  var isAdmin = false; var adminGroup = null; var adminHostName = null; var userNameArr = [];
+  var isAdmin = false; var adminGroup = null; var adminHostName = null;
+  var userNameArr = []; var hostWeeksArr = [];
   //Used to stop user from recieving messages on an authChange state
   var unsubscribe = null;
 
@@ -688,7 +694,7 @@ window.addEventListener('load', () => {
   function OverviewSetup(groupRef, isAnonymous) {
     onValue(groupRef, (snapshot) => {
       //Clear arrays to not have duplicate data
-      allWeeksArr = []; uniqWeeks = []; hostNameArr = [];
+      allWeeksArr = []; uniqWeeks = []; hostNameArr = []; hostWeeksArr = [];
 
       Loading(mainLoader, true);
 
@@ -698,35 +704,33 @@ window.addEventListener('load', () => {
         const hostName = childSnapshot.child("Hosts").val();
         const genLocation = childSnapshot.child("Location").val();
 
-        //Verify if the user is a host so we dont show their group
-        if (isAdmin === true && adminGroup != null) {
-          if (groupKey !== adminGroup) {
-            //Keep track of just host names for dropdown
-            const host = { group: groupKey, host: hostName };
-            hostNameArr.push(host);
+        //Keep track of just host names for dropdown
+        const host = { group: groupKey, host: hostName };
+        hostNameArr.push(host);
 
-            //Get the day and times for each week
-            childSnapshot.child("Weeks").forEach((week) => {
-              week.forEach((day) => {
-                const weekData = { group: groupKey, week: decodeURIComponent(week.key), day: day.key, time: day.val(), host: hostName, location: genLocation };
-                allWeeksArr.push(weekData);
-              });
-            });
-          }
-        } else {
-          //Keep track of just host names for dropdown
-          const host = { group: groupKey, host: hostName };
-          hostNameArr.push(host);
-
-          //Get the day and times for each week
-          childSnapshot.child("Weeks").forEach((week) => {
-            week.forEach((day) => {
-              const weekData = { group: groupKey, week: decodeURIComponent(week.key), day: day.key, time: day.val(), host: hostName, location: genLocation };
-              allWeeksArr.push(weekData);
-            });
+        //Get the day and times for each week
+        childSnapshot.child("Weeks").forEach((week) => {
+          week.forEach((day) => {
+            const weekData = { group: groupKey, week: decodeURIComponent(week.key), day: day.key, time: day.val(), host: hostName, location: genLocation };
+            allWeeksArr.push(weekData);
           });
-        }
+        });
       });
+
+      //Verify if the user is a host so we can get their week data
+      if (isAdmin === true && adminGroup != null) {
+        hostWeeksArr = allWeeksArr.filter(a => a.group === adminGroup);
+        hostWeeksArr.forEach(h => allWeeksArr.splice(allWeeksArr.findIndex(a => a.group === h.group && a.week === h.week && a.day === h.day && a.time === h.time),1));
+        hostNameArr.splice(hostNameArr.findIndex(h => h.group === adminGroup), 1);
+
+        //Unique weeks from host weeks
+        var uniqueHostWks = [...new Set(hostWeeksArr.map(item => item.week))];
+
+        //Update admin dropdowns
+        //SetupDropdowns(dashboardRsvpWeeks, uniqueHostWks, false);
+        SetupDropdowns(dashboardMsgWeeks, uniqueHostWks, false);
+
+      }
 
       //Clear current elements
       overviewWeekHolder.replaceChildren();
@@ -1066,6 +1070,16 @@ window.addEventListener('load', () => {
     parentElem.appendChild(userDiv);
   }
 
+  function SetupDateTime() {
+    const todayDate = new Date(Date.now());
+    const yearAhead = new Date(Date.now()); yearAhead.setMonth(yearAhead.getMonth() + 13);
+    const dateMin = todayDate.getFullYear() + "-" + ('0' + (todayDate.getMonth() + 1)).slice(-2) + "-" + ('0' + todayDate.getDate()).slice(-2);
+    const dateMax = yearAhead.getFullYear() + "-" + ('0' + yearAhead.getMonth()).slice(-2) + "-" + ('0' + yearAhead.getDate()).slice(-2);
+
+    dashboardDate.min = dateMin; dashboardDate.valueAsDate = todayDate; dashboardDate.max = dateMax;
+    dashboardTime.value = "12:00";
+  }
+
   //#endregion Profile Setup
 
   //#region Planning Setup
@@ -1343,6 +1357,7 @@ window.addEventListener('load', () => {
     if (dashboardButton) {
       if (!dashboardPage.classList.contains('show')) {
         dashboardPage.classList.add('show');
+        SetupDateTime();
       } else {
         dashboardPage.classList.remove('show');
       }
@@ -1381,10 +1396,7 @@ window.addEventListener('load', () => {
   });
 
   document.addEventListener('touchend', e => {
-    if (e.touches.length > 1) {
-      isZooming = true;
-    } else if (e.touches.length === 1) {
-      isZooming = false;
+    if (isZooming === false) {
       touchEndX = e.changedTouches[0].screenX;
       SwitchTabOnSwipe();
     }
@@ -1537,15 +1549,6 @@ window.addEventListener('load', () => {
       console.log(error);
     });
   }
-
-  function DropdownSelection(elemTarget, menu, auth, selectedWeek) {
-    if (elemTarget != null) {
-      menu.children[0].children[0].textContent = elemTarget;
-      if (menu === hostSelection) {
-        PlanningSetup(planRef, auth?.currentUser.isAnonymous, hostNameArr.find(h => h.host === elemTarget).group, userScheduleArr, selectedWeek);
-      }
-    }
-  };
 
   function ShowEventContainers(clickedWeek, containerName) {
     var eventContainers = document.getElementsByName(containerName);
