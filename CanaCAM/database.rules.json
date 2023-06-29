@@ -14,7 +14,22 @@
       ".read": "auth != null && auth.token.firebase.sign_in_provider != 'anonymous'",
       ".write": "root.child('Admins').child(auth.uid).exists()" 
     },
+    "RSVPs": {
+      ".read": "root.child('Admins').child(auth.uid).exists()",
+      ".write": false,
+      "$groupID": {
+        "$week": {
+          "$day": {
+            "$uid": {
+              ".read": "$uid === auth.uid",
+              ".write": "$uid === auth.uid"
+            }
+          }
+        }
+      }
+    },
     "Users": {
+      ".read": "root.child('Admins').child(auth.uid).exists()",
       "$uid": {
         ".read": "$uid === auth.uid || root.child('Admins').child(auth.uid).exists()",
         ".write": "$uid === auth.uid"

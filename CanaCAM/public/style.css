@@ -756,13 +756,17 @@ form .btn input[type="submit"] {
   outline: none;
   padding: 5px 10px;
   font-family: 'Open Sans', sans-serif;
-  font-size: 14px;
+  font-size: calc(1.25vw + 1vh);
   background: var(--dropdown-border);
   color: var(--white);
   transition: border 0.5s;
   border: solid 2px var(--disabled);
   box-sizing: border-box;
   box-shadow: var(--box-shadow);
+}
+
+#dashboard-msg-input:focus {
+  border: solid 2px var(--blue-hover);
 }
 
 #dashboard-send-btn {
@@ -778,6 +782,15 @@ form .btn input[type="submit"] {
   display: block;
   color: var(--white);
   font-size: small;
+}
+
+#dashboard-send-btn:hover {
+  cursor: pointer;
+  transform: scale(1.15);
+}
+
+#dashboard-send-btn:active {
+  transform: scale(.75);
 }
 
 #dashboard-send-btn svg {
@@ -1248,6 +1261,7 @@ form .btn input[type="submit"] {
   width: 95%;
   max-width: 600px;
 }
+
 .dropdown select {
   -webkit-appearance: none;
   appearance: none;
@@ -1265,6 +1279,7 @@ form .btn input[type="submit"] {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .dropdown svg {
   position: absolute;
   right: 12px;
@@ -1279,24 +1294,30 @@ form .btn input[type="submit"] {
   pointer-events: none;
   transition: all var(--dropdown-transition-time) var(--dropdown-transition-timing);
 }
+
 .dropdown select:required:invalid {
   color: #5a667f;
 }
+
 .dropdown select option {
   color: var(--white);
   background: var(--dropdown-background);
 }
+
 .dropdown select option[value=""][disabled] {
   display: none;
 }
+
 .dropdown select:focus {
   outline: none;
   border-color: #07f;
-  box-shadow: 0 0 0 2px rgba(0,119,255,0.2);
+  box-shadow: 0 0 0 2px rgba(0, 119, 255, 0.2);
 }
-.dropdown select:hover + svg {
+
+.dropdown select:hover+svg {
   stroke: #07f;
 }
+
 /*#endregion WEEK SELECTION*/
 
 /*#region EVENT CALENDER*/
@@ -1411,7 +1432,7 @@ form .btn input[type="submit"] {
 .profile-image {
   height: auto;
   max-width: 250px;
-  max-height: 250px;
+  max-height: 190px;
   border-radius: var(--border-radius);
   box-shadow: var(--box-shadow);
   background-color: var(--white);
@@ -1750,6 +1771,8 @@ form .btn input[type="submit"] {
   position: relative;
   float: left;
   margin-bottom: 10%;
+  animation: fadeIn .5s linear forwards;
+  opacity: 1;
 }
 
 #chat-messages div.message.right .bubble {
@@ -1820,7 +1843,7 @@ form .btn input[type="submit"] {
   outline: none;
   padding: 5px 10px;
   font-family: 'Open Sans', sans-serif;
-  font-size: 14px;
+  font-size: calc(1.25vw + 1vh);
   background: var(--dropdown-border);
   color: var(--white);
   transition: border 0.5s;

@@ -74,9 +74,9 @@ window.addEventListener('load', () => {
 
   const dashboardPage = document.getElementById('dashboard-page');
   const dashboardCloseBtn = document.getElementById('dashboard-close-btn');
-  const dashboardRsvpWeeks = document.getElementById('dashboard-rsvp-drop');
   const dashboardMsgWeeks = document.getElementById('dashboard-msg-weeks');
   const dashboardMsgDays = document.getElementById('dashboard-msg-days');
+  const dashboardRsvpUsers = document.getElementById('dashboard-rsvp-content');
   const dashboardDate = document.getElementById('dashboard-date');
   const dashboardTime = document.getElementById('dashboard-time');
 
@@ -118,11 +118,11 @@ window.addEventListener('load', () => {
   var touchStartX = 0; var touchEndX = 0;
   //Used to determine if Forgot Password Page is open
   var forgPass = false;
-  //Locally keep track of total RSVP days for user
-  var userTotalRSVP = 0;
+  //Locally keep track of total RSVP days for user & their name
+  var userTotalRSVP = 0; var userFullName = null;
   //Locally keep track of admin status
   var isAdmin = false; var adminGroup = null; var adminHostName = null;
-  var userNameArr = []; var hostWeeksArr = [];
+  var userNameArr = []; var hostWeeksArr = []; var rsvpdUsersArr = [];
   //Used to stop user from recieving messages on an authChange state
   var unsubscribe = null;
 
@@ -350,17 +350,22 @@ window.addEventListener('load', () => {
   }
 
   function CheckAdminStatus() {
+    var unsubFromRSVP = null;
     onValue(ref_db(database, 'Admins/' + auth?.currentUser.uid), (snapshot) => {
       if (snapshot.exists()) {
         isAdmin = true;
         const hostData = snapshot.child("groupData").val().split(" | ");
         adminGroup = hostData[1];
         adminHostName = hostData[0];
+
+        //Start a listener for rsvps
+        unsubFromRSVP = GetAllRSVPdUsers();
       }
       else {
         isAdmin = false;
         adminGroup = null;
         adminHostName = null;
+        unsubFromRSVP();
       }
 
       //Now proceed with setting up the app
@@ -720,16 +725,17 @@ window.addEventListener('load', () => {
       //Verify if the user is a host so we can get their week data
       if (isAdmin === true && adminGroup != null) {
         hostWeeksArr = allWeeksArr.filter(a => a.group === adminGroup);
-        hostWeeksArr.forEach(h => allWeeksArr.splice(allWeeksArr.findIndex(a => a.group === h.group && a.week === h.week && a.day === h.day && a.time === h.time),1));
+        hostWeeksArr.forEach(h => allWeeksArr.splice(allWeeksArr.findIndex(a => a.group === h.group && a.week === h.week && a.day === h.day && a.time === h.time), 1));
         hostNameArr.splice(hostNameArr.findIndex(h => h.group === adminGroup), 1);
 
         //Unique weeks from host weeks
         var uniqueHostWks = [...new Set(hostWeeksArr.map(item => item.week))];
+        var firstWeek = hostWeeksArr.filter(h => h.week === uniqueHostWks[0].week);
+        var uniqHostDays = [...new Set(firstWeek.map(item => item.day))]; DaySorter(uniqHostDays, true);
 
         //Update admin dropdowns
-        //SetupDropdowns(dashboardRsvpWeeks, uniqueHostWks, false);
         SetupDropdowns(dashboardMsgWeeks, uniqueHostWks, false);
-
+        SetupDropdowns(dashboardMsgDays, uniqHostDays, false);
       }
 
       //Clear current elements
@@ -839,7 +845,7 @@ window.addEventListener('load', () => {
         Loading(mainLoader, true);
 
         const userImage = snapshot.child("Image").val();
-        const userName = snapshot.child("Name").val();
+        const userName = snapshot.child("Name").val(); userFullName = userName;
         const userEmail = auth?.currentUser.email;
         const userPhone = snapshot.child("Phone").val();
         userTotalRSVP = snapshot.child("Total RSVP'd").val();
@@ -1080,6 +1086,70 @@ window.addEventListener('load', () => {
     dashboardTime.value = "12:00";
   }
 
+  function GetAllRSVPdUsers() {
+    const unsubscribeRsvp = onValue(ref_db(database, 'RSVPs/' + adminGroup), (snapshot) => {
+      rsvpdUsersArr = [];
+      snapshot.forEach((week) => {
+        week.forEach((day) => {
+          day.forEach((user) => {
+            const userData = { week: decodeURIComponent(week.key), day: day.key, name: user.child('Name').val(), guests: user.child('Guests').val() };
+            rsvpdUsersArr.push(userData);
+          });
+        });
+      });
+
+      if (dashboardMsgDays.value !== "default") {
+        GetRSVPdUsersByDay(dashboardMsgDays.value);
+      } else {
+        GetRSVPdUsersByWeek(dashboardMsgWeeks.value);
+      }
+    });
+
+    return unsubscribeRsvp;
+  }
+
+  function GetRSVPdUsersByWeek(week) {
+    dashboardRsvpUsers.replaceChildren();
+    var rsvp = document.createElement('p'); rsvp.style = "padding: 0 20px";
+    var tempArr = rsvpdUsersArr.filter(r => r.week === week);
+
+    //Get only unique names from the arr
+    var uniqNames = [...new Map(tempArr.map(item => [item.name, item])).values()];
+
+    if (uniqNames.length > 0) {
+      //Update ui to show rsvpd users
+      dashboardRsvpUsers.classList.remove('no-rsvps');
+      uniqNames.forEach((user) => {
+        var rsvpClone = rsvp.cloneNode(); rsvpClone.textContent = user.name;
+        dashboardRsvpUsers.appendChild(rsvpClone);
+      });
+    } else {
+      dashboardRsvpUsers.classList.add('no-rsvps');
+      var rsvpClone = rsvp.cloneNode(); rsvpClone.textContent = "No RSVP's Yet";
+      dashboardRsvpUsers.appendChild(rsvpClone);
+    }
+  }
+
+  function GetRSVPdUsersByDay(day) {
+    dashboardRsvpUsers.replaceChildren();
+    var rsvp = document.createElement('p'); rsvp.style = "padding: 0 20px;";
+    const tempArr = rsvpdUsersArr.filter(r => r.week === dashboardMsgWeeks.value);
+
+    if (tempArr.length > 0 && day !== "default") {
+      dashboardRsvpUsers.classList.remove('no-rsvps');
+      tempArr.forEach((user) => {
+        if (user.day === day) {
+          var rsvpClone = rsvp.cloneNode(); rsvpClone.textContent = user.name + "\n Guests:" + user.guests;
+          dashboardRsvpUsers.appendChild(rsvpClone);
+        }
+      });
+    } else {
+      dashboardRsvpUsers.classList.add('no-rsvps');
+      var rsvpClone = rsvp.cloneNode(); rsvpClone.textContent = "No RSVP's Yet";
+      dashboardRsvpUsers.appendChild(rsvpClone);
+    }
+  }
+
   //#endregion Profile Setup
 
   //#region Planning Setup
@@ -1119,6 +1189,7 @@ window.addEventListener('load', () => {
             //Clear the current elements in the list
             planWeekHolder.replaceChildren();
 
+            DaySorter(allWeeksArr);
             //Create week containers for each week
             uniqWeeks.forEach((week) => {
               CreatePlanningWeekContainers(week, planWeekHolder);
@@ -1221,6 +1292,14 @@ window.addEventListener('load', () => {
   function SetupDropdowns(select, optionsArr, isHostArr) {
     //Create List item options
     select.replaceChildren();
+
+    if (isAdmin === true && select === dashboardMsgDays) {
+      var option = document.createElement('option');
+      option.value = "default";
+      option.innerText = "No Day";
+      select.appendChild(option);
+    }
+
     optionsArr.forEach((elem) => {
       var option = document.createElement('option');
       option.value = isHostArr === true ? elem.host : elem;
@@ -1252,6 +1331,17 @@ window.addEventListener('load', () => {
       // Switch Event Containers based on selection
       ShowEventContainers(selectElem.value, "planning-container");
       ShowEventContainers(selectElem.value, "overview-container");
+    } else if (selectElem === dashboardMsgWeeks) {
+      GetRSVPdUsersByWeek(selectElem.value);
+      var specificWeek = hostWeeksArr.filter(h => h.week === selectElem.value);
+      var uniqHostDays = [...new Set(specificWeek.map(item => item.day))]; DaySorter(uniqHostDays, true);
+      SetupDropdowns(dashboardMsgDays, uniqHostDays, false);
+    } else if (selectElem === dashboardMsgDays) {
+      if (dashboardMsgDays.value === "default") {
+        GetRSVPdUsersByWeek(dashboardMsgWeeks.value);
+      } else {
+        GetRSVPdUsersByDay(dashboardMsgDays.value);
+      }
     }
     else {
       const selectedWeek = document.getElementById('plan-week-selection');
@@ -1268,7 +1358,6 @@ window.addEventListener('load', () => {
     if (row) {
       var liTarget = row.children[2].textContent;
       const selectedWeek = document.getElementById('over-week-selection');
-      //DropdownSelection(liTarget, hostSelection, auth, selectedWeek.children[0].children[0].textContent);
       PlanningSetup(planRef, auth?.currentUser.isAnonymous, hostNameArr.find(h => h.host === liTarget).group, userScheduleArr, selectedWeek.value);
       tabPlanning.click();
     }
@@ -1357,6 +1446,10 @@ window.addEventListener('load', () => {
     if (dashboardButton) {
       if (!dashboardPage.classList.contains('show')) {
         dashboardPage.classList.add('show');
+        GetRSVPdUsersByWeek(dashboardMsgWeeks.value);
+        var specificWeek = hostWeeksArr.filter(h => h.week === dashboardMsgWeeks.value);
+        var uniqHostDays = [...new Set(specificWeek.map(item => item.day))]; DaySorter(uniqHostDays, true);
+        SetupDropdowns(dashboardMsgDays, uniqHostDays, false);
         SetupDateTime();
       } else {
         dashboardPage.classList.remove('show');
@@ -1580,7 +1673,7 @@ window.addEventListener('load', () => {
       var groupNum = groupID.split(' ')[1];
       var decodedWeek = button.getAttribute('data-week');
       var week = encodeURIComponent(decodedWeek);
-      var guests = row.children[3].children[0].children[1];
+      var guests = row.children[4].children[0].children[1];
       const updates = {};
       const totalRsvpElem = document.getElementById('user-total-rsvp');
 
@@ -1596,6 +1689,8 @@ window.addEventListener('load', () => {
           Time: null,
         })
           .then(() => {
+            //Remove rsvp from RSVPs in db
+            remove(ref_db(database, 'RSVPs/' + groupID + "/" + week + "/" + dayAndTime[0] + "/" + auth?.currentUser.uid));
             //Subtract total day rsvp from user
             updates['Users/' + auth?.currentUser.uid + "/Total RSVP'd"] = increment(-1);
             update(ref_db(database), updates).then(() => {
@@ -1628,6 +1723,9 @@ window.addEventListener('load', () => {
           .then(() => {
             //Add total day rsvp from user
             updates['Users/' + auth?.currentUser.uid + "/Total RSVP'd"] = increment(1);
+            //Add to RSVPs in db with user's name and number of guests
+            const rsvpData = { Name: userFullName, Guests: guests.value };
+            updates['RSVPs/' + groupID + "/" + week + "/" + dayAndTime[0] + "/" + auth?.currentUser.uid] = rsvpData;
             update(ref_db(database), updates).then(() => {
               totalRsvpElem.textContent = ++userTotalRSVP;
               button.classList.remove('button-onClick');
