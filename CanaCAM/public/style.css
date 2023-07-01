@@ -255,8 +255,7 @@ p {
 .login-wrapper {
   overflow: auto;
   max-width: 445px;
-  height: max-content;
-  height: -webkit-max-content;
+  max-height: 700px;
   background: var(--white);
   padding: 30px;
   border-radius: var(--border-radius);
