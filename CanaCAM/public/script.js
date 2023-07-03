@@ -73,12 +73,6 @@ window.addEventListener('load', () => {
   const mainScreen = document.getElementById('main-page');
 
   const dashboardPage = document.getElementById('dashboard-page');
-  const dashboardCloseBtn = document.getElementById('dashboard-close-btn');
-  const dashboardMsgWeeks = document.getElementById('dashboard-msg-weeks');
-  const dashboardMsgDays = document.getElementById('dashboard-msg-days');
-  const dashboardRsvpUsers = document.getElementById('dashboard-rsvp-content');
-  const dashboardDate = document.getElementById('dashboard-date');
-  const dashboardTime = document.getElementById('dashboard-time');
 
   const tabPlanning = document.getElementById('tab-planning');
   const planningBlocked = document.getElementById('planning-blocked');
@@ -359,13 +353,19 @@ window.addEventListener('load', () => {
         adminHostName = hostData[0];
 
         //Start a listener for rsvps
-        unsubFromRSVP = GetAllRSVPdUsers();
+        const dashboardMsgWeeks = document.getElementById('dashboard-msg-weeks');
+        const dashboardMsgDays = document.getElementById('dashboard-msg-days');
+        unsubFromRSVP = GetAllRSVPdUsers(dashboardMsgDays, dashboardMsgWeeks);
+
+        //Create host dashboard
+        CreateAdminDashboard(dashboardPage);
       }
       else {
         isAdmin = false;
         adminGroup = null;
         adminHostName = null;
-        unsubFromRSVP();
+        if (unsubFromRSVP) unsubFromRSVP();
+        dashboardPage.replaceChildren();
       }
 
       //Now proceed with setting up the app
@@ -734,8 +734,10 @@ window.addEventListener('load', () => {
         var uniqHostDays = [...new Set(firstWeek.map(item => item.day))]; DaySorter(uniqHostDays, true);
 
         //Update admin dropdowns
-        SetupDropdowns(dashboardMsgWeeks, uniqueHostWks, false);
-        SetupDropdowns(dashboardMsgDays, uniqHostDays, false);
+        const dashboardMsgWeekss = document.getElementById('dashboard-msg-weeks');
+        const dashboardMsgDayss = document.getElementById('dashboard-msg-days');
+        SetupDropdowns(dashboardMsgWeekss, uniqueHostWks, false);
+        SetupDropdowns(dashboardMsgDayss, uniqHostDays, false);
       }
 
       //Clear current elements
@@ -1057,13 +1059,83 @@ window.addEventListener('load', () => {
   }
 
   //Admin Dashboard
-  dashboardCloseBtn.addEventListener('click', function () {
-    if (!dashboardPage.classList.contains('show')) {
-      dashboardPage.classList.add('show');
-    } else {
-      dashboardPage.classList.remove('show');
-    }
-  });
+  function CreateAdminDashboard(dashPage) {
+    const dashContent = dashPage.children[0].children[0];
+    //Remove messages and add days but keep title element
+    document.getElementById('dashboard-message').remove();
+    document.getElementById('dashboard-add-days').remove();
+
+    //Now setup messages for dashboard
+    var dashMessage = document.createElement('div'); dashMessage.setAttribute('id', 'dashboard-message');
+
+    var messageTitle = document.createElement('h2'); messageTitle.style = "color:var(--white);font-size:calc(1.25vw + 1.5vh);margin:auto;";
+    messageTitle.textContent = "View or Message All RSVP'd Users"; dashMessage.appendChild(messageTitle);
+
+    var messageDesc = document.createElement('p'); messageDesc.style = "color:var(--white);margin:auto;padding:0 5% 10px;";
+    messageDesc.textContent = "Select a week from the first dropdown below. After selecting a week, RSVP'd users from all days that week will show up. You can then specify a certain day by using the second dropdown."
+    dashMessage.appendChild(messageDesc);
+
+    var svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg'); svg.setAttribute('viewBox', '0 0 16 16');
+    var path = document.createElementNS("http://www.w3.org/2000/svg", 'path'); path.setAttribute('d', "M 7.247 11.14 L 2.451 5.658 C 1.885 5.013 2.345 4 3.204 4 h 9.592 a 1 1 0 0 1 0.753 1.659 l -4.796 5.48 a 1 1 0 0 1 -1.506 0 Z");
+    svg.appendChild(path);
+
+    var messageDrops = document.createElement('div'); messageDrops.className = "week-select-grid mobile-select-grid";
+    var drop1 = document.createElement('label'); drop1.classList.add('dropdown'); drop1.setAttribute('for', 'dashboard-msg-weeks');
+    var select1 = document.createElement('select'); select1.setAttribute('id', 'dashboard-msg-weeks'); select1.required = true; drop1.appendChild(select1);
+    var svgClone = svg.cloneNode(true); drop1.appendChild(svgClone);
+    var drop2 = document.createElement('label'); drop2.classList.add('dropdown'); drop2.setAttribute('for', 'dashboard-msg-days');
+    var select2 = document.createElement('select'); select2.setAttribute('id', 'dashboard-msg-days'); select2.required = true; drop2.appendChild(select2);
+    drop2.appendChild(svg);
+    messageDrops.appendChild(drop1); messageDrops.appendChild(drop2); dashMessage.appendChild(messageDrops);
+
+    var rsvpContent = document.createElement('div'); rsvpContent.setAttribute('id', "dashboard-rsvp-content"); rsvpContent.className = "no-rsvps";
+    var noRsvp = document.createElement('p'); noRsvp.style = "padding: 0px 20px;"; noRsvp.textContent = "No RSVP's Yet"; rsvpContent.appendChild(noRsvp);
+    dashMessage.appendChild(rsvpContent);
+
+    var sendMsg = document.createElement('div'); sendMsg.setAttribute('id', 'dashboard-send-message'); 
+    var textArea = document.createElement('textarea'); textArea.setAttribute('id', 'dashboard-msg-input'); textArea.setAttribute('type', 'text');
+    textArea.placeholder = "Send a message..."; textArea.maxLength = "240"; sendMsg.appendChild(textArea);
+    var sendBtn = document.createElement('button'); sendBtn.setAttribute('id', 'dashboard-send-btn');
+    var sendSvg = document.createElementNS("http://www.w3.org/2000/svg", 'svg'); sendSvg.setAttribute('viewBox', "0 0 512 512"); sendSvg.setAttribute('height', '1em');
+    var sendPath = document.createElementNS("http://www.w3.org/2000/svg", "path"); sendPath.setAttribute('d', 'M 205 34.8 c 11.5 5.1 19 16.6 19 29.2 v 64 H 336 c 97.2 0 176 78.8 176 176 c 0 113.3 -81.5 163.9 -100.2 174.1 c -2.5 1.4 -5.3 1.9 -8.1 1.9 c -10.9 0 -19.7 -8.9 -19.7 -19.7 c 0 -7.5 4.3 -14.4 9.8 -19.5 c 9.4 -8.8 22.2 -26.4 22.2 -56.7 c 0 -53 -43 -96 -96 -96 H 224 v 64 c 0 12.6 -7.4 24.1 -19 29.2 s -25 3 -34.4 -5.4 l -160 -144 C 3.9 225.7 0 217.1 0 208 s 3.9 -17.7 10.6 -23.8 l 160 -144 c 9.4 -8.5 22.9 -10.6 34.4 -5.4 Z');
+    sendSvg.appendChild(sendPath); sendBtn.appendChild(sendSvg); sendMsg.appendChild(sendBtn); dashMessage.appendChild(sendMsg);
+
+    dashContent.appendChild(dashMessage);
+
+    //Now setup Add Days for dashboard
+    var addDays = document.createElement('div'); addDays.setAttribute('id', 'dashboard-add-days');
+    var daysTitle = document.createElement('h2'); daysTitle.style = "color:var(--white);font-size:calc(1.25vw + 1.5vh);margin:auto;";
+    daysTitle.textContent = "Add days to schedule"; addDays.appendChild(daysTitle);
+    var daysDesc = document.createElement('p'); daysDesc.style = "color:var(--white);margin:auto;padding:0 5% 10px;";
+    daysDesc.textContent = "Select a date and time below to host. Add that to the list and repeat as much as you want. When you are done, click \"Schedule Days\" to submit these days.";
+    addDays.appendChild(daysDesc);
+    
+    var addDateTime = document.createElement('div'); addDateTime.setAttribute('id', 'dashboard-add-datetime');
+    var dateTime = document.createElement('div'); dateTime.setAttribute('id', "dashboard-datetime");
+    var date = document.createElement('input'); date.type = "date"; date.setAttribute('id', 'dashboard-date'); dateTime.appendChild(date);
+    var span = document.createElement('span'); dateTime.appendChild(span);
+    var time = document.createElement('input'); time.type = "time"; time.setAttribute('id', 'dashboard-time'); dateTime.appendChild(time);
+    addDateTime.appendChild(dateTime);
+    var addDayBtn = document.createElement('button'); addDayBtn.setAttribute('id', 'dashboard-add-day'); 
+    var addDayIcon = document.createElement('i'); addDayIcon.className = "fa-solid fa-plus"; addDayBtn.appendChild(addDayIcon);
+    addDateTime.appendChild(addDayBtn);
+    addDays.appendChild(addDateTime);
+
+    var daysAdded = document.createElement('div'); daysAdded.setAttribute('id', 'dashboard-days-content'); daysAdded.className = "no-days";
+    var noDays = document.createElement('p'); noDays.style = "padding: 0px 20px"; noDays.textContent = "No Days Added"; daysAdded.appendChild(noDays);
+    addDays.appendChild(daysAdded);
+
+    var removeAndSchedule = document.createElement('div'); removeAndSchedule.setAttribute('id', 'dashboard-removeAndSchedule');
+    var removeBtn = document.createElement('button'); removeBtn.setAttribute('id', 'dashboard-remove-day');
+    var removeIcon = document.createElement('i'); removeIcon.className = "fa-solid fa-trash-can"; removeBtn.appendChild(removeIcon);
+    removeAndSchedule.appendChild(removeBtn);
+    var scheduleBtn = document.createElement('button'); scheduleBtn.setAttribute('id', 'dashboard-schedule-days');
+    var scheduleIcon = document.createElement('i'); scheduleIcon.className = "fa-solid fa-check"; scheduleBtn.appendChild(scheduleIcon);
+    removeAndSchedule.appendChild(scheduleBtn);
+    addDays.appendChild(removeAndSchedule);
+
+    dashContent.appendChild(addDays);
+  }
 
   function ChatUsersSetup(parentElem, user) {
     var userDiv = document.createElement('div'); userDiv.classList.add('chat-host'); userDiv.setAttribute('id', user + '-chat');
@@ -1082,11 +1154,13 @@ window.addEventListener('load', () => {
     const dateMin = todayDate.getFullYear() + "-" + ('0' + (todayDate.getMonth() + 1)).slice(-2) + "-" + ('0' + todayDate.getDate()).slice(-2);
     const dateMax = yearAhead.getFullYear() + "-" + ('0' + yearAhead.getMonth()).slice(-2) + "-" + ('0' + yearAhead.getDate()).slice(-2);
 
+    const dashboardDate = document.getElementById('dashboard-date');
+    const dashboardTime = document.getElementById('dashboard-time');
     dashboardDate.min = dateMin; dashboardDate.valueAsDate = todayDate; dashboardDate.max = dateMax;
     dashboardTime.value = "12:00";
   }
 
-  function GetAllRSVPdUsers() {
+  function GetAllRSVPdUsers(msgDays, msgWeeks) {
     const unsubscribeRsvp = onValue(ref_db(database, 'RSVPs/' + adminGroup), (snapshot) => {
       rsvpdUsersArr = [];
       snapshot.forEach((week) => {
@@ -1098,10 +1172,10 @@ window.addEventListener('load', () => {
         });
       });
 
-      if (dashboardMsgDays.value !== "default") {
-        GetRSVPdUsersByDay(dashboardMsgDays.value);
+      if (msgDays.value !== "default") {
+        GetRSVPdUsersByDay(msgDays.value, msgWeeks);
       } else {
-        GetRSVPdUsersByWeek(dashboardMsgWeeks.value);
+        GetRSVPdUsersByWeek(msgWeeks.value);
       }
     });
 
@@ -1109,6 +1183,7 @@ window.addEventListener('load', () => {
   }
 
   function GetRSVPdUsersByWeek(week) {
+    const dashboardRsvpUsers = document.getElementById('dashboard-rsvp-content');
     dashboardRsvpUsers.replaceChildren();
     var rsvp = document.createElement('p'); rsvp.style = "padding: 0 20px";
     var tempArr = rsvpdUsersArr.filter(r => r.week === week);
@@ -1130,10 +1205,11 @@ window.addEventListener('load', () => {
     }
   }
 
-  function GetRSVPdUsersByDay(day) {
+  function GetRSVPdUsersByDay(day, msgWeeks) {
+    const dashboardRsvpUsers = document.getElementById('dashboard-rsvp-content');
     dashboardRsvpUsers.replaceChildren();
     var rsvp = document.createElement('p'); rsvp.style = "padding: 0 20px;";
-    const tempArr = rsvpdUsersArr.filter(r => r.week === dashboardMsgWeeks.value);
+    const tempArr = rsvpdUsersArr.filter(r => r.week === msgWeeks.value);
 
     if (tempArr.length > 0 && day !== "default") {
       dashboardRsvpUsers.classList.remove('no-rsvps');
@@ -1293,7 +1369,7 @@ window.addEventListener('load', () => {
     //Create List item options
     select.replaceChildren();
 
-    if (isAdmin === true && select === dashboardMsgDays) {
+    if (isAdmin === true && select === document.getElementById('dashboard-msg-days')) {
       var option = document.createElement('option');
       option.value = "default";
       option.innerText = "No Day";
@@ -1331,16 +1407,16 @@ window.addEventListener('load', () => {
       // Switch Event Containers based on selection
       ShowEventContainers(selectElem.value, "planning-container");
       ShowEventContainers(selectElem.value, "overview-container");
-    } else if (selectElem === dashboardMsgWeeks) {
+    } else if (selectElem === document.getElementById('dashboard-msg-weeks')) {
       GetRSVPdUsersByWeek(selectElem.value);
       var specificWeek = hostWeeksArr.filter(h => h.week === selectElem.value);
       var uniqHostDays = [...new Set(specificWeek.map(item => item.day))]; DaySorter(uniqHostDays, true);
-      SetupDropdowns(dashboardMsgDays, uniqHostDays, false);
-    } else if (selectElem === dashboardMsgDays) {
-      if (dashboardMsgDays.value === "default") {
-        GetRSVPdUsersByWeek(dashboardMsgWeeks.value);
+      SetupDropdowns(document.getElementById('dashboard-msg-days'), uniqHostDays, false);
+    } else if (selectElem === document.getElementById('dashboard-msg-days')) {
+      if (document.getElementById('dashboard-msg-days').value === "default") {
+        GetRSVPdUsersByWeek(document.getElementById('dashboard-msg-weeks').value);
       } else {
-        GetRSVPdUsersByDay(dashboardMsgDays.value);
+        GetRSVPdUsersByDay(document.getElementById('dashboard-msg-days').value);
       }
     }
     else {
@@ -1446,11 +1522,22 @@ window.addEventListener('load', () => {
     if (dashboardButton) {
       if (!dashboardPage.classList.contains('show')) {
         dashboardPage.classList.add('show');
-        GetRSVPdUsersByWeek(dashboardMsgWeeks.value);
-        var specificWeek = hostWeeksArr.filter(h => h.week === dashboardMsgWeeks.value);
+        GetRSVPdUsersByWeek(document.getElementById('dashboard-msg-weeks').value);
+        var specificWeek = hostWeeksArr.filter(h => h.week === document.getElementById('dashboard-msg-weeks').value);
         var uniqHostDays = [...new Set(specificWeek.map(item => item.day))]; DaySorter(uniqHostDays, true);
-        SetupDropdowns(dashboardMsgDays, uniqHostDays, false);
+        SetupDropdowns(document.getElementById('dashboard-msg-days'), uniqHostDays, false);
         SetupDateTime();
+      } else {
+        dashboardPage.classList.remove('show');
+      }
+    }
+
+    //Admin dashboard close button
+    var dashboardClose = e.target.closest('#dashboard-close-btn');
+
+    if (dashboardClose) {
+      if (!dashboardPage.classList.contains('show')) {
+        dashboardPage.classList.add('show');
       } else {
         dashboardPage.classList.remove('show');
       }
