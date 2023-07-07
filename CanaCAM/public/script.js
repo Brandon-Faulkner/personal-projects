@@ -1226,6 +1226,21 @@ window.addEventListener('load', () => {
     }
   }
 
+  function AddDayToList() {
+    const dateElem = document.getElementById('dashboard-date');
+    const timeElem = document.getElementById('dashboard-time');
+
+    var [timeH, timeM] = timeElem.value.split(":");
+    var timeH2 = (timeH % 12 ? timeH % 12 : 12);
+    const timeString = timeH2 + ":" + timeM + (timeH >= 12 ? ' PM' : ' AM');
+    console.log(timeString);
+
+    const dateVal = new Date(dateElem.value + " " + timeString);
+    const dateString = ('0' + (dateVal.getMonth() + 1)).slice(-2) + "/" + ('0' + dateVal.getDate()).slice(-2) + "/" + ('0' + dateVal.getFullYear()).slice(-2);
+    console.log(dateString);
+
+  }
+
   //#endregion Profile Setup
 
   //#region Planning Setup
@@ -1562,6 +1577,13 @@ window.addEventListener('load', () => {
         ShowChatScreen(contactName, contactName, auth?.currentUser.uid);
       }
     }
+
+    //Admin Dashboard Add Day button
+    var addDayButton = e.target.closest('#dashboard-add-day');
+
+    if (addDayButton) {
+      AddDayToList();
+    }
   });
 
   var isZooming = false;
@@ -1584,7 +1606,8 @@ window.addEventListener('load', () => {
 
   function SwitchTabOnSwipe() {
     //Make sure no pop ups or overlays are being shown first
-    if (!loginScreen.classList.contains('show') && mainLoader.classList.contains('fadeOut') && !chatScreen.classList.contains('show') && isZooming === false) {
+    if (!loginScreen.classList.contains('show') && mainLoader.classList.contains('fadeOut') 
+    && !chatScreen.classList.contains('show') && !dashboardPage.classList.contains('show') && isZooming === false) {
       if (touchEndX < touchStartX && (touchStartX - touchEndX) > 50) {
         if (tabPlanning.checked === true) {
           tabOverview.click();

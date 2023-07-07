@@ -2148,6 +2148,21 @@ form .btn input[type="submit"] {
   margin: 0 10px;
 }
 
+#dashboard-add-day:hover,
+#dashboard-remove-day:hover,
+#dashboard-schedule-days:hover {
+  color: var(--background);
+  background: var(--white);
+}
+
+#dashboard-add-day:active,
+#dashboard-remove-day:active,
+#dashboard-schedule-days:active {
+  letter-spacing: 2px;
+  color: var(--white);
+  background: var(--green);
+}
+
 #dashboard-remove-day,
 #dashboard-schedule-days {
   width: 90%;
