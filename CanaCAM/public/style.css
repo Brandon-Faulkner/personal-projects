@@ -723,6 +723,28 @@ form .btn input[type="submit"] {
   overflow: auto;
 }
 
+#dashboard-days-content {
+  grid-template-columns: 50% 50%;
+}
+
+#added-day:hover {
+  background: var(--blue-hover);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+}
+
+#added-day:active {
+  background: var(--blue);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+}
+
+.added-day-clicked {
+  background: var(--blue);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+}
+
 .no-rsvps, .no-days {
   grid-template-columns: 100% !important;
   grid-auto-rows: 100% !important;

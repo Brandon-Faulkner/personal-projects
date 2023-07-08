@@ -1092,7 +1092,7 @@ window.addEventListener('load', () => {
     var noRsvp = document.createElement('p'); noRsvp.style = "padding: 0px 20px;"; noRsvp.textContent = "No RSVP's Yet"; rsvpContent.appendChild(noRsvp);
     dashMessage.appendChild(rsvpContent);
 
-    var sendMsg = document.createElement('div'); sendMsg.setAttribute('id', 'dashboard-send-message'); 
+    var sendMsg = document.createElement('div'); sendMsg.setAttribute('id', 'dashboard-send-message');
     var textArea = document.createElement('textarea'); textArea.setAttribute('id', 'dashboard-msg-input'); textArea.setAttribute('type', 'text');
     textArea.placeholder = "Send a message..."; textArea.maxLength = "240"; sendMsg.appendChild(textArea);
     var sendBtn = document.createElement('button'); sendBtn.setAttribute('id', 'dashboard-send-btn');
@@ -1109,14 +1109,14 @@ window.addEventListener('load', () => {
     var daysDesc = document.createElement('p'); daysDesc.style = "color:var(--white);margin:auto;padding:0 5% 10px;";
     daysDesc.textContent = "Select a date and time below to host. Add that to the list and repeat as much as you want. When you are done, click \"Schedule Days\" to submit these days.";
     addDays.appendChild(daysDesc);
-    
+
     var addDateTime = document.createElement('div'); addDateTime.setAttribute('id', 'dashboard-add-datetime');
     var dateTime = document.createElement('div'); dateTime.setAttribute('id', "dashboard-datetime");
     var date = document.createElement('input'); date.type = "date"; date.setAttribute('id', 'dashboard-date'); dateTime.appendChild(date);
     var span = document.createElement('span'); dateTime.appendChild(span);
     var time = document.createElement('input'); time.type = "time"; time.setAttribute('id', 'dashboard-time'); dateTime.appendChild(time);
     addDateTime.appendChild(dateTime);
-    var addDayBtn = document.createElement('button'); addDayBtn.setAttribute('id', 'dashboard-add-day'); 
+    var addDayBtn = document.createElement('button'); addDayBtn.setAttribute('id', 'dashboard-add-day');
     var addDayIcon = document.createElement('i'); addDayIcon.className = "fa-solid fa-plus"; addDayBtn.appendChild(addDayIcon);
     addDateTime.appendChild(addDayBtn);
     addDays.appendChild(addDateTime);
@@ -1227,18 +1227,47 @@ window.addEventListener('load', () => {
   }
 
   function AddDayToList() {
+    const dashboardDays = document.getElementById('dashboard-days-content');
+    const dashboardDateTime = document.getElementById('dashboard-datetime');
     const dateElem = document.getElementById('dashboard-date');
     const timeElem = document.getElementById('dashboard-time');
 
     var [timeH, timeM] = timeElem.value.split(":");
     var timeH2 = (timeH % 12 ? timeH % 12 : 12);
     const timeString = timeH2 + ":" + timeM + (timeH >= 12 ? ' PM' : ' AM');
-    console.log(timeString);
 
     const dateVal = new Date(dateElem.value + " " + timeString);
-    const dateString = ('0' + (dateVal.getMonth() + 1)).slice(-2) + "/" + ('0' + dateVal.getDate()).slice(-2) + "/" + ('0' + dateVal.getFullYear()).slice(-2);
-    console.log(dateString);
+    const dateString = (dateVal.getMonth() + 1) + "/" + ('0' + dateVal.getDate()).slice(-2) + "/" + ('0' + dateVal.getFullYear()).slice(-2);
+    const minDate = new Date(dateElem.getAttribute('min'));
+    const maxDate = new Date(dateElem.getAttribute('max'));
 
+    if (dateVal.getTime() > minDate.getTime() && dateVal.getTime() < maxDate.getTime()) {
+      //Date is good, add to list, check to see if list is empty first
+      if (dashboardDays.classList.contains('no-days')) {
+        dashboardDays.classList.remove('no-days');
+        dashboardDays.replaceChildren();
+      }
+
+      //Now check to see if the date is already added
+      var isValid = true;
+      Array.from(dashboardDays.children).forEach((day) => {
+        if (day.textContent === (dateString + ' at ' + timeString)) {
+          isValid = false
+        }
+      });
+
+      if (isValid === true) {
+        const pElem = document.createElement('p'); pElem.style = "padding: 0px 10px; font-size:calc(1.75vw + 1vh);"; 
+        pElem.setAttribute('id', 'added-day'); pElem.textContent = dateString + ' at ' + timeString;
+        dashboardDays.appendChild(pElem);
+      }
+
+    } else {
+      dashboardDateTime.classList.add('login-error');
+      setTimeout(() => {
+        dashboardDateTime.classList.remove('login-error');
+      }, 3000);
+    }
   }
 
   //#endregion Profile Setup
@@ -1584,6 +1613,28 @@ window.addEventListener('load', () => {
     if (addDayButton) {
       AddDayToList();
     }
+
+    //Admin Dashboard Remove Day Button and Day Click
+    var addedDay = e.target.closest('#added-day');
+    var removeDayButton = e.target.closest('#dashboard-remove-day');
+
+    if (addedDay) {
+      if (!addedDay.classList.contains('added-day-clicked')) {
+        addedDay.classList.add('added-day-clicked');
+      } else {
+        addedDay.classList.remove('added-day-clicked');
+      }
+    }
+
+    if (removeDayButton) {
+      const dashboardDays = document.getElementById('dashboard-days-content');
+
+      Array.from(dashboardDays.children).forEach((day) => {
+        if (day.classList.contains('added-day-clicked')) {
+          day.remove();
+        }
+      });
+    }
   });
 
   var isZooming = false;
@@ -1606,8 +1657,8 @@ window.addEventListener('load', () => {
 
   function SwitchTabOnSwipe() {
     //Make sure no pop ups or overlays are being shown first
-    if (!loginScreen.classList.contains('show') && mainLoader.classList.contains('fadeOut') 
-    && !chatScreen.classList.contains('show') && !dashboardPage.classList.contains('show') && isZooming === false) {
+    if (!loginScreen.classList.contains('show') && mainLoader.classList.contains('fadeOut')
+      && !chatScreen.classList.contains('show') && !dashboardPage.classList.contains('show') && isZooming === false) {
       if (touchEndX < touchStartX && (touchStartX - touchEndX) > 50) {
         if (tabPlanning.checked === true) {
           tabOverview.click();
