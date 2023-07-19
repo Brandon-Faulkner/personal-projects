@@ -1166,7 +1166,7 @@ window.addEventListener('load', () => {
       snapshot.forEach((week) => {
         week.forEach((day) => {
           day.forEach((user) => {
-            const userData = { week: decodeURIComponent(week.key), day: day.key, name: user.child('Name').val(), guests: user.child('Guests').val() };
+            const userData = { week: decodeURIComponent(week.key), day: day.key, name: user.child('Name').val(), guests: user.child('Guests').val(), uid: user.key };
             rsvpdUsersArr.push(userData);
           });
         });
@@ -1268,6 +1268,48 @@ window.addEventListener('load', () => {
         dashboardDateTime.classList.remove('login-error');
       }, 3000);
     }
+  }
+
+  function SendMsgToAllRsvpUsers(rsvpContentArr, msgToSend) {
+    const msgUpdates = {}; const timestamp = Date.now();
+    rsvpContentArr.forEach((user) => {
+      var temp = rsvpdUsersArr.find(u => user.textContent === u.name);
+      msgUpdates['UsersMessages/' + adminHostName + '/' + temp.uid + '/HostMsgs/' + timestamp] = msgToSend;
+    });
+
+    update(ref_db(database), msgUpdates).then(() => {
+      //maybe show notification of success?
+    })
+    .catch((error) => {
+      console.log(error.code + ": " + error.message);
+    });
+  }
+
+  function ScheduleDays(daysContentArr) {
+    const dayUpdates = {};
+    const sorter = { 0: "Sunday", 1: "Monday", 2: "Tuesday", 3: "Wednesday", 4: "Thursday", 5: "Friday", 6: "Saturday"};
+
+    //Need to get the week attached to each day to schedule
+    //Sun-Sat, 0-6. Our weeks will start on Mon, 1
+    daysContentArr.forEach((day) => {
+      var splitDateTime = day.textContent.split(" at ");
+      var date = new Date(splitDateTime[0]);
+      var dayOfWeek = sorter[date.getDay()];
+      var begin = date.getDate()-date.getDay() + 1; var end = begin + 6;
+      var endWeek = new Date(date.setDate(end));
+      var beginWeek = new Date(date.setDate(begin));
+      const beginString = (beginWeek.getMonth()+1) + "/" + ('0' + beginWeek.getDate()).slice(-2) + "/" + ('0' + beginWeek.getFullYear()).slice(-2);
+      const endString = (endWeek.getMonth()+1) + "/" + ('0' + endWeek.getDate()).slice(-2) + "/" + ('0' + endWeek.getFullYear()).slice(-2);
+
+      dayUpdates["Groups/" + adminGroup + "/Weeks/" + encodeURIComponent(beginString + '-' + endString) + "/" + dayOfWeek] = splitDateTime[1];
+    });
+
+    update(ref_db(database), dayUpdates).then(() => {
+      //maybe show notification of success?
+    })
+    .catch((error) => {
+      console.log(error.code + ": " + error.message);
+    });
   }
 
   //#endregion Profile Setup
@@ -1460,7 +1502,7 @@ window.addEventListener('load', () => {
       if (document.getElementById('dashboard-msg-days').value === "default") {
         GetRSVPdUsersByWeek(document.getElementById('dashboard-msg-weeks').value);
       } else {
-        GetRSVPdUsersByDay(document.getElementById('dashboard-msg-days').value);
+        GetRSVPdUsersByDay(document.getElementById('dashboard-msg-days').value, document.getElementById('dashboard-msg-weeks'));
       }
     }
     else {
@@ -1587,6 +1629,21 @@ window.addEventListener('load', () => {
       }
     }
 
+    //Admin dashboard send messages
+    var sendMsgs = e.target.closest('#dashboard-send-btn');
+    const rsvpContent = document.getElementById('dashboard-rsvp-content');
+    
+    if (sendMsgs) {
+      const msgBox = document.getElementById('dashboard-msg-input');
+      if (msgBox.value != null && msgBox.value != " ") {
+        if (!rsvpContent.classList.contains('no-rsvps')) {
+          var rsvpsArr = Array.from(rsvpContent.children);
+          
+          SendMsgToAllRsvpUsers(rsvpsArr);
+        }
+      }
+    }
+    
     //Contact From Messages
     const contact = e.target.closest('.chat-host');
 
@@ -1634,6 +1691,18 @@ window.addEventListener('load', () => {
           day.remove();
         }
       });
+    }
+
+    //Admin dashboard schedule days
+    var schedDays = e.target.closest('#dashboard-schedule-days');
+    const daysContent = document.getElementById('dashboard-days-content');
+
+    if (schedDays) {
+      if (!daysContent.classList.contains('no-days')) {
+        var daysArr = Array.from(daysContent.children);
+
+        ScheduleDays(daysArr);
+      }
     }
   });
 
