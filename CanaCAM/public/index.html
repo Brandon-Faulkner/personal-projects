@@ -150,55 +150,6 @@
             </svg>
           </button>
         </div>
-        <div id="dashboard-message">
-          <h2 style="color: var(--white); font-size: calc(1.25vw + 1.5vh); margin: auto;">View or Message All RSVP'd
-            Users</h2>
-          <p style="color: var(--white); margin: auto; padding: 0 5% 10px;">Select a week from
-            the first dropdown below. After selecting a week, RSVP'd users from all days that week will show up. You can then
-            specify a certain day by using the second dropdown.</p>
-          <div class="week-select-grid mobile-select-grid">
-            <label class="dropdown" for="dashboard-msg-weeks">
-              <select id="dashboard-msg-weeks" required="required">
-                <option value="default">Week Dates</option>
-              </select>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
-                <path
-                  d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
-              </svg>
-            </label>
-            <label class="dropdown" for="dashboard-msg-days">
-              <select id="dashboard-msg-days" required="required">
-                <option value="default">No Day</option>
-              </select>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
-                <path
-                  d="M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z" />
-              </svg>
-            </label>
-          </div>
-          <div id="dashboard-rsvp-content" class="no-rsvps">
-            <p style="padding: 0 20px;">No RSVP's Yet</p>
-          </div>
-          <div id="dashboard-send-message">
-            <textarea id="dashboard-msg-input" type="text" placeholder="Send a message..." maxlength="240"></textarea>
-            <button id="dashboard-send-btn"><svg xmlns="http://www.w3.org/2000/svg" height="1em"
-                viewBox="0 0 512 512"><!--! Font Awesome Free 6.4.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license (Commercial License) Copyright 2023 Fonticons, Inc. -->
-                <path
-                  d="M205 34.8c11.5 5.1 19 16.6 19 29.2v64H336c97.2 0 176 78.8 176 176c0 113.3-81.5 163.9-100.2 174.1c-2.5 1.4-5.3 1.9-8.1 1.9c-10.9 0-19.7-8.9-19.7-19.7c0-7.5 4.3-14.4 9.8-19.5c9.4-8.8 22.2-26.4 22.2-56.7c0-53-43-96-96-96H224v64c0 12.6-7.4 24.1-19 29.2s-25 3-34.4-5.4l-160-144C3.9 225.7 0 217.1 0 208s3.9-17.7 10.6-23.8l160-144c9.4-8.5 22.9-10.6 34.4-5.4z" />
-              </svg></button>
-          </div>
-        </div>
-        <div id="dashboard-add-days">
-          <h2 style="color: var(--white); font-size: calc(1.25vw + 1.5vh); margin: auto;">Add days to schedule</h2>
-          <p style="color: var(--white);margin: auto;padding: 0 5% 10px;">Select a date and time below to host your
-            house. Add that to the list and repeat as much as you want. When you are done, click "Schedule" to submit
-            these days.</p>
-          <div id="dashboard-datetime">
-            <input type="date" id="dashboard-date">
-            <span></span>
-            <input type="time" id="dashboard-time">
-          </div>
-        </div>
       </div>
     </div>
   </div>

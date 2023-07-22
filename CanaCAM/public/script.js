@@ -139,7 +139,7 @@ window.addEventListener('load', () => {
     }
   }
   //#endregion Variables
-
+  
   //#region Authentication Functions
   onAuthStateChanged(auth, (user) => {
     if (user) {
@@ -352,13 +352,13 @@ window.addEventListener('load', () => {
         adminGroup = hostData[1];
         adminHostName = hostData[0];
 
+        //Create host dashboard
+        CreateAdminDashboard(dashboardPage);
+
         //Start a listener for rsvps
         const dashboardMsgWeeks = document.getElementById('dashboard-msg-weeks');
         const dashboardMsgDays = document.getElementById('dashboard-msg-days');
         unsubFromRSVP = GetAllRSVPdUsers(dashboardMsgDays, dashboardMsgWeeks);
-
-        //Create host dashboard
-        CreateAdminDashboard(dashboardPage);
       }
       else {
         isAdmin = false;
@@ -1061,9 +1061,10 @@ window.addEventListener('load', () => {
   //Admin Dashboard
   function CreateAdminDashboard(dashPage) {
     const dashContent = dashPage.children[0].children[0];
-    //Remove messages and add days but keep title element
-    document.getElementById('dashboard-message').remove();
-    document.getElementById('dashboard-add-days').remove();
+    //Remove curr schedule, messages and add days but keep title element
+    document.getElementById('dashboard-curr-schedule')?.remove();
+    document.getElementById('dashboard-message')?.remove();
+    document.getElementById('dashboard-add-days')?.remove();
 
     //Now setup messages for dashboard
     var dashMessage = document.createElement('div'); dashMessage.setAttribute('id', 'dashboard-message');
@@ -1102,12 +1103,12 @@ window.addEventListener('load', () => {
 
     dashContent.appendChild(dashMessage);
 
-    //Now setup Add Days for dashboard
+    //Now setup Add/Remove Schedule days for dashboard
     var addDays = document.createElement('div'); addDays.setAttribute('id', 'dashboard-add-days');
     var daysTitle = document.createElement('h2'); daysTitle.style = "color:var(--white);font-size:calc(1.25vw + 1.5vh);margin:auto;";
-    daysTitle.textContent = "Add days to schedule"; addDays.appendChild(daysTitle);
+    daysTitle.textContent = "Add/Remove Scheduled Days"; addDays.appendChild(daysTitle);
     var daysDesc = document.createElement('p'); daysDesc.style = "color:var(--white);margin:auto;padding:0 5% 10px;";
-    daysDesc.textContent = "Select a date and time below to host. Add that to the list and repeat as much as you want. When you are done, click \"Schedule Days\" to submit these days.";
+    daysDesc.textContent = "Your current scheduled days will appear in white. Select a date and time below to host. Add that to the list and repeat as much as you want. These new days will appear in green. When you are done, click \"Schedule Days\" to submit these days. You can also remove a new or already scheduled day.";
     addDays.appendChild(daysDesc);
 
     var addDateTime = document.createElement('div'); addDateTime.setAttribute('id', 'dashboard-add-datetime');
@@ -1122,7 +1123,7 @@ window.addEventListener('load', () => {
     addDays.appendChild(addDateTime);
 
     var daysAdded = document.createElement('div'); daysAdded.setAttribute('id', 'dashboard-days-content'); daysAdded.className = "no-days";
-    var noDays = document.createElement('p'); noDays.style = "padding: 0px 20px"; noDays.textContent = "No Days Added"; daysAdded.appendChild(noDays);
+    var noDays = document.createElement('p'); noDays.style = "padding: 0px 20px"; noDays.textContent = "No Scheduled Days Yet"; daysAdded.appendChild(noDays);
     addDays.appendChild(daysAdded);
 
     var removeAndSchedule = document.createElement('div'); removeAndSchedule.setAttribute('id', 'dashboard-removeAndSchedule');
@@ -1226,6 +1227,29 @@ window.addEventListener('load', () => {
     }
   }
 
+  function ShowCurrentScheduledDays() {
+    const dashboardDays = document.getElementById('dashboard-days-content');
+    dashboardDays.replaceChildren();
+    var schedDay = document.createElement('p'); schedDay.className = "scheduled-day";
+    const sorter = { "Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3, "Friday": 4, "Saturday": 5, "Sunday": 6 };
+
+    if (hostWeeksArr.length > 0) {
+      //Update ui to show current host scheduled days    
+      dashboardDays.classList.remove('no-days');
+      hostWeeksArr.forEach((week) => {
+        const currWeek = week.week.split('-');
+        var beginWeek = new Date(currWeek[0]); beginWeek.setDate(beginWeek.getDate() + sorter[week.day]);
+        const dateString = (beginWeek.getMonth() + 1) + "/" + ('0' + beginWeek.getDate()).slice(-2) + "/" + ('0' + beginWeek.getFullYear()).slice(-2);
+        var schedClone = schedDay.cloneNode(); schedClone.textContent = dateString + " at " + week.time;
+        dashboardDays.appendChild(schedClone);
+      });
+    } else {
+      dashboardDays.classList.add('no-days');
+      var schedClone = schedDay.cloneNode(); schedClone.textContent = "No Scheduled Days Yet";
+      dashboardDays.appendChild(schedClone);
+    }
+  }
+
   function AddDayToList() {
     const dashboardDays = document.getElementById('dashboard-days-content');
     const dashboardDateTime = document.getElementById('dashboard-datetime');
@@ -1251,14 +1275,13 @@ window.addEventListener('load', () => {
       //Now check to see if the date is already added
       var isValid = true;
       Array.from(dashboardDays.children).forEach((day) => {
-        if (day.textContent === (dateString + ' at ' + timeString)) {
+        if (day.textContent.split(" at ")[0] === dateString) {
           isValid = false
         }
       });
 
       if (isValid === true) {
-        const pElem = document.createElement('p'); pElem.style = "padding: 0px 10px; font-size:calc(1.75vw + 1vh);"; 
-        pElem.setAttribute('id', 'added-day'); pElem.textContent = dateString + ' at ' + timeString;
+        const pElem = document.createElement('p'); pElem.className = "added-day"; pElem.textContent = dateString + ' at ' + timeString;
         dashboardDays.appendChild(pElem);
       }
 
@@ -1270,46 +1293,55 @@ window.addEventListener('load', () => {
     }
   }
 
-  function SendMsgToAllRsvpUsers(rsvpContentArr, msgToSend) {
+  function SendMsgToAllRsvpUsers(rsvpContentArr, msgBox) {
     const msgUpdates = {}; const timestamp = Date.now();
     rsvpContentArr.forEach((user) => {
       var temp = rsvpdUsersArr.find(u => user.textContent === u.name);
-      msgUpdates['UsersMessages/' + adminHostName + '/' + temp.uid + '/HostMsgs/' + timestamp] = msgToSend;
+      msgUpdates['UsersMessages/' + adminHostName + '/' + temp.uid + '/HostMsgs/' + timestamp] = msgBox.value;
     });
 
     update(ref_db(database), msgUpdates).then(() => {
-      //maybe show notification of success?
+      ShowNotifToast("Message Sent", "All specified RSVP'd Users will now be getting your message.");
+      msgBox.value = null;
     })
-    .catch((error) => {
-      console.log(error.code + ": " + error.message);
-    });
+      .catch((error) => {
+        console.log(error.code + ": " + error.message);
+      });
   }
 
   function ScheduleDays(daysContentArr) {
     const dayUpdates = {};
-    const sorter = { 0: "Sunday", 1: "Monday", 2: "Tuesday", 3: "Wednesday", 4: "Thursday", 5: "Friday", 6: "Saturday"};
+    const sorter = { 0: "Sunday", 1: "Monday", 2: "Tuesday", 3: "Wednesday", 4: "Thursday", 5: "Friday", 6: "Saturday" };
 
     //Need to get the week attached to each day to schedule
     //Sun-Sat, 0-6. Our weeks will start on Mon, 1
     daysContentArr.forEach((day) => {
-      var splitDateTime = day.textContent.split(" at ");
-      var date = new Date(splitDateTime[0]);
-      var dayOfWeek = sorter[date.getDay()];
-      var begin = date.getDate()-date.getDay() + 1; var end = begin + 6;
-      var endWeek = new Date(date.setDate(end));
-      var beginWeek = new Date(date.setDate(begin));
-      const beginString = (beginWeek.getMonth()+1) + "/" + ('0' + beginWeek.getDate()).slice(-2) + "/" + ('0' + beginWeek.getFullYear()).slice(-2);
-      const endString = (endWeek.getMonth()+1) + "/" + ('0' + endWeek.getDate()).slice(-2) + "/" + ('0' + endWeek.getFullYear()).slice(-2);
+      if (day.classList.contains("added-day")) {
+        var splitDateTime = day.textContent.split(" at ");
+        var date = new Date(splitDateTime[0]);
+        var dayOfWeek = sorter[date.getDay()];
+        var begin = date.getDate() - date.getDay() + 1; var end = begin + 6;
+        var endWeek = new Date(date.setDate(end));
+        var beginWeek = new Date(date.setDate(begin));
+        const beginString = (beginWeek.getMonth() + 1) + "/" + ('0' + beginWeek.getDate()).slice(-2) + "/" + ('0' + beginWeek.getFullYear()).slice(-2);
+        const endString = (endWeek.getMonth() + 1) + "/" + ('0' + endWeek.getDate()).slice(-2) + "/" + ('0' + endWeek.getFullYear()).slice(-2);
 
-      dayUpdates["Groups/" + adminGroup + "/Weeks/" + encodeURIComponent(beginString + '-' + endString) + "/" + dayOfWeek] = splitDateTime[1];
+        dayUpdates["Groups/" + adminGroup + "/Weeks/" + encodeURIComponent(beginString + '-' + endString) + "/" + dayOfWeek] = splitDateTime[1];
+      }
     });
 
     update(ref_db(database), dayUpdates).then(() => {
-      //maybe show notification of success?
+      //Change each class to scheduled-days
+      daysContentArr.forEach((day) => {
+        day.classList.remove('added-day', 'day-clicked');
+        day.classList.add('scheduled-day');
+      });
+
+      ShowNotifToast("Days Scheduled", "The days you choose have been added to your schedule.")
     })
-    .catch((error) => {
-      console.log(error.code + ": " + error.message);
-    });
+      .catch((error) => {
+        console.log(error.code + ": " + error.message);
+      });
   }
 
   //#endregion Profile Setup
@@ -1612,7 +1644,7 @@ window.addEventListener('load', () => {
         var specificWeek = hostWeeksArr.filter(h => h.week === document.getElementById('dashboard-msg-weeks').value);
         var uniqHostDays = [...new Set(specificWeek.map(item => item.day))]; DaySorter(uniqHostDays, true);
         SetupDropdowns(document.getElementById('dashboard-msg-days'), uniqHostDays, false);
-        SetupDateTime();
+        ShowCurrentScheduledDays(); SetupDateTime();
       } else {
         dashboardPage.classList.remove('show');
       }
@@ -1632,18 +1664,18 @@ window.addEventListener('load', () => {
     //Admin dashboard send messages
     var sendMsgs = e.target.closest('#dashboard-send-btn');
     const rsvpContent = document.getElementById('dashboard-rsvp-content');
-    
+
     if (sendMsgs) {
       const msgBox = document.getElementById('dashboard-msg-input');
       if (msgBox.value != null && msgBox.value != " ") {
         if (!rsvpContent.classList.contains('no-rsvps')) {
           var rsvpsArr = Array.from(rsvpContent.children);
-          
-          SendMsgToAllRsvpUsers(rsvpsArr);
+
+          SendMsgToAllRsvpUsers(rsvpsArr, msgBox);
         }
       }
     }
-    
+
     //Contact From Messages
     const contact = e.target.closest('.chat-host');
 
@@ -1672,25 +1704,66 @@ window.addEventListener('load', () => {
     }
 
     //Admin Dashboard Remove Day Button and Day Click
-    var addedDay = e.target.closest('#added-day');
+    var addedDay = e.target.closest('.added-day');
+    var scheduledDay = e.target.closest('.scheduled-day');
     var removeDayButton = e.target.closest('#dashboard-remove-day');
 
     if (addedDay) {
-      if (!addedDay.classList.contains('added-day-clicked')) {
-        addedDay.classList.add('added-day-clicked');
+      if (!addedDay.classList.contains('day-clicked')) {
+        addedDay.classList.add('day-clicked');
       } else {
-        addedDay.classList.remove('added-day-clicked');
+        addedDay.classList.remove('day-clicked');
+      }
+    }
+
+    if (scheduledDay) {
+      if (!scheduledDay.classList.contains('day-clicked')) {
+        scheduledDay.classList.add('day-clicked');
+      } else {
+        scheduledDay.classList.remove('day-clicked');
       }
     }
 
     if (removeDayButton) {
       const dashboardDays = document.getElementById('dashboard-days-content');
+      const sorter = { 0: "Sunday", 1: "Monday", 2: "Tuesday", 3: "Wednesday", 4: "Thursday", 5: "Friday", 6: "Saturday" };
+      var isDBUpdate = false; const dayUpdates = {};
 
       Array.from(dashboardDays.children).forEach((day) => {
-        if (day.classList.contains('added-day-clicked')) {
-          day.remove();
+        if (day.classList.contains('day-clicked')) {
+          if (day.classList.contains('added-day')) {
+            day.remove();
+          } else if (day.classList.contains('scheduled-day')) {
+            isDBUpdate = true;
+            //First get day of week
+            var dateString = day.textContent.split(" at ")[0] + " 12:00 AM"; var dayDate = new Date(dateString);
+            var dayOfWeek = sorter[dayDate.getDay()];
+
+            //Find which week this day belongs to
+            hostWeeksArr.forEach((week) => {
+              var splitWeek = week.week.split('-');
+              var beginString = splitWeek[0] + " 12:00 AM"; var beginWeek = new Date(beginString);
+              var endString = splitWeek[1] + " 11:59 PM"; var endWeek = new Date(endString);
+
+              if (dayDate.getTime() >= beginWeek.getTime() && dayDate.getTime() <= endWeek.getTime()) {
+                //Now add it to updates to be removed then remove locally
+                dayUpdates["Groups/" + adminGroup + "/Weeks/" + encodeURIComponent(week.week) + "/" + dayOfWeek] = null;
+                day.remove();
+              }
+            });
+          }
         }
       });
+
+      if (isDBUpdate === true) {
+        //Perform update operation in db
+        update(ref_db(database), dayUpdates).then(() => {
+          //maybe show notification of success?
+        })
+          .catch((error) => {
+            console.log(error.code + ": " + error.message);
+          });
+      }
     }
 
     //Admin dashboard schedule days
@@ -2029,25 +2102,28 @@ window.addEventListener('load', () => {
   }
 
   function ShowNotifToast(title, message) {
-    //Reset just in case
-    toastElem.classList.remove('active');
-    toastProgress.classList.remove('active');
+    //Check if toast is active, wait if it is
+    if (toastElem.classList.contains('active')) {
+      setTimeout(() => {
+        ShowNotifToast(title, message);
+      }, 1000);
+    } else {
+      //Update toast title
+      toastMessage.children[0].textContent = title;
+      toastMessage.children[1].textContent = message;
 
-    //Update toast title
-    toastMessage.children[0].textContent = title;
-    toastMessage.children[1].textContent = message;
+      //Now show the toast
+      toastElem.classList.add('active');
+      toastProgress.classList.add('active');
 
-    //Now show the toast
-    toastElem.classList.add('active');
-    toastProgress.classList.add('active');
+      setTimeout(() => {
+        toastElem.classList.remove('active');
+      }, 5200);
 
-    setTimeout(() => {
-      toastElem.classList.remove('active');
-    }, 5000);
-
-    setTimeout(() => {
-      toastProgress.classList.remove('active');
-    }, 5300);
+      setTimeout(() => {
+        toastProgress.classList.remove('active');
+      }, 5500);
+    }  
   }
 
   toastClose.addEventListener('click', function () {

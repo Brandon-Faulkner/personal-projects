@@ -31,7 +31,7 @@ html {
 .pop-up {
   height: 100%;
   width: 100%;
-  z-index: 999;
+  z-index: 998;
   position: fixed;
   left: 0;
   right: 0;
@@ -666,7 +666,7 @@ form .btn input[type="submit"] {
 
 #dashboard-content {
   display: inline-grid;
-  grid-template-rows: 12.5% 100% 50%;
+  grid-template-rows: 12.5% 100% 70%;
   opacity: 1;
   position: absolute;
   top: 0;
@@ -727,20 +727,33 @@ form .btn input[type="submit"] {
   grid-template-columns: 50% 50%;
 }
 
-#added-day:hover {
-  background: var(--blue-hover);
+.scheduled-day {
+  padding: 0 10px;
+  font-size: calc(1.75vw + 1vh);
+}
+
+.added-day {
+  padding: 0 10px;
+  font-size: calc(1.75vw + 1vh);
+  color: var(--green);
+}
+
+.scheduled-day:hover,
+.added-day:hover {
+  background: var(--background);
   border-radius: var(--border-radius);
   cursor: pointer;
 }
 
-#added-day:active {
-  background: var(--blue);
+.scheduled-day:active,
+.added-day:active {
+  background: var(--white-hover);
   border-radius: var(--border-radius);
   cursor: pointer;
 }
 
-.added-day-clicked {
-  background: var(--blue);
+.day-clicked {
+  background: var(--dropdown-background);
   border-radius: var(--border-radius);
   cursor: pointer;
 }
@@ -834,7 +847,7 @@ form .btn input[type="submit"] {
   justify-self: center;
   align-self: center;
   grid-template-columns: 100%;
-  grid-template-rows: 15% 15% 15% 40% 15%;
+  grid-template-rows: 10% 25% 15% 36% 12%;
   background: var(--background);
   border-radius: var(--border-radius);
   box-shadow: var(--box-shadow);
@@ -958,8 +971,8 @@ form .btn input[type="submit"] {
   font-size: 16px;
   font-weight: 400;
   color: #666666;
-  max-height: 40px;
-  overflow: hidden;
+  max-height: 100px;
+  overflow: auto;
 }
 
 .toast-message span.toast-title {
