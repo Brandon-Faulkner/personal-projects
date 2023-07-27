@@ -398,7 +398,6 @@ p {
   left: 0;
   z-index: 0;
   border-radius: 15px;
-  /*background: -webkit-linear-gradient(left,#003366,#004080,#0059b3, #0073e6);*/
   background: var(--green);
   transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
@@ -489,7 +488,7 @@ input[type="radio"] {
 
 .login-form-inner form .field input:focus {
   border-color: var(--blue);
-  /* box-shadow: inset 0 0 3px #fb6aae; */
+  box-shadow: inset 0 0 3px var(--blue);
 }
 
 .login-form-inner form .field input::placeholder {
@@ -539,7 +538,6 @@ form .btn .btn-layer {
   background: var(--blue);
   border-radius: 15px;
   transition: all 0.4s ease;
-  ;
 }
 
 form .btn:hover .btn-layer {
@@ -575,7 +573,7 @@ form .btn input[type="submit"] {
   top: 0;
   left: 0;
   background: var(--white);
-  padding: 12px 18px;
+  padding: 11px 18px;
   display: block;
   width: calc(100% - 40px);
   pointer-events: none;
@@ -954,7 +952,7 @@ form .btn input[type="submit"] {
   justify-content: center;
   height: 35px;
   min-width: 35px;
-  background-color: var(--blue);
+  background-color: var(--toast-status);
   color: var(--white);
   font-size: 20px;
   border-radius: 50%;
@@ -977,7 +975,7 @@ form .btn input[type="submit"] {
 
 .toast-message span.toast-title {
   font-weight: 600;
-  color: #333;
+  color: var(--toast-status);
 }
 
 .toast .close {
@@ -997,7 +995,7 @@ form .btn input[type="submit"] {
   position: absolute;
   bottom: 0;
   left: 0;
-  height: 3px;
+  height: 5px;
   width: 100%;
 }
 
@@ -1008,7 +1006,7 @@ form .btn input[type="submit"] {
   right: 0;
   height: 100%;
   width: 100%;
-  background-color: var(--blue);
+  background-color: var(--toast-status);
 }
 
 .toast-progress.active:before {
@@ -1529,8 +1527,9 @@ form .btn input[type="submit"] {
   text-align: right;
 }
 
-/*Messages*/
-#chat-wrapper {
+/*Messages & Edit Info*/
+#chat-wrapper,
+#editinfo-wrapper {
   width: 80%;
   /*min-width: 305px;*/
   max-width: 400px;
@@ -1546,7 +1545,12 @@ form .btn input[type="submit"] {
   margin: auto;
 }
 
-#chat-host-list {
+#editinfo-wrapper {
+  background: var(--white);
+}
+
+#chat-host-list,
+#editinfo-list {
   display: inline-grid;
   grid-template-rows: 12.5% 77.5% 10%;
   opacity: 1;
@@ -1557,7 +1561,12 @@ form .btn input[type="submit"] {
   height: 100%;
 }
 
-#chat-host-title {
+#editinfo-list {
+  grid-template-rows: 12.5% 85.5%;
+}
+
+#chat-host-title,
+#editinfo-title {
   height: 100%;
   width: 100%;
   display: flex;
@@ -1568,7 +1577,12 @@ form .btn input[type="submit"] {
   color: var(--white);
 }
 
-#chat-close-btn {
+#editinfo-title {
+  color: var(--background);
+}
+
+#chat-close-btn,
+#editinfo-close-btn {
   outline: 0;
   position: absolute;
   right: 10px;
@@ -1582,15 +1596,119 @@ form .btn input[type="submit"] {
   z-index: 1;
 }
 
-#chat-close-btn>svg:hover {
+#editinfo-close-btn {
+  fill: var(--background);
+}
+
+#chat-close-btn>svg:hover,
+#editinfo-close-btn>svg:hover {
   fill: var(--blue);
 }
 
-#chat-hosts {
+#chat-hosts,
+#editinfo-content,
+#editinfo-credentials {
   height: 100%;
   width: 100%;
   overflow: overlay;
   border-top: 1px solid #d8dfe3;
+}
+
+#editinfo-content,
+#editinfo-credentials {
+  border-top: 1px solid var(--disabled);
+  display: inline-grid;
+  grid-template-rows: 30% 70%;
+  justify-items: center;
+  align-items: center;
+}
+
+#editinfo-credentials {
+  grid-template-rows: 30% 40%;
+}
+
+#editinfo-inputs,
+#editinfo-credinputs {
+  width: 100%;
+  height: 100%;
+  transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  display: inline-grid;
+  grid-row-gap: 20px;
+  justify-items: center;
+  align-items: center;
+}
+
+#editinfo-inputs .field,
+#editinfo-credinputs .field {
+  height: 50px;
+  width: 90%;
+  margin: auto;
+  display: inline-grid;
+}
+
+#editinfo-inputs .field input,
+#editinfo-credinputs .field input {
+  height: 100%;
+  width: 100%;
+  outline: none;
+  padding-left: 15px;
+  margin-left: -10px;
+  border-radius: 15px;
+  border: 2px solid lightgrey;
+  border-bottom-width: 2px;
+  font-size: 17px;
+  transition: all 0.3s ease;
+}
+
+#editinfo-inputs .field input:focus,
+#editinfo-credinputs .field input:focus {
+  border-color: var(--blue);
+}
+
+#editinfo-inputs .field input::placeholder,
+#editinfo-credinputs .field input::placeholder {
+  color: #999;
+  transition: all 0.3s ease;
+}
+
+#editinfo-inputs .field input:focus::placeholder,
+#editinfo-credinputs .field input:focus::placeholder {
+  color: var(--blue);
+}
+
+#editinfo-inputs .btn,
+#editinfo-credinputs .btn {
+  height: 50px;
+  width: 100%;
+  border-radius: 15px;
+  position: relative;
+  overflow: hidden;
+  justify-items: center;
+}
+
+#editinfo-inputs .btn .btn-layer,
+#editinfo-credinputs .btn .btn-layer {
+  height: 100%;
+  width: 90%;
+  position: absolute;
+  background: var(--blue);
+  border-radius: 15px;
+  transition: all 0.4s ease;
+}
+
+#editinfo-inputs .btn input,
+#editinfo-credinputs .btn input {
+  height: 100%;
+  width: 100%;
+  position: relative;
+  background: none;
+  border: none;
+  color: var(--white);
+  border-radius: 15px;
+  font-size: 20px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
 }
 
 .fa-circle-user {

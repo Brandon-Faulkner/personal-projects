@@ -1,8 +1,8 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
 import { getDatabase, ref as ref_db, onValue, set, remove, update, get, increment } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
-import { getStorage, ref as ref_st, getDownloadURL, uploadBytes } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-storage.js";
-import { getAuth, onAuthStateChanged, signInAnonymously, signInWithEmailAndPassword, sendPasswordResetEmail, EmailAuthProvider, linkWithCredential, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+import { getStorage, ref as ref_st, getDownloadURL, uploadBytes, deleteObject } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-storage.js";
+import { getAuth, onAuthStateChanged, reauthenticateWithCredential, signInAnonymously, signInWithEmailAndPassword, updateEmail, sendPasswordResetEmail, EmailAuthProvider, linkWithCredential, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-messaging.js";
 
 // Your web app's Firebase configuration
@@ -103,6 +103,17 @@ window.addEventListener('load', () => {
   const chatMessages = document.getElementById('chat-messages');
   const chatMessageInput = document.getElementById('chat-msg-input');
   const chatSendBtn = document.getElementById('chat-send-btn');
+  const editInfoScreen = document.getElementById("editinfo-page");
+  const editInfoCloseBtn = document.getElementById("editinfo-close-btn");
+  const editInfoContentScreen = document.getElementById("editinfo-content");
+  const editInfoCredentialScreen = document.getElementById("editinfo-credentials");
+  const editInfoName = document.getElementById("editinfo-name");
+  const editInfoPhone = document.getElementById("editinfo-phone");
+  const editInfoEmailBtn = document.getElementById("editinfo-updateemail-button");
+  const editInfoEmail = document.getElementById("editinfo-email");
+  const editInfoImg = document.getElementById("editinfo-img");
+  const editInfoVerifyBtn = document.getElementById("editinfo-credsubmit-button");
+  const editInfoSubmitBtn = document.getElementById("editinfo-submit-button");
 
   //Array to hold the data of each week
   var allWeeksArr = []; var uniqWeeks = [];
@@ -139,7 +150,7 @@ window.addEventListener('load', () => {
     }
   }
   //#endregion Variables
-  
+
   //#region Authentication Functions
   onAuthStateChanged(auth, (user) => {
     if (user) {
@@ -174,7 +185,7 @@ window.addEventListener('load', () => {
           //Only show notif if the user does not have the chat view from the host open
           if (!chatScreen.classList.contains('show')) {
             //Need to show notif, badge, status
-            ShowNotifToast(payload.data.title, "View message in profile.");
+            ShowNotifToast(payload.data.title, "View message in profile.", "var(--blue)");
 
             //Update status
             var chatHostsArr = Array.from(chatHosts.children);
@@ -197,7 +208,7 @@ window.addEventListener('load', () => {
             CreateMessageBubble(chatMessages, payload.data.body, "left", payload.data.time);
           } else {
             //Need to show notif, status
-            ShowNotifToast(payload.data.title, "View message in profile.");
+            ShowNotifToast(payload.data.title, "View message in profile.", "var(--blue)");
 
             //Update status and order of hosts
             var chatHostsArr = Array.from(chatHosts.children);
@@ -216,6 +227,8 @@ window.addEventListener('load', () => {
               }
             });
           }
+        }, error => {
+          console.log(error.code + ": " + error.message);
         });
 
         //Remove listeners
@@ -290,8 +303,9 @@ window.addEventListener('load', () => {
               });
           });
       }).catch((error) => {
-        console.log("Error upgrading anonymous account:", error);
+        console.log(error.code + ": " + error.message);
         signupButton.parentElement.classList.remove('login-click');
+        ShowNotifToast('Account Creation Error', "We ran into an issue creating your account. Please try again or refresh the page and try again.", "var(--red)");
       });
   }
 
@@ -328,7 +342,8 @@ window.addEventListener('load', () => {
     signOut(auth).then(() => {
 
     }).catch((error) => {
-      console.log(error);
+      console.log(error.code + ": " + error.message);
+      ShowNotifToast("Sign Out Error", "There was an issue with signing you out. Please try again.", "var(--red)");
     });
   }
 
@@ -336,10 +351,15 @@ window.addEventListener('load', () => {
     sendPasswordResetEmail(auth, email)
       .then(() => {
         //Email sent
-        console.log("yay");
+        ShowNotifToast("Email Sent", "An email has been sent to the provided email address that will allow you to reset your password.", "var(--blue)");
       })
       .catch((error) => {
-        console.log("Error with Forgot Password: ", error);
+        console.log(error.code + ": " + error.message);
+        if (error.code === "auth/invalid-email") {
+          ShowNotifToast("Invalid Email", "The email address provided is an invalid email. Make sure there are no typos and that the email is correct.", "var(--red)");
+        } else if (error.code === "auth/user-not-found") {
+          ShowNotifToast("Account Not Found", "There is not an existing account with that email address. Make sure there are no typos and that the email is correct.", "var(--red)");
+        }
       });
   }
 
@@ -377,7 +397,7 @@ window.addEventListener('load', () => {
         auth.currentUser === null ? isAnonymous = true : isAnonymous = auth?.currentUser.isAnonymous;
         OverviewSetup(groupRef, isAnonymous);
       } else {
-        console.log(error);
+        console.log(error.code + ": " + error.message);
       }
     });
   }
@@ -511,49 +531,58 @@ window.addEventListener('load', () => {
     }
   });
 
-  function ValidateName(name) {
+  function ValidateName(name, isEditInfo) {
     const nameRegex = new RegExp(/^[a-zA-z]+ [a-zA-z]+$/gm, "gm");
     const result = nameRegex.test(name);
-    const nameError = document.getElementById("name-error");
-    nameError.classList.add('hide');
-    signupName.classList.remove('login-error');
 
-    if (result === false) {
-      //Show error     
-      nameError.classList.remove('hide');
-      signupName.classList.add('login-error');
+    if (isEditInfo === null) {
+      const nameError = document.getElementById("name-error");
+      nameError.classList.add('hide');
+      signupName.classList.remove('login-error');
+
+      if (result === false) {
+        //Show error     
+        nameError.classList.remove('hide');
+        signupName.classList.add('login-error');
+      }
     }
 
     return result;
   }
 
-  function ValidatePhone(phone) {
+  function ValidatePhone(phone, isEditInfo) {
     const phoneRegex = new RegExp(/^(\()?\d{3}(\))?(-|\s)?\d{3}(-|\s)\d{4}$/gm, "gm");
     const result = phoneRegex.test(phone);
-    const phoneError = document.getElementById("phone-error");
-    phoneError.classList.add('hide');
-    signupPhone.classList.remove('login-error');
 
-    if (result === false) {
-      //Show error     
-      phoneError.classList.remove('hide');
-      signupPhone.classList.add('login-error');
+    if (isEditInfo === null) {
+      const phoneError = document.getElementById("phone-error");
+      phoneError.classList.add('hide');
+      signupPhone.classList.remove('login-error');
+
+      if (result === false) {
+        //Show error     
+        phoneError.classList.remove('hide');
+        signupPhone.classList.add('login-error');
+      }
     }
 
     return result;
   }
 
-  function ValidateEmail(email) {
+  function ValidateEmail(email, isEditInfo) {
     var emailRegex = new RegExp(/^[A-Za-z0-9_!#$%&'*+\/=?`{|}~^.-]+@[A-Za-z0-9.-]+$/gm, "gm");
     const result = emailRegex.test(email);
-    const emailError = document.getElementById("email-error");
-    emailError.classList.add('hide');
-    signupEmail.classList.remove('login-error');
 
-    if (result === false) {
-      //Show error      
-      emailError.classList.remove('hide');
-      signupEmail.classList.add('login-error');
+    if (isEditInfo === null) {
+      const emailError = document.getElementById("email-error");
+      emailError.classList.add('hide');
+      signupEmail.classList.remove('login-error');
+
+      if (result === false) {
+        //Show error      
+        emailError.classList.remove('hide');
+        signupEmail.classList.add('login-error');
+      }
     }
 
     return result;
@@ -584,17 +613,22 @@ window.addEventListener('load', () => {
     }
   }
 
-  function ValidateImg(img) {
-    const fileError = document.getElementById('file-error');
-    fileError.classList.add('hide');
-    signupImg.classList.remove('login-error');
+  function ValidateImg(img, isEditInfo) {
+    if (isEditInfo === null) {
+      const fileError = document.getElementById('file-error');
+      fileError.classList.add('hide');
+      signupImg.classList.remove('login-error');
+    }
 
     if (img) {
       return img;
     } else {
-      //Show error   
-      fileError.classList.remove('hide');
-      signupImg.classList.add('login-error');
+      if (isEditInfo === null) {
+        //Show error   
+        fileError.classList.remove('hide');
+        signupImg.classList.add('login-error');
+      }
+
       return null;
     }
   }
@@ -644,6 +678,8 @@ window.addEventListener('load', () => {
       });
     }, {
       onlyOnce: true
+    }, error => {
+      console.log(error.code + ": " + error.message);
     });
   }
 
@@ -690,9 +726,10 @@ window.addEventListener('load', () => {
       });
     }, {
       onlyOnce: true
+    }, error => {
+      console.log(error.code + ": " + error.message);
     });
   }
-
   //#endregion Remove Old Weeks
 
   //#region Overview Setup
@@ -763,13 +800,13 @@ window.addEventListener('load', () => {
         });
       });
 
-      //Update dropdowns
-      SetupDropdowns(planWeekSelection, uniqWeeks, false);
+      //Update overview dropdown
       SetupDropdowns(overviewWeekSelection, uniqWeeks, false);
-      SetupDropdowns(hostSelection, hostNameArr, true);
 
       //Now setup profile tab
       ProfileSetup(auth, isAnonymous);
+    }, error => {
+      console.log(error.code + ": " + error.message);
     });
   }
 
@@ -870,7 +907,7 @@ window.addEventListener('load', () => {
             //Clear current elements from profile section
             profileInfo.replaceChildren();
 
-            CreateProfileHeader(profileInfo, url);
+            CreateProfileHeader(profileInfo, url, userImage);
             isAdmin === true ? CreateProfileDashboardHeader(profileInfo) : null;
             CreatProfileInfoRow(profileInfo, userName, userEmail, userPhone, userTotalRSVP);
 
@@ -884,20 +921,22 @@ window.addEventListener('load', () => {
             Loading(mainLoader, false);
           })
           .catch((error) => {
-            console.log(error);
+            console.log(error.code + ": " + error.message);
           });
       }, {
         onlyOnce: true
+      }, error => {
+        console.log(error.code + ": " + error.message);
       });
     }
   }
 
-  function CreateProfileHeader(parentElem, imgUrl) {
+  function CreateProfileHeader(parentElem, imgUrl, imgName) {
     var profileHeader = document.createElement('li');
     profileHeader.classList.add('profile-header');
 
     var profCol1 = document.createElement('div'); profCol1.className = "profile-col";
-    var profImg = document.createElement('img'); profImg.src = imgUrl; profImg.className = "profile-image";
+    var profImg = document.createElement('img'); profImg.src = imgUrl; profImg.className = "profile-image"; profImg.setAttribute("data-imgName", imgName);
     profCol1.appendChild(profImg); profileHeader.appendChild(profCol1);
 
     var profCol2 = document.createElement('div'); profCol2.className = "profile-col";
@@ -1000,14 +1039,22 @@ window.addEventListener('load', () => {
         update(ref_db(database), sendMessage).then(() => {
           CreateMessageBubble(chatMessages, messageContent, "right", Date.now());
           chatMessageInput.value = null;
-        });
+        })
+          .catch((error) => {
+            console.log(error.code + ": " + error.message);
+            ShowNotifToast("Error Sending Message", "There was an error trying to send your message. Please try to send it again.", "var(--red)");
+          });
       } else {
         const sendMessage = {};
         sendMessage['UsersMessages/' + hostName + '/' + auth?.currentUser.uid + '/UserMsgs/' + Date.now()] = messageContent;
         update(ref_db(database), sendMessage).then(() => {
           CreateMessageBubble(chatMessages, messageContent, "right", Date.now());
           chatMessageInput.value = null;
-        });
+        })
+          .catch((error) => {
+            console.log(error.code + ": " + error.message);
+            ShowNotifToast("Error Sending Message", "There was an error trying to send your message. Please try to send it again.", "var(--red)");
+          });
       }
     }
   });
@@ -1043,7 +1090,7 @@ window.addEventListener('load', () => {
             }
           }
         }).catch((error) => {
-          console.log('An error occurred while retrieving token. ', error);
+          console.log(error.code + ": " + error.message);
         });
     }
   }
@@ -1056,6 +1103,231 @@ window.addEventListener('load', () => {
     }
 
     return true;
+  }
+
+  //Edit Info
+  editInfoCloseBtn.addEventListener('click', function () {
+    if (!editInfoCredentialScreen.classList.contains('hide')) {
+      editInfoCredentialScreen.classList.add('hide');
+      editInfoContentScreen.classList.remove('hide');
+    } else if (editInfoScreen.classList.contains('show')) {
+      editInfoScreen.classList.remove('show');
+    }
+  });
+
+  editInfoPhone.addEventListener('keydown', function (e) {
+    // Input must be of a valid number format or a modifier key, and not longer than ten digits
+    if (!isNumericInput(e) && !isModifierKey(e)) {
+      e.preventDefault();
+    }
+  });
+
+  editInfoPhone.addEventListener('keyup', function (e) {
+    if (isModifierKey(e)) { return; }
+
+    const input = e.target.value.replace(/\D/g, '').substring(0, 10); // First ten digits of input only
+    const zip = input.substring(0, 3);
+    const middle = input.substring(3, 6);
+    const last = input.substring(6, 10);
+
+    if (input.length > 6) { e.target.value = `(${zip}) ${middle}-${last}`; }
+    else if (input.length > 3) { e.target.value = `(${zip}) ${middle}`; }
+    else if (input.length > 0) { e.target.value = `(${zip}`; }
+  });
+
+  editInfoEmailBtn.addEventListener('click', function () {
+    editInfoContentScreen.classList.add('hide');
+    editInfoCredentialScreen.classList.remove('hide');
+  });
+
+  editInfoVerifyBtn.addEventListener('click', function () {
+    const credEmail = document.getElementById("editinfo-credemail");
+    const credPass = document.getElementById("editinfo-credpass");
+
+    if (credEmail.value != "" && credPass.value != "") {
+      const credential = EmailAuthProvider.credential(credEmail.value, credPass.value);
+      reauthenticateWithCredential(auth?.currentUser, credential).then(() => {
+        const infoInputs = document.getElementById("editinfo-inputs");
+        infoInputs.children[2].classList.add('hide');
+        infoInputs.children[3].classList.remove('hide');
+        editInfoCredentialScreen.classList.add('hide');
+        editInfoContentScreen.classList.remove('hide');
+        ShowNotifToast("Successfully Authenticated", "You may now update your email and submit your changes.", "var(--green)");
+      }).catch((error) => {
+        console.log(error.code + ": " + error.message);
+        var message = null;
+
+        switch (error.code) {
+          case 'auth/invalid-email':
+            message = "The email provided was invalid. Please verify the email you input and try again.";
+            break;
+          case 'auth/wrong-password':
+            message = "The password provided was invalid. Please type your password again.";
+            break;
+          default:
+            message = "There was an error trying to authenticate your credentials. Please try again.";
+            break;
+        }
+
+        ShowNotifToast("Error Authenticating", message, "var(--red)");
+      });
+    }
+  });
+
+  editInfoImg.addEventListener('change', function () {
+    editInfoImg.parentElement.setAttribute("data-text", "Profile Picture");
+
+    if (editInfoImg.files.length > 0) {
+      const fileSize = editInfoImg.files.item(0).size;
+      const fileMb = fileSize / 1024 ** 2;
+      if (fileMb >= 2) {
+        //Bad
+        ShowNotifToast("Invalid Profile Picture", "Please select a file that is less than 2MB.", "var(--red)");
+      } else {
+        //Good
+        editInfoImg.parentElement.setAttribute("data-text", editInfoImg.value.replace(/.*(\/|\\)/, ''));
+      }
+    }
+  });
+
+  editInfoSubmitBtn.addEventListener('click', function () {
+    if (auth?.currentUser.isAnonymous === false) {
+      //If const is -1 then it is unused. If it is true or false then it is used
+      const nameValid = editInfoName.value != "" ? ValidateName(editInfoName.value, true) : -1;
+      const phoneValid = editInfoPhone.value != "" ? ValidatePhone(editInfoPhone.value, true) : -1;
+      const emailValid = editInfoEmail.value != "" ? ValidateEmail(editInfoEmail.value, true) : -1;
+      const imgValid = editInfoImg.files[0] != null ? ValidateImg(editInfoImg.files[0], true) : -1;
+      var invalidCounter = 0;
+      var errorString = "The information you put for the item(s) you wanted to update is invalid.";
+
+      if (nameValid === false) {
+        invalidCounter++;
+        errorString += "\nMake sure to put your first and last name like \"John Smith\"."
+      }
+
+      if (phoneValid === false) {
+        invalidCounter++;
+        errorString += "\nPhone number must only be digits in the format: (817) 888-8888."
+      }
+
+      if (emailValid === false) {
+        invalidCounter++;
+        errorString += "\nEmail must be valid and in the format email@example.com.";
+      }
+
+      if (imgValid === null) {
+        invalidCounter++;
+        errorString += "\nProfile Picture must be a valid image (png, jpg, webp, etc.) and less than 2MB.";
+      }
+      
+      if (nameValid === -1 && phoneValid === -1 && emailValid === -1 && imgValid === -1) {
+        //Nothing was entered, do nothing
+        return;
+      } else if (invalidCounter === 0) {
+        //Update in database then locally
+        const infoUpdates = {};
+
+        if (nameValid === true) {
+          infoUpdates["Users/" + auth?.currentUser.uid + "/Name"] = editInfoName.value;
+        }
+
+        if (phoneValid === true) {
+          infoUpdates["Users/" + auth?.currentUser.uid + "/Phone"] = editInfoPhone.value;
+        }
+        
+        if (imgValid instanceof File) {
+          var imgElem = document.querySelector(".profile-image");
+          var imgName = imgElem.getAttribute("data-imgName");
+
+          deleteObject(ref_st(storage, "Users/" + auth?.currentUser.uid + "/" + imgName)).then(() => {
+            //Upload new image
+            const metaData = { cacheControl: 'public,max-age=604800', };
+            const newImgName = editInfoImg.parentElement.getAttribute('data-text');
+            uploadBytes(ref_st(storage, "Users/" + auth?.currentUser.uid + "/" + newImgName)).then(() => {
+              //Upload successful, now proceed with update
+              infoUpdates["Users/" + auth?.currentUser.uid + "/Image"] = newImgName;
+              update(ref_db(database), infoUpdates).then(() => {
+                if (emailValid === true) {
+                  updateEmail(auth.currentUser, editInfoEmail.value).then(() => {
+                    //Update local then show toast
+                    UpdateLocalProfInfo(nameValid, phoneValid, emailValid, imgValid);
+                    ShowNotifToast("Updated Profile Info", "You have successfully updated your profile information.", "var(--green)");
+                    ClearEditInfoInputs();
+                    editInfoCloseBtn.click();
+                  });
+                } else {
+                  //Update local then show toast
+                  UpdateLocalProfInfo(nameValid, phoneValid, emailValid, imgValid);
+                  ShowNotifToast("Updated Profile Info", "You have successfully updated your profile information.", "var(--green)");
+                  ClearEditInfoInputs();
+                  editInfoCloseBtn.click();
+                }
+              });
+            });
+          }).catch((error) => {
+            console.log(error.code + ": " + error.message);
+            ShowNotifToast("Error Updating Info", "There was an error when trying to update your information in the database. Please try to submit again.", "var(--red)");
+          });
+        } else {
+          update(ref_db(database), infoUpdates).then(() => {
+            if (emailValid === true) {
+              updateEmail(auth.currentUser, editInfoEmail.value).then(() => {
+                //Update local then show toast
+                UpdateLocalProfInfo(nameValid, phoneValid, emailValid, imgValid);
+                ShowNotifToast("Updated Profile Info", "You have successfully updated your profile information.", "var(--green)");
+                ClearEditInfoInputs();
+                editInfoCloseBtn.click();
+              });
+            } else {
+              //Update local then show toast
+              UpdateLocalProfInfo(nameValid, phoneValid, emailValid, imgValid);
+              ShowNotifToast("Updated Profile Info", "You have successfully updated your profile information.", "var(--green)");
+              ClearEditInfoInputs();
+              editInfoCloseBtn.click();
+            }
+          }).catch((error) => {
+            console.log(error.code + ": " + error.message);
+            ShowNotifToast("Error Updating Info", "There was an error when trying to update your information in the database. Please try to submit again.", "var(--red)");
+          });
+        }
+      } else if (invalidCounter > 0) {
+        //Something is invalid
+        ShowNotifToast("Error Updating Info", errorString, "var(--red)");
+      }
+    }
+  });
+
+  function UpdateLocalProfInfo(nameValid, phoneValid, emailValid, imgValid) {
+    var profInfoElem = document.getElementById("profile-info").children[2];
+
+    if (nameValid === true) {
+      profInfoElem.children[1].textContent = editInfoName.value;
+    }
+
+    if (phoneValid === true) {
+      profInfoElem.children[3].textContent = editInfoPhone.value;
+    }
+
+    if (emailValid === true) {
+      profInfoElem.children[2].textContent = editInfoEmail.value;
+    }
+
+    if (imgValid instanceof File) {
+      var imgElem = document.querySelector(".profile-image");
+      var fileReader = new FileReader();
+      fileReader.onload = function (e) {
+        imgElem.src = e.target.result
+      }
+      fileReader.readAsDataURL(imgValid);
+    }
+  }
+
+  function ClearEditInfoInputs() {
+    editInfoName.value = null;
+    editInfoPhone.value = null;
+    editInfoEmail.value = null;
+    editInfoImg.value = null;
+    editInfoImg.parentElement.setAttribute("data-text", "Profile Picture");
   }
 
   //Admin Dashboard
@@ -1178,6 +1450,8 @@ window.addEventListener('load', () => {
       } else {
         GetRSVPdUsersByWeek(msgWeeks.value);
       }
+    }, error => {
+      console.log(error.code + ": " + error.message);
     });
 
     return unsubscribeRsvp;
@@ -1301,11 +1575,12 @@ window.addEventListener('load', () => {
     });
 
     update(ref_db(database), msgUpdates).then(() => {
-      ShowNotifToast("Message Sent", "All specified RSVP'd Users will now be getting your message.");
+      ShowNotifToast("Message Sent", "All specified RSVP'd Users will now be getting your message.", "var(--green)");
       msgBox.value = null;
     })
       .catch((error) => {
         console.log(error.code + ": " + error.message);
+        ShowNotifToast("Error Sending Message", "There was an error sending your message. Please try to send it again.", "var(--red)");
       });
   }
 
@@ -1337,10 +1612,11 @@ window.addEventListener('load', () => {
         day.classList.add('scheduled-day');
       });
 
-      ShowNotifToast("Days Scheduled", "The days you choose have been added to your schedule.")
+      ShowNotifToast("Days Scheduled", "The days you choose have been added to your schedule.", "var(--green)");
     })
       .catch((error) => {
         console.log(error.code + ": " + error.message);
+        ShowNotifToast("Error Scheduling Days", "There was an error scheduling days into the database. Please try to schedule them again.", "var(--red)");
       });
   }
 
@@ -1401,13 +1677,21 @@ window.addEventListener('load', () => {
             UpdatePlanningIntro(hostNameArr, groupInfoArr, groupID, planningIntro);
             if (clickedWeek === null) clickedWeek = uniqWeeks[0];
             ShowEventContainers(clickedWeek, 'planning-container');
+
+            //Setup planning dropdowns
+            var uniqHostWks = [...new Set((allWeeksArr.filter(a => a.group === groupID)).map(item => item.week))];
+            SetupDropdowns(planWeekSelection, uniqHostWks, false);
+            SetupDropdowns(hostSelection, hostNameArr, true);
+
             Loading(mainLoader, false);
           })
           .catch((error) => {
-            console.log(error);
+            console.log(error.code + ": " + error.message);
           })
       }, {
         onlyOnce: true
+      }, error => {
+        console.log(error.code + ": " + error.message);
       });
     }
   }
@@ -1522,7 +1806,7 @@ window.addEventListener('load', () => {
       overviewWeekSelection.value = selectElem.value;
       planWeekSelection.value = selectElem.value;
 
-      // Switch Event Containers based on selection
+      //Switch Event Containers based on selection
       ShowEventContainers(selectElem.value, "planning-container");
       ShowEventContainers(selectElem.value, "overview-container");
     } else if (selectElem === document.getElementById('dashboard-msg-weeks')) {
@@ -1538,6 +1822,7 @@ window.addEventListener('load', () => {
       }
     }
     else {
+      //Host Selection Dropdown
       const selectedWeek = document.getElementById('plan-week-selection');
       PlanningSetup(planRef, auth?.currentUser.isAnonymous, hostNameArr.find(h => h.host === selectElem.value).group, userScheduleArr, selectedWeek.value);
     }
@@ -1611,6 +1896,15 @@ window.addEventListener('load', () => {
           tabProfile.click();
           ShowChatScreen(contactButton.getAttribute('data-host'), contactButton.getAttribute('data-host'), auth?.currentUser.uid);
         }
+      }
+    }
+
+    //Edit Info Button
+    var editInfoBtn = e.target.closest(".editinfo-button");
+
+    if (editInfoBtn) {
+      if (!editInfoScreen.classList.contains('show')) {
+        editInfoScreen.classList.add('show');
       }
     }
 
@@ -1922,7 +2216,8 @@ window.addEventListener('load', () => {
       }
       Loading(chatLoader, false);
     }).catch((error) => {
-      console.log(error);
+      console.log(error.code + ": " + error.message);
+      ShowNotifToast("Error Loading Messages", "There was an error loading your messages. Either close this screen and try opening it again or refresh the page.", "var(--red)");
     });
   }
 
@@ -1942,7 +2237,8 @@ window.addEventListener('load', () => {
         });
       }
     }).catch((error) => {
-      console.log(error);
+      console.log(error.code + ": " + error.message);
+      ShowNotifToast("Error Loading Users", "There was an error loading the users that have contacted you. Either close this screen and open it again or try refreshing the page.", "var(--red)");
     });
   }
 
@@ -2012,6 +2308,7 @@ window.addEventListener('load', () => {
             guests.previousElementSibling.classList.remove('hide');
             button.classList.remove('button-onClick');
             console.log(error.code + ": " + error.message);
+            ShowNotifToast("Error Removing RSVP", "There was an error while trying to remove an RSVP from your schedule. Please try to Cancel RSVP again.", "var(--red)");
           });
       } else {
         guests.nextElementSibling.classList.add('hide');
@@ -2045,6 +2342,7 @@ window.addEventListener('load', () => {
             guests.previousElementSibling.classList.remove('hide');
             button.classList.remove('button-onClick');
             console.log(error.code + ": " + error.message);
+            ShowNotifToast("Error Adding RSVP", "There was an error while trying to add an RSVP to your schedule. Please try to RSVP again.", "var(--red)");
           });
       }
     }, 1250);
@@ -2101,13 +2399,17 @@ window.addEventListener('load', () => {
     }
   }
 
-  function ShowNotifToast(title, message) {
+  var toastTimeout, progressTimeout;
+  function ShowNotifToast(title, message, statusColor) {
     //Check if toast is active, wait if it is
     if (toastElem.classList.contains('active')) {
       setTimeout(() => {
-        ShowNotifToast(title, message);
+        ShowNotifToast(title, message, statusColor);
       }, 1000);
     } else {
+      //Change --toast-status css var to statusColor
+      toastElem.style.setProperty('--toast-status', statusColor);
+
       //Update toast title
       toastMessage.children[0].textContent = title;
       toastMessage.children[1].textContent = message;
@@ -2116,22 +2418,22 @@ window.addEventListener('load', () => {
       toastElem.classList.add('active');
       toastProgress.classList.add('active');
 
-      setTimeout(() => {
+      toastTimeout = setTimeout(() => {
         toastElem.classList.remove('active');
       }, 5200);
 
-      setTimeout(() => {
+      progressTimeout = setTimeout(() => {
         toastProgress.classList.remove('active');
       }, 5500);
-    }  
+    }
   }
 
   toastClose.addEventListener('click', function () {
+    //First clear timers then remove 'active' classes
+    clearTimeout(toastTimeout);
+    clearTimeout(progressTimeout);
+    toastProgress.classList.remove('active');
     toastElem.classList.remove('active');
-
-    setTimeout(() => {
-      toastProgress.classList.remove('active');
-    }, 300);
   });
   //#endregion Click Functions
 });
