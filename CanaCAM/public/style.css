@@ -103,6 +103,15 @@ p {
   text-align: center;
 }
 
+a {
+  -webkit-backface-visibility:hidden;
+  backface-visibility:hidden;
+	position:relative;
+  transition:0.5s color ease;
+	text-decoration:none;
+	color:var(--blue);
+}
+
 .planning-image {
   height: auto;
   max-width: 90%;
@@ -1711,6 +1720,11 @@ form .btn input[type="submit"] {
   text-align: center;
 }
 
+#editinfo-inputs .btn:hover .btn-layer,
+#editinfo-credinputs .btn:hover .btn-layer {
+  background: var(--blue-hover);
+}
+
 .fa-circle-user {
   padding: 0 15px;
   color: #eaeef0;
@@ -2092,8 +2106,8 @@ form .btn input[type="submit"] {
   border: 2px solid var(--green);
   color: var(--white);
   letter-spacing: 1px;
-  text-shadow: 0;
-  font-size: 12px;
+  text-shadow: none;
+  font-size: calc(1vh + 5px);
   font-weight: bold;
   cursor: pointer;
   transition: all 0.25s ease;
@@ -2181,14 +2195,14 @@ form .btn input[type="submit"] {
   height: 40px;
   text-align: center;
   width: auto;
-  min-width: 100px;
+  min-width: 35%;
   border-radius: 40px;
   background: var(--green);
   border: 2px solid var(--green);
   color: var(--white);
   letter-spacing: 1px;
-  text-shadow: 0;
-  font-size: 12px;
+  text-shadow: none;
+  font-size: calc(1vh + 5px);
   font-weight: bold;
   cursor: pointer;
   transition: all 0.25s ease;
@@ -2221,7 +2235,7 @@ form .btn input[type="submit"] {
   border: 2px solid var(--green);
   color: var(--white);
   letter-spacing: 1px;
-  text-shadow: 0;
+  text-shadow: none;
   font-size: 12px;
   font-weight: bold;
   cursor: pointer;
@@ -2257,7 +2271,7 @@ form .btn input[type="submit"] {
   border: 2px solid var(--green);
   color: var(--white);
   letter-spacing: 1px;
-  text-shadow: 0;
+  text-shadow: none;
   font-size: 12px;
   font-weight: bold;
   cursor: pointer;
@@ -2293,7 +2307,7 @@ form .btn input[type="submit"] {
   border: 2px solid var(--green);
   color: var(--white);
   letter-spacing: 1px;
-  text-shadow: 0;
+  text-shadow: none;
   font-size: 12px;
   font-weight: bold;
   cursor: pointer;
@@ -2339,14 +2353,14 @@ form .btn input[type="submit"] {
   height: 40px;
   text-align: center;
   width: auto;
-  min-width: 100px;
+  min-width: 30%;
   border-radius: 40px;
   background: var(--green);
   border: 2px solid var(--green);
   color: var(--white);
   letter-spacing: 1px;
-  text-shadow: 0;
-  font-size: 12px;
+  text-shadow: none;
+  font-size: calc(1vh + 5px);
   font-weight: bold;
   cursor: pointer;
   transition: all 0.25s ease;
@@ -2557,6 +2571,30 @@ span > .fa-minus, span > .fa-plus {
 
   #dashboard-message {
     grid-template-rows: 7% 12% 10% 50% 20%;
+  }
+
+  a:hover {
+    color: var(--blue-hover);
+  }
+  
+  a:after{
+    content: "";
+    transition:0.5s all ease;
+    -webkit-backface-visibility:hidden;
+    backface-visibility:hidden;
+    position:absolute;
+    bottom: -0.25em;
+    height:5px;
+    height:0.15rem;
+    width:0;
+    background: var(--blue-hover);
+    left:50%;
+    -webkit-transform:translateX(-50%);
+    transform:translateX(-50%);
+  }
+  
+  a:hover:after{
+    width:100%;
   }
 }
 

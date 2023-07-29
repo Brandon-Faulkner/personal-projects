@@ -109,6 +109,8 @@ window.addEventListener('load', () => {
   const editInfoCredentialScreen = document.getElementById("editinfo-credentials");
   const editInfoName = document.getElementById("editinfo-name");
   const editInfoPhone = document.getElementById("editinfo-phone");
+  const editInfoCredEmail = document.getElementById("editinfo-credemail");
+  const editInfoCredPass = document.getElementById("editinfo-credpass");
   const editInfoEmailBtn = document.getElementById("editinfo-updateemail-button");
   const editInfoEmail = document.getElementById("editinfo-email");
   const editInfoImg = document.getElementById("editinfo-img");
@@ -1110,8 +1112,11 @@ window.addEventListener('load', () => {
     if (!editInfoCredentialScreen.classList.contains('hide')) {
       editInfoCredentialScreen.classList.add('hide');
       editInfoContentScreen.classList.remove('hide');
+      editInfoCredEmail.value = null;
+      editInfoCredPass.value = null;
     } else if (editInfoScreen.classList.contains('show')) {
       editInfoScreen.classList.remove('show');
+      ClearEditInfoInputs();
     }
   });
 
@@ -1243,7 +1248,7 @@ window.addEventListener('load', () => {
             //Upload new image
             const metaData = { cacheControl: 'public,max-age=604800', };
             const newImgName = editInfoImg.parentElement.getAttribute('data-text');
-            uploadBytes(ref_st(storage, "Users/" + auth?.currentUser.uid + "/" + newImgName)).then(() => {
+            uploadBytes(ref_st(storage, "Users/" + auth?.currentUser.uid + "/" + newImgName), imgValid, metaData).then(() => {
               //Upload successful, now proceed with update
               infoUpdates["Users/" + auth?.currentUser.uid + "/Image"] = newImgName;
               update(ref_db(database), infoUpdates).then(() => {
@@ -1325,6 +1330,10 @@ window.addEventListener('load', () => {
   function ClearEditInfoInputs() {
     editInfoName.value = null;
     editInfoPhone.value = null;
+    editInfoEmailBtn.parentElement.classList.remove('hide');
+    editInfoEmail.parentElement.classList.add('hide');
+    editInfoCredEmail.value = null;
+    editInfoCredPass.value = null;
     editInfoEmail.value = null;
     editInfoImg.value = null;
     editInfoImg.parentElement.setAttribute("data-text", "Profile Picture");
@@ -1728,20 +1737,21 @@ window.addEventListener('load', () => {
     row.className = "table-row";
 
     var col1 = document.createElement('div'); col1.className = "col"; col1.setAttribute('data-label', "Day/Time:"); col1.textContent = elem.day + "/" + elem.time; row.appendChild(col1);
-    var col2 = document.createElement('div'); col2.className = "col"; col2.setAttribute('data-label', "Address:"); col2.textContent = groupInfoArr.find(g => g.group === groupID).address; row.appendChild(col2);
+    var col2 = document.createElement('a'); col2.className = "col"; col2.setAttribute('data-label', "Address:"); col2.textContent = groupInfoArr.find(g => g.group === groupID).address; 
+    col2.href = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(col2.textContent); row.appendChild(col2);
 
     //Check user schedule to update these values if they exist
     //First create elements, update values if needed, then add to row in order
     var col3 = document.createElement('div'); col3.className = "col"; col3.setAttribute('data-label', "Status:"); col3.textContent = "Not Going";
 
-    var col4 = document.createElement('div'); col4.className = "col"; col4.setAttribute('data-label', "Friends:");
+    var col4 = document.createElement('div'); col4.className = "col"; col4.setAttribute('data-label', "I'm Going:");
+    var rsvp = document.createElement('button'); rsvp.className = "rsvp-button"; rsvp.setAttribute('data-groupID', groupID); rsvp.setAttribute('data-week', elem.week); rsvp.setAttribute('data-day', elem.day);
+
+    var col5 = document.createElement('div'); col5.className = "col"; col5.setAttribute('data-label', "Friends:");
     var counter = document.createElement('div'); counter.className = "counter";
     var minus = document.createElement('span'); minus.className = "guest-down"; var minusIcon = document.createElement('i'); minusIcon.className = "fa-solid fa-minus"; minus.appendChild(minusIcon);
     var counterInput = document.createElement('input'); counterInput.setAttribute("id", "counter-input-" + Math.floor(Math.random() * 100000)); counterInput.setAttribute("type", "text"); counterInput.value = 0;
     var plus = document.createElement('span'); plus.className = "guest-up"; var plusIcon = document.createElement('i'); plusIcon.className = "fa-solid fa-plus"; plus.appendChild(plusIcon);
-
-    var col5 = document.createElement('div'); col5.className = "col"; col5.setAttribute('data-label', "I'm Going:");
-    var rsvp = document.createElement('button'); rsvp.className = "rsvp-button"; rsvp.setAttribute('data-groupID', groupID); rsvp.setAttribute('data-week', elem.week); rsvp.setAttribute('data-day', elem.day);
 
     //Check schedule
     if (userScheduleArr != null) {
@@ -1755,12 +1765,10 @@ window.addEventListener('load', () => {
       });
     }
 
-    //TESTING NEW LAYOUT *****************************
-    //Switching Col4 and Col5
     //Add elements to row then to parent
     row.appendChild(col3);
-    col5.appendChild(rsvp); row.appendChild(col5);
-    counter.appendChild(minus); counter.appendChild(counterInput); counter.appendChild(plus); col4.appendChild(counter); row.appendChild(col4);
+    col4.appendChild(rsvp); row.appendChild(col4);
+    counter.appendChild(minus); counter.appendChild(counterInput); counter.appendChild(plus); col5.appendChild(counter); row.appendChild(col5);
 
     parentElem.appendChild(row);
   }
