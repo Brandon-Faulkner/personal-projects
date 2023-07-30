@@ -761,7 +761,7 @@ form .btn input[type="submit"] {
 
 .scheduled-day:active,
 .added-day:active {
-  background: var(--white-hover);
+  background: var(--background-light);
   border-radius: var(--border-radius);
   cursor: pointer;
 }
@@ -898,7 +898,7 @@ form .btn input[type="submit"] {
 
 #dashboard-datetime input {
   font: inherit;
-  font-size: 16px;
+  font-size: 12px;
   color: inherit;
   outline: none;
   appearance: none;

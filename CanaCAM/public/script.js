@@ -1757,7 +1757,8 @@ window.addEventListener('load', () => {
 
     var col1 = document.createElement('div'); col1.className = "col"; col1.setAttribute('data-label', "Day/Time:"); col1.textContent = elem.day + "/" + elem.time; row.appendChild(col1);
     var col2 = document.createElement('a'); col2.className = "col"; col2.setAttribute('data-label', "Address:"); col2.textContent = groupInfoArr.find(g => g.group === groupID).address;
-    col2.href = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(col2.textContent); row.appendChild(col2);
+    col2.href = "https://maps.google.com/maps/search/?api=1&query=" + encodeURIComponent(col2.textContent); 
+    col2.target = "_Address"; col2.rel = "noopener noreferrer"; row.appendChild(col2);
 
     //Check user schedule to update these values if they exist
     //First create elements, update values if needed, then add to row in order
