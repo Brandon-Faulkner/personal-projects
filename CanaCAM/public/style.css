@@ -463,7 +463,9 @@ input[type="radio"] {
   display: inline-flex;
 }
 
-.login-click {
+.login-click,
+.signup-click,
+.submit-click {
   left: 45%;
   margin-bottom: 10px;
   width: 50px !important;
@@ -471,12 +473,16 @@ input[type="radio"] {
   animation: rotating .75s 0.25s linear infinite;
 }
 
-.login-click>div {
+.login-click>div,
+.signup-click>div,
+.submit-click>div {
   height: 0 !important;
   width: 0 !important;
 }
 
-.login-click>input {
+.login-click>input,
+.signup-click>input,
+.submit-click>input {
   border-left-color: var(--blue) !important;
   border-width: 3px !important;
   border-left-style: solid !important;
@@ -593,22 +599,23 @@ form .btn input[type="submit"] {
   border-bottom-width: 2px;
   border-radius: 15px;
   outline: none;
+  white-space: nowrap;
 }
 
 .file-upload-wrapper:before {
   content: "Upload";
   position: absolute;
   top: 0;
-  right: 0;
+  right: 1px;
   display: inline-block;
-  height: 50px;
+  height: 97.5%;
   background: var(--green);
   color: var(--white);
   font-weight: 700;
   z-index: 25;
   font-size: 16px;
   line-height: 50px;
-  padding: 0 15px;
+  padding: 0 10px;
   text-transform: uppercase;
   pointer-events: none;
   border-radius: 0 15px 15px 0;
@@ -1014,12 +1021,12 @@ form .btn input[type="submit"] {
   bottom: 0;
   right: 0;
   height: 100%;
-  width: 100%;
-  background-color: var(--toast-status);
+  width: 100%; 
 }
 
 .toast-progress.active:before {
-  animation: toast-progress 5s linear forwards;
+  animation: toast-progress var(--toast-duration) linear forwards;
+  background-color: var(--toast-status);
 }
 
 @keyframes toast-progress {
@@ -1038,6 +1045,7 @@ form .btn input[type="submit"] {
   height: 95%;
   border-radius: var(--border-radius);
   min-width: 240px;
+  max-width: 1000px;
 }
 
 .tab-content {
@@ -1058,6 +1066,7 @@ form .btn input[type="submit"] {
 
 #tab-planning-intro {
   margin: auto;
+  width: 100%;
 }
 
 .tabs input[name=tab-control] {
@@ -1475,13 +1484,13 @@ form .btn input[type="submit"] {
 }
 
 .clickable-row:hover {
-  background-color: var(--background);
-  color: var(--white);
+  background-color: var(--white-hover);
 }
 
 .clickable-row:active {
-  background-color: var(--blue);
-  color: var(--white);
+  background-color: var(--white-hover);
+  transform: scale(0.95);
+  transition: scale 0.25s
 }
 
 .responsive-table .col {
@@ -1506,7 +1515,8 @@ form .btn input[type="submit"] {
   margin-bottom: 15px;
 }
 
-.profile-col {
+.profile-col,
+.profile-col-buttons {
   flex-basis: 35%;
   color: var(--white);
   padding-top: 10px;
@@ -2195,7 +2205,8 @@ form .btn input[type="submit"] {
   height: 40px;
   text-align: center;
   width: auto;
-  min-width: 35%;
+  min-width: 25%;
+  max-width: 235px;
   border-radius: 40px;
   background: var(--green);
   border: 2px solid var(--green);
@@ -2229,14 +2240,15 @@ form .btn input[type="submit"] {
   height: 40px;
   text-align: center;
   width: auto;
-  min-width: 100px;
+  min-width: 25%;
+  max-width: 235px;
   border-radius: 40px;
   background: var(--green);
   border: 2px solid var(--green);
   color: var(--white);
   letter-spacing: 1px;
   text-shadow: none;
-  font-size: 12px;
+  font-size: calc(1vh + 5px);
   font-weight: bold;
   cursor: pointer;
   transition: all 0.25s ease;
@@ -2265,14 +2277,15 @@ form .btn input[type="submit"] {
   height: 40px;
   text-align: center;
   width: auto;
-  min-width: 100px;
+  min-width: 25%;
+  max-width: 235px;
   border-radius: 40px;
   background: var(--green);
   border: 2px solid var(--green);
   color: var(--white);
   letter-spacing: 1px;
   text-shadow: none;
-  font-size: 12px;
+  font-size: calc(1vh + 5px);
   font-weight: bold;
   cursor: pointer;
   transition: all 0.25s ease;
@@ -2353,7 +2366,8 @@ form .btn input[type="submit"] {
   height: 40px;
   text-align: center;
   width: auto;
-  min-width: 30%;
+  min-width: 25%;
+  max-width: 235px;
   border-radius: 40px;
   background: var(--green);
   border: 2px solid var(--green);
@@ -2595,6 +2609,22 @@ span > .fa-minus, span > .fa-plus {
   
   a:hover:after{
     width:100%;
+  }
+
+  .profile-col-buttons {
+    display: inline-grid;
+    row-gap: 10px;
+    justify-content: stretch;
+    min-width: 25%;
+  }
+}
+
+@media all and (max-width: 380px) {
+  .profile-col-buttons {
+    display: inline-grid;
+    row-gap: 10px;
+    justify-content: stretch;
+    min-width: 25%;
   }
 }
 

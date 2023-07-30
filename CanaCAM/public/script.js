@@ -122,7 +122,7 @@ window.addEventListener('load', () => {
   //Arrays to hold group information
   var groupInfoArr = [], hostNameArr = [], userScheduleArr = [];
   //Values to register swipe actions
-  var touchStartX = 0; var touchEndX = 0;
+  var touchStartX = 0, touchStartY = 0; var touchEndX = 0, touchEndY = 0;
   //Used to determine if Forgot Password Page is open
   var forgPass = false;
   //Locally keep track of total RSVP days for user & their name
@@ -187,7 +187,7 @@ window.addEventListener('load', () => {
           //Only show notif if the user does not have the chat view from the host open
           if (!chatScreen.classList.contains('show')) {
             //Need to show notif, badge, status
-            ShowNotifToast(payload.data.title, "View message in profile.", "var(--blue)");
+            ShowNotifToast(payload.data.title, "View message in profile.", "var(--blue)", true, 5);
 
             //Update status
             var chatHostsArr = Array.from(chatHosts.children);
@@ -210,7 +210,7 @@ window.addEventListener('load', () => {
             CreateMessageBubble(chatMessages, payload.data.body, "left", payload.data.time);
           } else {
             //Need to show notif, status
-            ShowNotifToast(payload.data.title, "View message in profile.", "var(--blue)");
+            ShowNotifToast(payload.data.title, "View message in profile.", "var(--blue)", true, 5);
 
             //Update status and order of hosts
             var chatHostsArr = Array.from(chatHosts.children);
@@ -307,7 +307,7 @@ window.addEventListener('load', () => {
       }).catch((error) => {
         console.log(error.code + ": " + error.message);
         signupButton.parentElement.classList.remove('login-click');
-        ShowNotifToast('Account Creation Error', "We ran into an issue creating your account. Please try again or refresh the page and try again.", "var(--red)");
+        ShowNotifToast('Account Creation Error', "We ran into an issue creating your account. Please try again or refresh the page and try again.", "var(--red)", true, 8);
       });
   }
 
@@ -345,7 +345,7 @@ window.addEventListener('load', () => {
 
     }).catch((error) => {
       console.log(error.code + ": " + error.message);
-      ShowNotifToast("Sign Out Error", "There was an issue with signing you out. Please try again.", "var(--red)");
+      ShowNotifToast("Sign Out Error", "There was an issue with signing you out. Please try again.", "var(--red)", true, 8);
     });
   }
 
@@ -353,14 +353,14 @@ window.addEventListener('load', () => {
     sendPasswordResetEmail(auth, email)
       .then(() => {
         //Email sent
-        ShowNotifToast("Email Sent", "An email has been sent to the provided email address that will allow you to reset your password.", "var(--blue)");
+        ShowNotifToast("Email Sent", "An email has been sent to the provided email address that will allow you to reset your password.", "var(--blue)", true, 5);
       })
       .catch((error) => {
         console.log(error.code + ": " + error.message);
         if (error.code === "auth/invalid-email") {
-          ShowNotifToast("Invalid Email", "The email address provided is an invalid email. Make sure there are no typos and that the email is correct.", "var(--red)");
+          ShowNotifToast("Invalid Email", "The email address provided is an invalid email. Make sure there are no typos and that the email is correct.", "var(--red)", true, 8);
         } else if (error.code === "auth/user-not-found") {
-          ShowNotifToast("Account Not Found", "There is not an existing account with that email address. Make sure there are no typos and that the email is correct.", "var(--red)");
+          ShowNotifToast("Account Not Found", "There is not an existing account with that email address. Make sure there are no typos and that the email is correct.", "var(--red)", true, 8);
         }
       });
   }
@@ -436,19 +436,19 @@ window.addEventListener('load', () => {
   signupButton.addEventListener('click', function (e) {
     e.preventDefault();
 
-    signupButton.parentElement.classList.add('login-click');
+    signupButton.parentElement.classList.add('signup-click');
 
     const name = signupName.value.trim();
     const phone = signupPhone.value.trim();
-    const img = ValidateImg(signupImg.files[0]);
+    const img = ValidateImg(signupImg.files[0], null);
     const imgName = signupImg.parentElement.getAttribute('data-text');
     const email = signupEmail.value.trim();
     const password = signupPassword.value;
     const confirmPass = signupConfirmPass.value;
 
-    const isNameValid = ValidateName(name);
-    const isPhoneValid = ValidatePhone(phone);
-    const isEmailValid = ValidateEmail(email);
+    const isNameValid = ValidateName(name, null);
+    const isPhoneValid = ValidatePhone(phone, null);
+    const isEmailValid = ValidateEmail(email, null);
     const isPasswordValid = ValidatePassword(password, confirmPass);
 
     //Upgrade annonymous account if data is valid
@@ -456,7 +456,7 @@ window.addEventListener('load', () => {
       const credential = EmailAuthProvider.credential(email, password);
       UpgradeAnonymous(auth, credential, img, imgName, name, phone);
     } else {
-      signupButton.parentElement.classList.remove('login-click');
+      signupButton.parentElement.classList.remove('signup-click');
     }
   });
 
@@ -536,9 +536,9 @@ window.addEventListener('load', () => {
   function ValidateName(name, isEditInfo) {
     const nameRegex = new RegExp(/^[a-zA-z]+ [a-zA-z]+$/gm, "gm");
     const result = nameRegex.test(name);
+    const nameError = document.getElementById("name-error");
 
     if (isEditInfo === null) {
-      const nameError = document.getElementById("name-error");
       nameError.classList.add('hide');
       signupName.classList.remove('login-error');
 
@@ -555,9 +555,9 @@ window.addEventListener('load', () => {
   function ValidatePhone(phone, isEditInfo) {
     const phoneRegex = new RegExp(/^(\()?\d{3}(\))?(-|\s)?\d{3}(-|\s)\d{4}$/gm, "gm");
     const result = phoneRegex.test(phone);
+    const phoneError = document.getElementById("phone-error");
 
     if (isEditInfo === null) {
-      const phoneError = document.getElementById("phone-error");
       phoneError.classList.add('hide');
       signupPhone.classList.remove('login-error');
 
@@ -574,9 +574,9 @@ window.addEventListener('load', () => {
   function ValidateEmail(email, isEditInfo) {
     var emailRegex = new RegExp(/^[A-Za-z0-9_!#$%&'*+\/=?`{|}~^.-]+@[A-Za-z0-9.-]+$/gm, "gm");
     const result = emailRegex.test(email);
+    const emailError = document.getElementById("email-error");
 
     if (isEditInfo === null) {
-      const emailError = document.getElementById("email-error");
       emailError.classList.add('hide');
       signupEmail.classList.remove('login-error');
 
@@ -616,8 +616,8 @@ window.addEventListener('load', () => {
   }
 
   function ValidateImg(img, isEditInfo) {
+    const fileError = document.getElementById('file-error');
     if (isEditInfo === null) {
-      const fileError = document.getElementById('file-error');
       fileError.classList.add('hide');
       signupImg.classList.remove('login-error');
     }
@@ -639,15 +639,25 @@ window.addEventListener('load', () => {
     //Login
     loginEmail.value = null;
     loginPassword.value = null;
+    loginText.textContent = "Welcome Back!";
+    loginText.classList.remove('login-error');
+    loginEmail.classList.remove('login-error');
+    loginPassword.classList.remove('login-error');
 
     //Sign up
-    signupName.value = null;
-    signupPhone.value = null;
-    signupEmail.value = null;
-    signupPassword.value = null;
-    signupConfirmPass.value = null;
-    signupImg.value = null;
-    signupImg.parentElement.setAttribute("data-text", "Upload Profile Picture");
+    signupName.value = null; signupName.classList.remove('login-error');
+    const nameError = document.getElementById('name-error'); nameError.classList.add('hide');
+    signupPhone.value = null; signupPhone.classList.remove('login-error');
+    const phoneError = document.getElementById('phone-error'); phoneError.classList.add('hide');
+    signupEmail.value = null; signupEmail.classList.remove('login-error');
+    const emailError = document.getElementById('email-error'); emailError.classList.add('hide');
+    signupPassword.value = null; signupPassword.classList.remove('login-error');
+    const passError = document.getElementById('pass-error'); passError.classList.add('hide');
+    signupConfirmPass.value = null; signupConfirmPass.classList.remove('login-error');
+    const confPassError = document.getElementById('conf-pass-error'); confPassError.classList.add('hide');
+    signupImg.value = null; signupImg.classList.remove('login-error');
+    const fileError = document.getElementById('file-error'); fileError.classList.add('hide');
+    signupImg.parentElement.setAttribute("data-text", "Profile Picture");
   }
   //#endregion Login Functions
 
@@ -941,7 +951,7 @@ window.addEventListener('load', () => {
     var profImg = document.createElement('img'); profImg.src = imgUrl; profImg.className = "profile-image"; profImg.setAttribute("data-imgName", imgName);
     profCol1.appendChild(profImg); profileHeader.appendChild(profCol1);
 
-    var profCol2 = document.createElement('div'); profCol2.className = "profile-col";
+    var profCol2 = document.createElement('div'); profCol2.className = "profile-col-buttons";
     var profSignOut = document.createElement('button'); profSignOut.setAttribute('id', 'signout-button'); profSignOut.className = "signout-button";
     var profSignOutIcon = document.createElement('i'); profSignOutIcon.className = "fa-solid fa-right-from-bracket"; profSignOut.appendChild(profSignOutIcon);
     profCol2.appendChild(profSignOut);
@@ -1044,7 +1054,7 @@ window.addEventListener('load', () => {
         })
           .catch((error) => {
             console.log(error.code + ": " + error.message);
-            ShowNotifToast("Error Sending Message", "There was an error trying to send your message. Please try to send it again.", "var(--red)");
+            ShowNotifToast("Error Sending Message", "There was an error trying to send your message. Please try to send it again.", "var(--red)", true, 6);
           });
       } else {
         const sendMessage = {};
@@ -1055,7 +1065,7 @@ window.addEventListener('load', () => {
         })
           .catch((error) => {
             console.log(error.code + ": " + error.message);
-            ShowNotifToast("Error Sending Message", "There was an error trying to send your message. Please try to send it again.", "var(--red)");
+            ShowNotifToast("Error Sending Message", "There was an error trying to send your message. Please try to send it again.", "var(--red)", true, 6);
           });
       }
     }
@@ -1148,6 +1158,7 @@ window.addEventListener('load', () => {
   editInfoVerifyBtn.addEventListener('click', function () {
     const credEmail = document.getElementById("editinfo-credemail");
     const credPass = document.getElementById("editinfo-credpass");
+    editInfoVerifyBtn.classList.add('submit-click');
 
     if (credEmail.value != "" && credPass.value != "") {
       const credential = EmailAuthProvider.credential(credEmail.value, credPass.value);
@@ -1157,7 +1168,8 @@ window.addEventListener('load', () => {
         infoInputs.children[3].classList.remove('hide');
         editInfoCredentialScreen.classList.add('hide');
         editInfoContentScreen.classList.remove('hide');
-        ShowNotifToast("Successfully Authenticated", "You may now update your email and submit your changes.", "var(--green)");
+        ShowNotifToast("Successfully Authenticated", "You may now update your email and submit your changes.", "var(--green)", true, 5);
+        editInfoVerifyBtn.classList.remove('submit-click');
       }).catch((error) => {
         console.log(error.code + ": " + error.message);
         var message = null;
@@ -1174,7 +1186,8 @@ window.addEventListener('load', () => {
             break;
         }
 
-        ShowNotifToast("Error Authenticating", message, "var(--red)");
+        ShowNotifToast("Error Authenticating", message, "var(--red)", true, 8);
+        editInfoVerifyBtn.classList.remove('submit-click');
       });
     }
   });
@@ -1187,7 +1200,7 @@ window.addEventListener('load', () => {
       const fileMb = fileSize / 1024 ** 2;
       if (fileMb >= 2) {
         //Bad
-        ShowNotifToast("Invalid Profile Picture", "Please select a file that is less than 2MB.", "var(--red)");
+        ShowNotifToast("Invalid Profile Picture", "Please select a file that is less than 2MB.", "var(--red)", true, 5);
       } else {
         //Good
         editInfoImg.parentElement.setAttribute("data-text", editInfoImg.value.replace(/.*(\/|\\)/, ''));
@@ -1197,6 +1210,7 @@ window.addEventListener('load', () => {
 
   editInfoSubmitBtn.addEventListener('click', function () {
     if (auth?.currentUser.isAnonymous === false) {
+      editInfoSubmitBtn.classList.add('submit-click');
       //If const is -1 then it is unused. If it is true or false then it is used
       const nameValid = editInfoName.value != "" ? ValidateName(editInfoName.value, true) : -1;
       const phoneValid = editInfoPhone.value != "" ? ValidatePhone(editInfoPhone.value, true) : -1;
@@ -1224,9 +1238,10 @@ window.addEventListener('load', () => {
         invalidCounter++;
         errorString += "\nProfile Picture must be a valid image (png, jpg, webp, etc.) and less than 2MB.";
       }
-      
+
       if (nameValid === -1 && phoneValid === -1 && emailValid === -1 && imgValid === -1) {
         //Nothing was entered, do nothing
+        editInfoSubmitBtn.classList.remove('submit-click');
         return;
       } else if (invalidCounter === 0) {
         //Update in database then locally
@@ -1239,7 +1254,7 @@ window.addEventListener('load', () => {
         if (phoneValid === true) {
           infoUpdates["Users/" + auth?.currentUser.uid + "/Phone"] = editInfoPhone.value;
         }
-        
+
         if (imgValid instanceof File) {
           var imgElem = document.querySelector(".profile-image");
           var imgName = imgElem.getAttribute("data-imgName");
@@ -1256,14 +1271,14 @@ window.addEventListener('load', () => {
                   updateEmail(auth.currentUser, editInfoEmail.value).then(() => {
                     //Update local then show toast
                     UpdateLocalProfInfo(nameValid, phoneValid, emailValid, imgValid);
-                    ShowNotifToast("Updated Profile Info", "You have successfully updated your profile information.", "var(--green)");
+                    ShowNotifToast("Updated Profile Info", "You have successfully updated your profile information.", "var(--green)", true, 5);
                     ClearEditInfoInputs();
                     editInfoCloseBtn.click();
                   });
                 } else {
                   //Update local then show toast
                   UpdateLocalProfInfo(nameValid, phoneValid, emailValid, imgValid);
-                  ShowNotifToast("Updated Profile Info", "You have successfully updated your profile information.", "var(--green)");
+                  ShowNotifToast("Updated Profile Info", "You have successfully updated your profile information.", "var(--green)", true, 5);
                   ClearEditInfoInputs();
                   editInfoCloseBtn.click();
                 }
@@ -1271,7 +1286,8 @@ window.addEventListener('load', () => {
             });
           }).catch((error) => {
             console.log(error.code + ": " + error.message);
-            ShowNotifToast("Error Updating Info", "There was an error when trying to update your information in the database. Please try to submit again.", "var(--red)");
+            ShowNotifToast("Error Updating Info", "There was an error when trying to update your information in the database. Please try to submit again.", "var(--red)", true, 8);
+            editInfoSubmitBtn.classList.remove('submit-click');
           });
         } else {
           update(ref_db(database), infoUpdates).then(() => {
@@ -1279,25 +1295,27 @@ window.addEventListener('load', () => {
               updateEmail(auth.currentUser, editInfoEmail.value).then(() => {
                 //Update local then show toast
                 UpdateLocalProfInfo(nameValid, phoneValid, emailValid, imgValid);
-                ShowNotifToast("Updated Profile Info", "You have successfully updated your profile information.", "var(--green)");
+                ShowNotifToast("Updated Profile Info", "You have successfully updated your profile information.", "var(--green)", true, 5);
                 ClearEditInfoInputs();
                 editInfoCloseBtn.click();
               });
             } else {
               //Update local then show toast
               UpdateLocalProfInfo(nameValid, phoneValid, emailValid, imgValid);
-              ShowNotifToast("Updated Profile Info", "You have successfully updated your profile information.", "var(--green)");
+              ShowNotifToast("Updated Profile Info", "You have successfully updated your profile information.", "var(--green)", true, 5);
               ClearEditInfoInputs();
               editInfoCloseBtn.click();
             }
           }).catch((error) => {
             console.log(error.code + ": " + error.message);
-            ShowNotifToast("Error Updating Info", "There was an error when trying to update your information in the database. Please try to submit again.", "var(--red)");
+            ShowNotifToast("Error Updating Info", "There was an error when trying to update your information in the database. Please try to submit again.", "var(--red)", true, 8);
+            editInfoSubmitBtn.classList.remove('submit-click');
           });
         }
       } else if (invalidCounter > 0) {
         //Something is invalid
-        ShowNotifToast("Error Updating Info", errorString, "var(--red)");
+        ShowNotifToast("Error Updating Info", errorString, "var(--red)", true, 8);
+        editInfoSubmitBtn.classList.remove('submit-click');
       }
     }
   });
@@ -1337,6 +1355,7 @@ window.addEventListener('load', () => {
     editInfoEmail.value = null;
     editInfoImg.value = null;
     editInfoImg.parentElement.setAttribute("data-text", "Profile Picture");
+    editInfoSubmitBtn.classList.remove('submit-click');
   }
 
   //Admin Dashboard
@@ -1584,12 +1603,12 @@ window.addEventListener('load', () => {
     });
 
     update(ref_db(database), msgUpdates).then(() => {
-      ShowNotifToast("Message Sent", "All specified RSVP'd Users will now be getting your message.", "var(--green)");
+      ShowNotifToast("Message Sent", "All specified RSVP'd Users will now be getting your message.", "var(--green)", true, 5);
       msgBox.value = null;
     })
       .catch((error) => {
         console.log(error.code + ": " + error.message);
-        ShowNotifToast("Error Sending Message", "There was an error sending your message. Please try to send it again.", "var(--red)");
+        ShowNotifToast("Error Sending Message", "There was an error sending your message. Please try to send it again.", "var(--red)", true, 5);
       });
   }
 
@@ -1621,11 +1640,11 @@ window.addEventListener('load', () => {
         day.classList.add('scheduled-day');
       });
 
-      ShowNotifToast("Days Scheduled", "The days you choose have been added to your schedule.", "var(--green)");
+      ShowNotifToast("Days Scheduled", "The days you choose have been added to your schedule.", "var(--green)", true, 5);
     })
       .catch((error) => {
         console.log(error.code + ": " + error.message);
-        ShowNotifToast("Error Scheduling Days", "There was an error scheduling days into the database. Please try to schedule them again.", "var(--red)");
+        ShowNotifToast("Error Scheduling Days", "There was an error scheduling days into the database. Please try to schedule them again.", "var(--red)", true, 5);
       });
   }
 
@@ -1737,7 +1756,7 @@ window.addEventListener('load', () => {
     row.className = "table-row";
 
     var col1 = document.createElement('div'); col1.className = "col"; col1.setAttribute('data-label', "Day/Time:"); col1.textContent = elem.day + "/" + elem.time; row.appendChild(col1);
-    var col2 = document.createElement('a'); col2.className = "col"; col2.setAttribute('data-label', "Address:"); col2.textContent = groupInfoArr.find(g => g.group === groupID).address; 
+    var col2 = document.createElement('a'); col2.className = "col"; col2.setAttribute('data-label', "Address:"); col2.textContent = groupInfoArr.find(g => g.group === groupID).address;
     col2.href = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(col2.textContent); row.appendChild(col2);
 
     //Check user schedule to update these values if they exist
@@ -2082,27 +2101,32 @@ window.addEventListener('load', () => {
   });
 
   var isZooming = false;
-
   document.addEventListener('touchstart', e => {
     if (e.touches.length > 1) {
       isZooming = true;
     } else if (e.touches.length === 1) {
       isZooming = false;
       touchStartX = e.changedTouches[0].screenX;
+      touchStartY = e.changedTouches[0].screenY;
     }
   });
 
   document.addEventListener('touchend', e => {
     if (isZooming === false) {
-      touchEndX = e.changedTouches[0].screenX;
-      SwitchTabOnSwipe();
+      touchEndY = e.changedTouches[0].screenY;
+
+      if (Math.abs((touchStartY - touchEndY)) < 30) {
+        touchEndX = e.changedTouches[0].screenX;
+        SwitchTabOnSwipe();
+      }
     }
   });
 
   function SwitchTabOnSwipe() {
     //Make sure no pop ups or overlays are being shown first
     if (!loginScreen.classList.contains('show') && mainLoader.classList.contains('fadeOut')
-      && !chatScreen.classList.contains('show') && !dashboardPage.classList.contains('show') && isZooming === false) {
+      && !chatScreen.classList.contains('show') && !dashboardPage.classList.contains('show')
+      && !editInfoScreen.classList.contains('show') && isZooming === false) {
       if (touchEndX < touchStartX && (touchStartX - touchEndX) > 50) {
         if (tabPlanning.checked === true) {
           tabOverview.click();
@@ -2225,7 +2249,7 @@ window.addEventListener('load', () => {
       Loading(chatLoader, false);
     }).catch((error) => {
       console.log(error.code + ": " + error.message);
-      ShowNotifToast("Error Loading Messages", "There was an error loading your messages. Either close this screen and try opening it again or refresh the page.", "var(--red)");
+      ShowNotifToast("Error Loading Messages", "There was an error loading your messages. Either close this screen and try opening it again or refresh the page.", "var(--red)", true, 5);
     });
   }
 
@@ -2246,7 +2270,7 @@ window.addEventListener('load', () => {
       }
     }).catch((error) => {
       console.log(error.code + ": " + error.message);
-      ShowNotifToast("Error Loading Users", "There was an error loading the users that have contacted you. Either close this screen and open it again or try refreshing the page.", "var(--red)");
+      ShowNotifToast("Error Loading Users", "There was an error loading the users that have contacted you. Either close this screen and open it again or try refreshing the page.", "var(--red)", true, 8);
     });
   }
 
@@ -2316,7 +2340,7 @@ window.addEventListener('load', () => {
             guests.previousElementSibling.classList.remove('hide');
             button.classList.remove('button-onClick');
             console.log(error.code + ": " + error.message);
-            ShowNotifToast("Error Removing RSVP", "There was an error while trying to remove an RSVP from your schedule. Please try to Cancel RSVP again.", "var(--red)");
+            ShowNotifToast("Error Removing RSVP", "There was an error while trying to remove an RSVP from your schedule. Please try to Cancel RSVP again.", "var(--red)", true, 5);
           });
       } else {
         guests.nextElementSibling.classList.add('hide');
@@ -2350,7 +2374,7 @@ window.addEventListener('load', () => {
             guests.previousElementSibling.classList.remove('hide');
             button.classList.remove('button-onClick');
             console.log(error.code + ": " + error.message);
-            ShowNotifToast("Error Adding RSVP", "There was an error while trying to add an RSVP to your schedule. Please try to RSVP again.", "var(--red)");
+            ShowNotifToast("Error Adding RSVP", "There was an error while trying to add an RSVP to your schedule. Please try to RSVP again.", "var(--red)", true, 5);
           });
       }
     }, 1250);
@@ -2408,11 +2432,11 @@ window.addEventListener('load', () => {
   }
 
   var toastTimeout, progressTimeout;
-  function ShowNotifToast(title, message, statusColor) {
+  function ShowNotifToast(title, message, statusColor, isTimed, seconds) {
     //Check if toast is active, wait if it is
     if (toastElem.classList.contains('active')) {
       setTimeout(() => {
-        ShowNotifToast(title, message, statusColor);
+        ShowNotifToast(title, message, statusColor, isTimed, seconds);
       }, 1000);
     } else {
       //Change --toast-status css var to statusColor
@@ -2424,15 +2448,20 @@ window.addEventListener('load', () => {
 
       //Now show the toast
       toastElem.classList.add('active');
-      toastProgress.classList.add('active');
 
-      toastTimeout = setTimeout(() => {
-        toastElem.classList.remove('active');
-      }, 5200);
+      //Show the progress bar if isTimed is true
+      if (isTimed === true) {
+        toastProgress.style.setProperty('--toast-duration', seconds + 's');
+        toastProgress.classList.add('active');
 
-      progressTimeout = setTimeout(() => {
-        toastProgress.classList.remove('active');
-      }, 5500);
+        toastTimeout = setTimeout(() => {
+          toastElem.classList.remove('active');
+        }, (seconds * 1000) + 200);
+
+        progressTimeout = setTimeout(() => {
+          toastProgress.classList.remove('active');
+        }, (seconds * 1000) + 500);
+      }
     }
   }
 
