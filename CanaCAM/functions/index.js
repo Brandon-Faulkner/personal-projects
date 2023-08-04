@@ -28,6 +28,7 @@ exports.sendUserNotification = functions.database.ref('/UsersMessages/{host}/{ui
         //Send notification to device
         return admin.messaging().send(message).then((response) => {
             console.log('Sent notification:', response);
+            return admin.database().ref('/Users/' + userID + '/UnreadChats/' + hostName).set(Date.now());
         }).catch((error) => {
             console.log('Error sending notification: ', error);
         });
@@ -86,6 +87,14 @@ exports.sendHostNotification = functions.database.ref('/UsersMessages/{host}/{ui
 
             return admin.messaging().sendEach(messagesArr).then((response) => {
                 console.log('Sent notification: ', response);
+
+                if (hostsDataArr.length === 2) {
+                    return admin.database().ref('/Users/' + hostsDataArr[0].id + '/UnreadChats/' + userName).set(Date.now()).then((next) => {
+                        return admin.database().ref('/Users/' + hostsDataArr[1].id + '/UnreadChats/' + userName).set(Date.now());
+                    });
+                } else {
+                    return admin.database().ref('/Users/' + hostsDataArr[0].id + '/UnreadChats/' + userName).set(Date.now());
+                }
             });
         });
     }).catch((error) => {

@@ -225,7 +225,90 @@
         </section>
         <section id="overview-section">
           <h1>Overview</h1>
-          <p>This is a description of how this page works and maybe about the planning one.</p>
+          <button id="abouthelp-button" class="abouthelp-button">
+            <i class="fa-solid fa-circle-info"></i>
+          </button>
+          <div id="abouthelp-page" class="pop-up">
+            <div id="abouthelp-wrapper">
+              <div id="abouthelp-content">
+                <div id="abouthelp-title">
+                  Welcome to Cana C.A.M!
+                  <button id="abouthelp-close-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
+                      <path
+                        d="M 25 3 C 12.86158 3 3 12.86158 3 25 C 3 37.13842 12.86158 47 25 47 C 37.13842 47 47 37.13842 47 25 C 47 12.86158 37.13842 3 25 3 z M 25 5 C 36.05754 5 45 13.94246 45 25 C 45 36.05754 36.05754 45 25 45 C 13.94246 45 5 36.05754 5 25 C 5 13.94246 13.94246 5 25 5 z M 16.990234 15.990234 A 1.0001 1.0001 0 0 0 16.292969 17.707031 L 23.585938 25 L 16.292969 32.292969 A 1.0001 1.0001 0 1 0 17.707031 33.707031 L 25 26.414062 L 32.292969 33.707031 A 1.0001 1.0001 0 1 0 33.707031 32.292969 L 26.414062 25 L 33.707031 17.707031 A 1.0001 1.0001 0 0 0 32.980469 15.990234 A 1.0001 1.0001 0 0 0 32.292969 16.292969 L 25 23.585938 L 17.707031 16.292969 A 1.0001 1.0001 0 0 0 16.990234 15.990234 z">
+                      </path>
+                    </svg>
+                  </button>
+                </div>
+                <div id="abouthelp-slider">
+                  <input type="radio" name="abouthelp-slide" id="abouthelp-slider-about" checked="">
+                  <input type="radio" name="abouthelp-slide" id="abouthelp-slider-help">
+                  <label for="abouthelp-slider-about" class="abouthelp-slide slide-about">
+                    <i class="slide-icons fa-circle-info"></i>About</label>
+                  <label for="abouthelp-slider-help" class="abouthelp-slide slide-help">
+                    <i class="slide-icons fa-circle-question"></i>Help</label>
+                  <div class="abouthelp-slider-tab"></div>
+                </div>
+                <div id="abouthelp-aboutpage">
+                  <ul>
+                    <li>
+                      <input type="checkbox" checked>
+                      <i></i>
+                      <h2>First Steps!</h2>
+                      <p>Install the app on your homescreen!</p>
+                    </li>
+                    <li>
+                      <input type="checkbox" checked>
+                      <i></i>
+                      <h2>What is Cana C.A.M?</h2>
+                      <p>It's a cool lil web app. Yuh.</p>
+                    </li>
+                    <li>
+                      <input type="checkbox" checked>
+                      <i></i>
+                      <h2>Where does Cana C.A.M. come from?</h2>
+                      <p>It comes from Cana Church, duh.</p>
+                    </li>
+                    <li>
+                      <input type="checkbox" checked>
+                      <i></i>
+                      <h2>Why should I use Cana C.A.M?</h2>
+                      <p>Uhhh cuz itz kool and the craigslist of family-style meals.</p>
+                    </li>
+                  </ul>
+                </div>
+                <div id="abouthelp-helppage" class="hide">
+                  <ul>
+                    <li>
+                      <input type="checkbox" checked>
+                      <i></i>
+                      <h2>Need more help or have feedback?</h2>
+                      <p>Send me a DM on MySpace.</p>
+                    </li>
+                    <li>
+                      <input type="checkbox" checked>
+                      <i></i>
+                      <h2>Overview Page</h2>
+                      <p>General information about hostz and datez.</p>
+                    </li>
+                    <li>
+                      <input type="checkbox" checked>
+                      <i></i>
+                      <h2>Planning Page</h2>
+                      <p>Plan all your hunger mealz here.</p>
+                    </li>
+                    <li>
+                      <input type="checkbox" checked>
+                      <i></i>
+                      <h2>Profile Page</h2>
+                      <p>This is where you can look at your kool profile picture.</p>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
           <div class="week-select-grid week-select-grid-overview">
             <label class="dropdown" for="over-week-selection">
               <select id="over-week-selection" required="required">
@@ -265,7 +348,8 @@
                   Edit Profile Info
                 </div>
                 <div id="editinfo-content">
-                  <p style="color: var(--background);margin: auto;padding: 10px;font-size: 18px;">Fill out the information you want to change and press submit.</p>
+                  <p style="color: var(--background);margin: auto;padding: 10px;font-size: 18px;">Fill out the info you
+                    want to change and press submit.</p>
                   <div id="editinfo-inputs">
                     <div class="field">
                       <input id="editinfo-name" type="text" placeholder="First &amp; Last Name">
@@ -290,11 +374,14 @@
                   </div>
                 </div>
                 <div id="editinfo-credentials" class="hide">
-                  <p style="color: var(--background);margin: auto;padding: 10px;font-size: 18px;">Please provide your current email and password to re-authenticate your account before trying to change your email.</p>
+                  <p style="color: var(--background);margin: auto;padding: 10px;font-size: 18px;">Please provide your
+                    current email and password to re-authenticate your account before trying to change your email.</p>
                   <div id="editinfo-credinputs">
                     <div class="field">
-                      <input id="editinfo-credemail" type="text" placeholder="Email Address" autocomplete="username email">
-                    </div><div class="field">
+                      <input id="editinfo-credemail" type="text" placeholder="Email Address"
+                        autocomplete="username email">
+                    </div>
+                    <div class="field">
                       <input id="editinfo-credpass" type="password" placeholder="Password">
                     </div>
                     <div class="field btn">
@@ -329,6 +416,13 @@
                   <label for="chat-slider-users" class="chat-slide slide-users">
                     <i class="slide-icons fa-user"></i>Users</label>
                   <div class="chat-slider-tab"></div>
+                </div>
+                <div id="chat-host-loader" class="loader fadeOut">
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                  <div class="dot"></div>
+                  <div class="dot"></div>
                 </div>
               </div>
               <div id="chat-view">

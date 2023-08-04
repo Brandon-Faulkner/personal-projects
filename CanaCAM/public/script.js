@@ -71,6 +71,13 @@ window.addEventListener('load', () => {
   const toastClose = document.querySelector('.toast .close');
 
   const mainScreen = document.getElementById('main-page');
+  const aboutHelpBtn = document.getElementById('abouthelp-button');
+  const aboutHelpPage = document.getElementById('abouthelp-page');
+  const aboutHelpCloseBtn = document.getElementById('abouthelp-close-btn');
+  const aboutToggleBtn = document.getElementById('abouthelp-slider-about');
+  const helpToggleBtn = document.getElementById('abouthelp-slider-help');
+  const aboutHelpAboutPage = document.getElementById('abouthelp-aboutpage');
+  const aboutHelpHelpPage = document.getElementById('abouthelp-helppage');
 
   const dashboardPage = document.getElementById('dashboard-page');
 
@@ -98,6 +105,7 @@ window.addEventListener('load', () => {
   const chatSliderHosts = document.getElementById('chat-slider-hosts');
   const chatSliderUsers = document.getElementById('chat-slider-users');
   const chatView = document.getElementById('chat-view');
+  const chatHostLoader = document.getElementById('chat-host-loader');
   const chatLoader = document.getElementById('chat-loader');
   const chatHostProf = document.getElementById('chat-host-profile');
   const chatMessages = document.getElementById('chat-messages');
@@ -126,10 +134,10 @@ window.addEventListener('load', () => {
   //Used to determine if Forgot Password Page is open
   var forgPass = false;
   //Locally keep track of total RSVP days for user & their name
-  var userTotalRSVP = 0; var userFullName = null;
+  var userTotalRSVP = 0; var userFullName = null; var userUnreadChats = [];
   //Locally keep track of admin status
   var isAdmin = false; var adminGroup = null; var adminHostName = null;
-  var userNameArr = []; var hostWeeksArr = []; var rsvpdUsersArr = [];
+  var userNameArr = []; var hostWeeksArr = []; var rsvpdUsersArr = []; var adminNotifToken = null;
   //Used to stop user from recieving messages on an authChange state
   var unsubscribe = null;
 
@@ -205,6 +213,10 @@ window.addEventListener('load', () => {
             const tabProfileLabel = document.querySelector('.tabs-ul .new-msg-notif label');
             tabProfileLabel.setAttribute('data-notif', "!");
 
+            //Update unreadchats status
+            userUnreadChats.push(payload.data.title.replace(" replied", ""));
+            UpdateUnreadChatsStatus(payload.data.title.replace(" replied", ""), "add");
+
           } else if (chatView.classList.contains('fadeInChat') && chatHostProf.children[0].textContent === payload.data.title.replace(" replied", "")) {
             //Only need to create message bubble if the right convo is open
             CreateMessageBubble(chatMessages, payload.data.body, "left", payload.data.time);
@@ -228,6 +240,10 @@ window.addEventListener('load', () => {
                 chatHosts.appendChild(host);
               }
             });
+
+            //Update unreadchats status
+            userUnreadChats.push(msgTitle);
+            UpdateUnreadChatsStatus(msgTitle, "add");
           }
         }, error => {
           console.log(error.code + ": " + error.message);
@@ -373,6 +389,7 @@ window.addEventListener('load', () => {
         const hostData = snapshot.child("groupData").val().split(" | ");
         adminGroup = hostData[1];
         adminHostName = hostData[0];
+        var tempToken = snapshot.child('notifToken');
 
         //Create host dashboard
         CreateAdminDashboard(dashboardPage);
@@ -391,7 +408,10 @@ window.addEventListener('load', () => {
       }
 
       //Now proceed with setting up the app
-      OverviewSetup(groupRef, auth?.currentUser.isAnonymous);
+      if (adminNotifToken === null || adminNotifToken === tempToken) {
+        OverviewSetup(groupRef, auth?.currentUser.isAnonymous);
+      }
+      adminNotifToken = tempToken;
     }, (error) => {
       if (error.code === "PERMISSION_DENIED") {
         //User is not admin, but they are still possibly authenticated and able to use app
@@ -669,7 +689,7 @@ window.addEventListener('load', () => {
           const decodedWeek = decodeURIComponent(week.key);
           const splitWeekDates = decodedWeek.split('-');
           const beginWeekDate = new Date(splitWeekDates[0]);//.toLocaleDateString('en', {month: 'numeric', day: '2-digit', year: '2-digit'});
-          const endWeekDate = new Date(splitWeekDates[1]);
+          const endWeekDate = new Date(splitWeekDates[1] + " 11:59:59:999 PM");
           const currentDate = new Date();
 
           //If the entire week has passed
@@ -718,7 +738,7 @@ window.addEventListener('load', () => {
         const decodedWeek = decodeURIComponent(week.key);
         const splitWeekDates = decodedWeek.split('-');
         const beginWeekDate = new Date(splitWeekDates[0]);//.toLocaleDateString('en', {month: 'numeric', day: '2-digit', year: '2-digit'});
-        const endWeekDate = new Date(splitWeekDates[1]);
+        const endWeekDate = new Date(splitWeekDates[1] + " 11:59:59:999 PM");
         const currentDate = new Date();
 
         //If the entire week has passed
@@ -878,6 +898,32 @@ window.addEventListener('load', () => {
       }
     });
   }
+
+  aboutHelpBtn.addEventListener('click', function () {
+    if (!aboutHelpPage.classList.contains('show')) {
+      aboutHelpPage.classList.add('show');
+    }
+  });
+
+  aboutToggleBtn.addEventListener('click', function () {
+    if (aboutHelpAboutPage.classList.contains('hide')) {
+      aboutHelpAboutPage.classList.remove('hide');
+      aboutHelpHelpPage.classList.add('hide');
+    }
+  });
+
+  helpToggleBtn.addEventListener('click', function () {
+    if (aboutHelpHelpPage.classList.contains('hide')) {
+      aboutHelpHelpPage.classList.remove('hide');
+      aboutHelpAboutPage.classList.add('hide');
+    }
+  });
+
+  aboutHelpCloseBtn.addEventListener('click', function () {
+    if (aboutHelpPage.classList.contains('show')) {
+      aboutHelpPage.classList.remove('show');
+    }
+  });
   //#endregion Overview Setup
 
   //#region Profile Setup
@@ -900,6 +946,12 @@ window.addEventListener('load', () => {
         const userEmail = auth?.currentUser.email;
         const userPhone = snapshot.child("Phone").val();
         userTotalRSVP = snapshot.child("Total RSVP'd").val();
+
+        //Get unreadchats
+        userUnreadChats = [];
+        snapshot.child("UnreadChats").forEach((contact) => {
+          userUnreadChats.push(contact.key);
+        });
 
         //Clear userScheduleArr to avoid duplicates
         userScheduleArr = [];
@@ -930,6 +982,14 @@ window.addEventListener('load', () => {
             hostNameArr.forEach((host) => {
               ChatHostsSetup(chatHosts, host.host);
             });
+
+            if (userUnreadChats.length > 0) {
+              //Show badges
+              const messagesBtn = document.getElementById('messages-button');
+              messagesBtn.setAttribute('data-notif', '!');
+              const tabProfileLabel = document.querySelector('.tabs-ul .new-msg-notif label');
+              tabProfileLabel.setAttribute('data-notif', "!");
+            }
             Loading(mainLoader, false);
           })
           .catch((error) => {
@@ -1000,14 +1060,21 @@ window.addEventListener('load', () => {
     parentElem.appendChild(profileRow);
   }
 
-  //Messages
+  //#region Messages
   function ChatHostsSetup(parentElem, host) {
     var hostDiv = document.createElement('div'); hostDiv.classList.add('chat-host'); hostDiv.setAttribute('id', host + '-chat');
 
     var hostIcon = document.createElement('i'); hostIcon.className = "fa-circle-user"; hostDiv.appendChild(hostIcon);
     var hostName = document.createElement('p'); var nameText = document.createElement('strong'); nameText.textContent = host; hostName.appendChild(nameText); hostDiv.appendChild(hostName);
 
-    var notifStatus = document.createElement('div'); notifStatus.classList.add('status'); notifStatus.setAttribute('id', host + '-status'); hostDiv.appendChild(notifStatus);
+    var notifStatus = document.createElement('div'); notifStatus.classList.add('status');
+    notifStatus.setAttribute('id', host + '-status');
+    userUnreadChats.forEach((contact) => {
+      if (contact === host) {
+        notifStatus.classList.add('new-msg');
+      }
+    });
+    hostDiv.appendChild(notifStatus);
 
     parentElem.appendChild(hostDiv);
   }
@@ -1117,13 +1184,23 @@ window.addEventListener('load', () => {
     return true;
   }
 
-  //Edit Info
+  function UpdateUnreadChatsStatus(contactName, addOrRemove) {
+    const msgUpdates = {};
+    msgUpdates["Users/" + auth?.currentUser.uid + "/UnreadChats/" + contactName] = addOrRemove === "add" ? Date.now() : null;
+    update(ref_db(database), msgUpdates).catch((error) => {
+      console.log(error.code + ": " + error.message);
+    });
+  }
+  //#endregion Messages
+
+  //#region Edit Info
   editInfoCloseBtn.addEventListener('click', function () {
     if (!editInfoCredentialScreen.classList.contains('hide')) {
       editInfoCredentialScreen.classList.add('hide');
       editInfoContentScreen.classList.remove('hide');
       editInfoCredEmail.value = null;
       editInfoCredPass.value = null;
+      editInfoVerifyBtn.parentElement.classList.remove('submit-click');
     } else if (editInfoScreen.classList.contains('show')) {
       editInfoScreen.classList.remove('show');
       ClearEditInfoInputs();
@@ -1158,7 +1235,7 @@ window.addEventListener('load', () => {
   editInfoVerifyBtn.addEventListener('click', function () {
     const credEmail = document.getElementById("editinfo-credemail");
     const credPass = document.getElementById("editinfo-credpass");
-    editInfoVerifyBtn.classList.add('submit-click');
+    editInfoVerifyBtn.parentElement.classList.add('submit-click');
 
     if (credEmail.value != "" && credPass.value != "") {
       const credential = EmailAuthProvider.credential(credEmail.value, credPass.value);
@@ -1169,7 +1246,7 @@ window.addEventListener('load', () => {
         editInfoCredentialScreen.classList.add('hide');
         editInfoContentScreen.classList.remove('hide');
         ShowNotifToast("Successfully Authenticated", "You may now update your email and submit your changes.", "var(--green)", true, 5);
-        editInfoVerifyBtn.classList.remove('submit-click');
+        editInfoVerifyBtn.parentElement.classList.remove('submit-click');
       }).catch((error) => {
         console.log(error.code + ": " + error.message);
         var message = null;
@@ -1187,7 +1264,7 @@ window.addEventListener('load', () => {
         }
 
         ShowNotifToast("Error Authenticating", message, "var(--red)", true, 8);
-        editInfoVerifyBtn.classList.remove('submit-click');
+        editInfoVerifyBtn.parentElement.classList.remove('submit-click');
       });
     }
   });
@@ -1210,7 +1287,7 @@ window.addEventListener('load', () => {
 
   editInfoSubmitBtn.addEventListener('click', function () {
     if (auth?.currentUser.isAnonymous === false) {
-      editInfoSubmitBtn.classList.add('submit-click');
+      editInfoSubmitBtn.parentElement.classList.add('submit-click');
       //If const is -1 then it is unused. If it is true or false then it is used
       const nameValid = editInfoName.value != "" ? ValidateName(editInfoName.value, true) : -1;
       const phoneValid = editInfoPhone.value != "" ? ValidatePhone(editInfoPhone.value, true) : -1;
@@ -1241,7 +1318,7 @@ window.addEventListener('load', () => {
 
       if (nameValid === -1 && phoneValid === -1 && emailValid === -1 && imgValid === -1) {
         //Nothing was entered, do nothing
-        editInfoSubmitBtn.classList.remove('submit-click');
+        editInfoSubmitBtn.parentElement.classList.remove('submit-click');
         return;
       } else if (invalidCounter === 0) {
         //Update in database then locally
@@ -1287,7 +1364,7 @@ window.addEventListener('load', () => {
           }).catch((error) => {
             console.log(error.code + ": " + error.message);
             ShowNotifToast("Error Updating Info", "There was an error when trying to update your information in the database. Please try to submit again.", "var(--red)", true, 8);
-            editInfoSubmitBtn.classList.remove('submit-click');
+            editInfoSubmitBtn.parentElement.classList.remove('submit-click');
           });
         } else {
           update(ref_db(database), infoUpdates).then(() => {
@@ -1309,13 +1386,13 @@ window.addEventListener('load', () => {
           }).catch((error) => {
             console.log(error.code + ": " + error.message);
             ShowNotifToast("Error Updating Info", "There was an error when trying to update your information in the database. Please try to submit again.", "var(--red)", true, 8);
-            editInfoSubmitBtn.classList.remove('submit-click');
+            editInfoSubmitBtn.parentElement.classList.remove('submit-click');
           });
         }
       } else if (invalidCounter > 0) {
         //Something is invalid
         ShowNotifToast("Error Updating Info", errorString, "var(--red)", true, 8);
-        editInfoSubmitBtn.classList.remove('submit-click');
+        editInfoSubmitBtn.parentElement.classList.remove('submit-click');
       }
     }
   });
@@ -1350,15 +1427,17 @@ window.addEventListener('load', () => {
     editInfoPhone.value = null;
     editInfoEmailBtn.parentElement.classList.remove('hide');
     editInfoEmail.parentElement.classList.add('hide');
+    editInfoVerifyBtn.parentElement.classList.remove('submit-click');
     editInfoCredEmail.value = null;
     editInfoCredPass.value = null;
     editInfoEmail.value = null;
     editInfoImg.value = null;
     editInfoImg.parentElement.setAttribute("data-text", "Profile Picture");
-    editInfoSubmitBtn.classList.remove('submit-click');
+    editInfoSubmitBtn.parentElement.classList.remove('submit-click');
   }
+  //#endregion Edit Info
 
-  //Admin Dashboard
+  //#region Admin Dashboard
   function CreateAdminDashboard(dashPage) {
     const dashContent = dashPage.children[0].children[0];
     //Remove curr schedule, messages and add days but keep title element
@@ -1444,7 +1523,14 @@ window.addEventListener('load', () => {
     var userIcon = document.createElement('i'); userIcon.className = "fa-user chat-user-icon"; userDiv.appendChild(userIcon);
     var userName = document.createElement('p'); var nameText = document.createElement('strong'); nameText.textContent = user; userName.appendChild(nameText); userDiv.appendChild(userName);
 
-    var notifStatus = document.createElement('div'); notifStatus.classList.add('status'); notifStatus.setAttribute('id', user + '-status'); userDiv.appendChild(notifStatus);
+    var notifStatus = document.createElement('div'); notifStatus.classList.add('status');
+    notifStatus.setAttribute('id', user + '-status');
+    userUnreadChats.forEach((contact) => {
+      if (contact === user) {
+        notifStatus.classList.add('new-msg');
+      }
+    });
+    userDiv.appendChild(notifStatus);
 
     parentElem.appendChild(userDiv);
   }
@@ -1464,13 +1550,36 @@ window.addEventListener('load', () => {
   function GetAllRSVPdUsers(msgDays, msgWeeks) {
     const unsubscribeRsvp = onValue(ref_db(database, 'RSVPs/' + adminGroup), (snapshot) => {
       rsvpdUsersArr = [];
+      //First we need to check if there are any old weeks
+      //If there are old weeks, move those to OldRSVPs in DB
+      const rsvpUpdates = {};
       snapshot.forEach((week) => {
-        week.forEach((day) => {
-          day.forEach((user) => {
-            const userData = { week: decodeURIComponent(week.key), day: day.key, name: user.child('Name').val(), guests: user.child('Guests').val(), uid: user.key };
-            rsvpdUsersArr.push(userData);
+        const decodedWeek = decodeURIComponent(week.key);
+        const splitWeekDates = decodedWeek.split('-');
+        const endWeekDate = new Date(splitWeekDates[1] + " 11:59:59:999 PM");
+        const currentDate = new Date();
+
+        //If the entire week has passed
+        if (endWeekDate.getTime() < currentDate.getTime()) {
+          //Now we need to get all days and rsvps from this week and move them
+          week.forEach((day) => {
+            day.forEach((user) => {
+              const userRsvp = { Guests: user.child('Guests').val(), Name: user.child('Name').val() };
+              rsvpUpdates["OldRSVPs/" + adminGroup + "/" + week.key + "/" + day.key + "/" + user.key] = userRsvp;
+            });
           });
-        });
+
+          //Now remove week from old spot
+          remove(ref_db(database, 'RSVPs/' + adminGroup + '/' + week.key));
+        } else {
+          //Week is still good, check for RSVPs
+          week.forEach((day) => {
+            day.forEach((user) => {
+              const userData = { week: decodedWeek, day: day.key, name: user.child('Name').val(), guests: user.child('Guests').val(), uid: user.key };
+              rsvpdUsersArr.push(userData);
+            });
+          });
+        }
       });
 
       if (msgDays.value !== "default") {
@@ -1647,6 +1756,7 @@ window.addEventListener('load', () => {
         ShowNotifToast("Error Scheduling Days", "There was an error scheduling days into the database. Please try to schedule them again.", "var(--red)", true, 5);
       });
   }
+  //#endregion Admin Dashboard
 
   //#endregion Profile Setup
 
@@ -1757,7 +1867,7 @@ window.addEventListener('load', () => {
 
     var col1 = document.createElement('div'); col1.className = "col"; col1.setAttribute('data-label', "Day/Time:"); col1.textContent = elem.day + "/" + elem.time; row.appendChild(col1);
     var col2 = document.createElement('a'); col2.className = "col"; col2.setAttribute('data-label', "Address:"); col2.textContent = groupInfoArr.find(g => g.group === groupID).address;
-    col2.href = "https://maps.google.com/maps/search/?api=1&query=" + encodeURIComponent(col2.textContent); 
+    col2.href = "https://maps.google.com/maps/search/?api=1&query=" + encodeURIComponent(col2.textContent);
     col2.target = "_Address"; col2.rel = "noopener noreferrer"; row.appendChild(col2);
 
     //Check user schedule to update these values if they exist
@@ -1942,13 +2052,17 @@ window.addEventListener('load', () => {
       const slideUser = e.target.closest('.slide-users');
 
       if (slideHost && chatSliderHosts.checked === false) {
+        Loading(chatHostLoader, true);
         chatHostsList.children[0].textContent = "Contact Hosts";
         //Setup each host in Contact Host section
         chatHosts.replaceChildren();
         hostNameArr.forEach((host) => {
           ChatHostsSetup(chatHosts, host.host);
         });
+        SortChatHostsAndRemoveBadge(null, chatHosts);
+        Loading(chatHostLoader, false);
       } else if (slideUser && chatSliderUsers.checked === false) {
+        Loading(chatHostLoader, true);
         chatHostsList.children[0].textContent = "Contact Users";
         //Setup each user who asked a question in Contact User Section
         chatHosts.replaceChildren();
@@ -2002,9 +2116,12 @@ window.addEventListener('load', () => {
     const contact = e.target.closest('.chat-host');
 
     if (contact) {
-      //Remove new msg status
+      //Remove new msg status & entry from userunreadchats & db
       contact.children[2].classList.remove('new-msg');
       const contactName = contact.children[1].children[0].textContent;
+      const index = userUnreadChats.indexOf(contactName);
+      if (index !== -1) { userUnreadChats.splice(index, 1) };
+      UpdateUnreadChatsStatus(contactName, "remove");
 
       SortChatHostsAndRemoveBadge(null, chatHosts);
       if (isAdmin === true) {
@@ -2153,17 +2270,15 @@ window.addEventListener('load', () => {
     //Sort the contacts by new-msg status
     var chatContactsArr = Array.from(arrElem.children);
 
-    var isNewMsgs = false;
     //First Move contacts with new msg status to end of list
     chatContactsArr.forEach((contact) => {
       if (contact.children[2].classList.contains('new-msg')) {
         arrElem.appendChild(contact);
-        isNewMsgs = true;
       }
     });
 
     //Remove notif badges if no new messages
-    if (isNewMsgs === false) {
+    if (userUnreadChats.length === 0) {
       messagesButton.removeAttribute('data-notif');
       const tabProfileLabel = document.querySelector('.tabs-ul .new-msg-notif label');
       tabProfileLabel.removeAttribute('data-notif');
@@ -2234,13 +2349,23 @@ window.addEventListener('load', () => {
           return a.timestamp - b.timestamp;
         });
 
-        var currentMsgsLabel = document.createElement('label');
-        currentMsgsLabel.textContent = "Current Messages";
-        chatMessages.appendChild(currentMsgsLabel);
-
-        //Create message bubbles 
+        //Create message bubbles and day labels
+        var prevLabelDate = null
+        const daySorter = { 0: "Sunday", 1: "Monday", 2: "Tuesday", 3: "Wednesday", 4: "Thursday", 5: "Friday", 6: "Saturday" };
+        const monthSorter = { 0: "Jan", 1: "Feb", 2: "March", 3: "April", 4: "May", 5: "June", 6: "July", 7: "Aug", 8: "Sept", 9: "Oct", 10: "Nov", 12: "Dec" };
         allMsgsArr.forEach((msg) => {
+          const msgDate = new Date(parseInt(msg.timestamp)); msgDate.setHours(0, 0, 0);
+          const monthStr = monthSorter[msgDate.getMonth()];
+          const dayStr = daySorter[msgDate.getDay()];
+          const msgDayLabel = document.createElement('label');
+          msgDayLabel.textContent = dayStr + ", " + monthStr + ' ' + msgDate.getDate();
+
+          if (prevLabelDate === null || prevLabelDate != msgDayLabel.textContent) {
+            chatMessages.appendChild(msgDayLabel);
+          }
+
           CreateMessageBubble(chatMessages, msg.message, msg.side, msg.timestamp);
+          prevLabelDate = msgDayLabel.textContent;
         });
       } else {
         var noMsgsLabel = document.createElement('label');
@@ -2264,12 +2389,15 @@ window.addEventListener('load', () => {
             const userData = { uid: userID.key, name: userName.val() };
             userNameArr.push(userData);
             ChatUsersSetup(chatHosts, userName.val());
+            SortChatHostsAndRemoveBadge(null, chatHosts);
+            Loading(chatHostLoader, false);
           }).catch((error) => {
             console.log(error);
           });
         });
       }
     }).catch((error) => {
+      Loading(chatHostLoader, false);
       console.log(error.code + ": " + error.message);
       ShowNotifToast("Error Loading Users", "There was an error loading the users that have contacted you. Either close this screen and open it again or try refreshing the page.", "var(--red)", true, 8);
     });
@@ -2296,7 +2424,7 @@ window.addEventListener('load', () => {
     }
   }
 
-  function ValidateRSVP(auth, button, isRsvp) {
+  function ValidateRSVP(auth, button, isNotRsvp) {
     setTimeout(function () {
       //Get info from elements
       var row = button.parentElement.parentElement;
@@ -2309,7 +2437,7 @@ window.addEventListener('load', () => {
       const updates = {};
       const totalRsvpElem = document.getElementById('user-total-rsvp');
 
-      if (isRsvp === true) {
+      if (isNotRsvp === true) {
         guests.nextElementSibling.classList.remove('hide');
         guests.previousElementSibling.classList.remove('hide');
         guests.value = 0;
@@ -2333,7 +2461,7 @@ window.addEventListener('load', () => {
               //Remove from userScheduleArr to keep data valid
               const scheduleIndex = userScheduleArr.findIndex(u => u.group === groupID && u.week === decodedWeek && u.day === dayAndTime[0] && u.time === dayAndTime[1]);
               if (scheduleIndex !== -1) userScheduleArr.splice(scheduleIndex, 1);
-              setTimeout(ApproveRSVP(button, isRsvp), 450);
+              setTimeout(ApproveRSVP(button, isNotRsvp), 450);
             });
           })
           .catch((error) => {
@@ -2367,7 +2495,7 @@ window.addEventListener('load', () => {
               //Add to userScheduleArr to keep data valid
               const scheduleDay = { week: decodedWeek, day: dayAndTime[0], time: dayAndTime[1], guests: guests.value, group: groupID };
               userScheduleArr.push(scheduleDay);
-              setTimeout(ApproveRSVP(button, isRsvp), 450);
+              setTimeout(ApproveRSVP(button, isNotRsvp), 450);
             });
           })
           .catch((error) => {
@@ -2381,14 +2509,14 @@ window.addEventListener('load', () => {
     }, 1250);
   }
 
-  function ApproveRSVP(button, isRsvp) {
+  function ApproveRSVP(button, isNotRsvp) {
     setTimeout(function () {
       //Add or remove badge on clickable row in overview on the day of the RSVP      
       const groupID = button.getAttribute('data-groupID');
       const week = button.getAttribute('data-week');
       const day = button.getAttribute('data-day');
 
-      if (isRsvp === true) {
+      if (isNotRsvp === true) {
         button.classList.remove('rsvp-cancel-button');
         button.parentElement.parentElement.children[2].textContent = "Not Going";
         AddOrRemoveNotifBadge(groupID + '-' + week + '-' + day, null, 'remove')

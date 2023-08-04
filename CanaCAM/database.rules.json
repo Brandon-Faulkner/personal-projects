@@ -16,7 +16,7 @@
     },
     "RSVPs": {
       ".read": "root.child('Admins').child(auth.uid).exists()",
-      ".write": false,
+      ".write": "root.child('Admins').child(auth.uid).exists()",
       "$groupID": {
         "$week": {
           "$day": {
@@ -27,6 +27,10 @@
           }
         }
       }
+    },
+    "OldRSVPs": {
+      ".read": false,
+      ".write": "root.child('Admins').child(auth.uid).exists()"
     },
     "Users": {
       ".read": "root.child('Admins').child(auth.uid).exists()",

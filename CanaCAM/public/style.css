@@ -26,6 +26,7 @@ html {
   right: 0;
   bottom: 0;
   position: fixed;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .pop-up {
@@ -467,10 +468,14 @@ input[type="radio"] {
 .signup-click,
 .submit-click {
   left: 45%;
-  margin-bottom: 10px;
+  margin-bottom: 10px !important;
   width: 50px !important;
   border-radius: 40px !important;
   animation: rotating .75s 0.25s linear infinite;
+}
+
+.submit-click {
+  left: 0;
 }
 
 .login-click>div,
@@ -938,6 +943,280 @@ form .btn input[type="submit"] {
 
 /*#endregion DASHBOARD*/
 
+/*#region ABOUT/HELP*/
+#abouthelp-wrapper {
+  overflow: auto;
+  max-width: 90%;
+  height: 90%;
+  background: var(--green);
+  padding: 30px;
+  border-radius: var(--border-radius);
+  box-shadow: var(--box-shadow);
+  display: inline-grid;
+  justify-content: center;
+  align-content: center;
+  margin: auto;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+#abouthelp-content {
+  display: inline-grid;
+  grid-template-rows: 12.5% 10% auto;
+  opacity: 1;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+
+#abouthelp-title {
+  height: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: left;
+  padding-left: 10px;
+  font-size: calc(14px + 1vw);
+  color: var(--white);
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+#abouthelp-close-btn {
+  outline: 0;
+  position: absolute;
+  right: 10px;
+  min-width: 40px;
+  max-width: 65px;
+  width: 4%;
+  border: 0;
+  background: 0;
+  padding: 0;
+  cursor: pointer;
+  fill: var(--white);
+  z-index: 1;
+}
+
+#abouthelp-close-btn>svg:hover {
+  fill: var(--background);
+}
+
+#abouthelp-slider {
+  position: relative;
+  display: flex;
+  height: 50%;
+  width: 98%;
+  justify-self: center;
+  overflow: hidden;
+  box-shadow: var(--box-shadow);
+  border-radius: var(--border-radius);
+}
+
+#abouthelp-slider .abouthelp-slide {
+  height: 100%;
+  width: 100%;
+  color: var(--white);
+  font-size: 18px;
+  font-weight: 500;
+  text-align: center;
+  line-height: 48px;
+  cursor: pointer;
+  z-index: 1;
+  transition: all 0.6s ease;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+#abouthelp-slider label.abouthelp-help {
+  color: var(--white-hover);
+}
+
+#abouthelp-slider .abouthelp-slider-tab {
+  position: absolute;
+  height: 100%;
+  width: 50%;
+  left: 0;
+  z-index: 0;
+  border-radius: 15px 0 0;
+  background: var(--background);
+  transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+#abouthelp-slider-help:checked~.abouthelp-slider-tab {
+  left: 50%;
+  border-radius: 0 0 15px;
+}
+
+#abouthelp-slider-help:checked~label.slide-help {
+  color: var(--white);
+  cursor: default;
+  user-select: none;
+}
+
+#abouthelp-slider-help:checked~label.slide-about,
+#abouthelp-slider-help:checked~label.slide-about>i {
+  color: var(--white-hover);
+  background: #ffffff26;
+}
+
+#abouthelp-slider-about:checked~label.slide-help,
+#abouthelp-slider-about:checked~label.slide-help>i {
+  color: var(--white-hover);
+  background: #ffffff26;
+}
+
+#abouthelp-slider-about:checked~label.slide-about {
+  cursor: default;
+  user-select: none;
+}
+
+#abouthelp-aboutpage {
+  width: 100%;
+}
+
+#abouthelp-content ul li i:before, 
+#abouthelp-content ul li i:after, 
+#abouthelp-content p {
+  transition: all 0.25s ease-in-out;
+}
+
+#abouthelp-content h2 {
+  font-size: 26px;
+  line-height: 34px;
+  font-weight: 300;
+  letter-spacing: 1px;
+  display: block;
+  color: var(--white);
+  margin: 0;
+  cursor: pointer;
+  text-align: left;
+  text-transform: capitalize;
+}
+
+#abouthelp-content p {
+  color: var(--background);
+  font-size: 17px;
+  line-height: 26px;
+  letter-spacing: 1px;
+  position: relative;
+  overflow: auto;
+  max-height: 800px;
+  opacity: 1;
+  transform: translate(0, 0);
+  margin-top: 14px;
+  z-index: 2;
+  padding: 0;
+  text-align: left;
+}
+
+#abouthelp-content ul li, 
+#abouthelp-content h1 {
+  animation: flipdown 0.5s ease both;
+}
+
+#abouthelp-content ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 20px;
+}
+
+#abouthelp-content ul li {
+  position: relative;
+  padding: 0;
+  margin: 0;
+  padding-bottom: 4px;
+  padding-top: 18px;
+  border-top: 1px dashed var(--white-hover);
+}
+
+#abouthelp-content ul li:nth-of-type(1) {
+  animation-delay: 0.25s;
+}
+#abouthelp-content ul li:nth-of-type(2) {
+  animation-delay: 0.5s;
+}
+#abouthelp-content ul li:nth-of-type(3) {
+  animation-delay: 0.75s;
+}
+#abouthelp-content ul li:nth-of-type(4) {
+  animation-delay: 1s;
+}
+#abouthelp-content ul li:last-of-type {
+  padding-bottom: 0;
+}
+#abouthelp-content ul li i {
+  position: absolute;
+  transform: translate(-6px, 0);
+  margin-top: 16px;
+  right: 0;
+}
+#abouthelp-content ul li i:before, 
+#abouthelp-content ul li i:after {
+  content: "";
+  position: absolute;
+  background-color: var(--background);
+  width: 3px;
+  height: 9px;
+}
+#abouthelp-content ul li i:before {
+  transform: translate(-2px, 0) rotate(45deg);
+}
+#abouthelp-content ul li i:after {
+  transform: translate(2px, 0) rotate(-45deg);
+}
+#abouthelp-content ul li input[type=checkbox] {
+  position: absolute;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  opacity: 0;
+}
+#abouthelp-content ul li input[type=checkbox]:checked ~ p {
+  margin-top: 0;
+  max-height: 0;
+  opacity: 0;
+  transform: translate(0, 50%);
+}
+#abouthelp-content ul li input[type=checkbox]:checked ~ i:before {
+  transform: translate(2px, 0) rotate(45deg);
+}
+#abouthelp-content ul li input[type=checkbox]:checked ~ i:after {
+  transform: translate(-2px, 0) rotate(-45deg);
+}
+
+@keyframes flipdown {
+  0% {
+    opacity: 0;
+    transform-origin: top center;
+    transform: rotateX(-90deg);
+  }
+  5% {
+    opacity: 1;
+  }
+  80% {
+    transform: rotateX(8deg);
+  }
+  83% {
+    transform: rotateX(6deg);
+  }
+  92% {
+    transform: rotateX(-3deg);
+  }
+  100% {
+    transform-origin: top center;
+    transform: rotateX(0deg);
+  }
+}
+
+/*#endregion ABOUT/HELP*/
+
 /*#region NOTIFICATION TOAST*/
 .toast {
   position: absolute;
@@ -1386,12 +1665,12 @@ form .btn input[type="submit"] {
 
 .dropdown select:focus {
   outline: none;
-  border-color: #07f;
+  border-color: var(--disabled);
   box-shadow: 0 0 0 2px rgba(0, 119, 255, 0.2);
 }
 
 .dropdown select:hover+svg {
-  stroke: #07f;
+  stroke: var(--disabled);
 }
 
 /*#endregion WEEK SELECTION*/
@@ -1484,11 +1763,10 @@ form .btn input[type="submit"] {
 }
 
 .clickable-row:hover {
-  background-color: var(--white-hover);
+  transform: scale(1.05);
 }
 
 .clickable-row:active {
-  background-color: var(--white-hover);
   transform: scale(0.95);
   transition: scale 0.25s
 }
@@ -1555,7 +1833,8 @@ form .btn input[type="submit"] {
   background: var(--dropdown-background);
   border-radius: var(--border-radius);
   box-shadow: var(--box-shadow);
-  height: 60%;
+  height: 75%;
+  max-height: 600px;
   position: absolute;
   top: 0;
   bottom: 0;
@@ -1637,13 +1916,13 @@ form .btn input[type="submit"] {
 #editinfo-credentials {
   border-top: 1px solid var(--disabled);
   display: inline-grid;
-  grid-template-rows: 30% 70%;
+  grid-template-rows: 20% 70%;
   justify-items: center;
   align-items: center;
 }
 
 #editinfo-credentials {
-  grid-template-rows: 30% 40%;
+  grid-template-rows: 40% 50%;
 }
 
 #editinfo-inputs,
@@ -1652,7 +1931,8 @@ form .btn input[type="submit"] {
   height: 100%;
   transition: all 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   display: inline-grid;
-  grid-row-gap: 20px;
+  row-gap: 20px;
+  padding-top: 10px;
   justify-items: center;
   align-items: center;
 }
@@ -1662,7 +1942,7 @@ form .btn input[type="submit"] {
   height: 50px;
   width: 90%;
   margin: auto;
-  display: inline-grid;
+  display: inline-flex;
 }
 
 #editinfo-inputs .field input,
@@ -1670,8 +1950,7 @@ form .btn input[type="submit"] {
   height: 100%;
   width: 100%;
   outline: none;
-  padding-left: 15px;
-  margin-left: -10px;
+  text-indent: 15px;
   border-radius: 15px;
   border: 2px solid lightgrey;
   border-bottom-width: 2px;
@@ -1703,6 +1982,7 @@ form .btn input[type="submit"] {
   position: relative;
   overflow: hidden;
   justify-items: center;
+  display: inline-grid;
 }
 
 #editinfo-inputs .btn .btn-layer,
@@ -1728,6 +2008,7 @@ form .btn input[type="submit"] {
   font-weight: 500;
   cursor: pointer;
   text-align: center;
+  text-indent: 0;
 }
 
 #editinfo-inputs .btn:hover .btn-layer,
@@ -1760,6 +2041,7 @@ form .btn input[type="submit"] {
   font-weight: 900;
   font-style: normal;
   font-family: "Font Awesome 6 Free";
+  background: transparent !important;
 }
 
 .chat-host {
@@ -1896,6 +2178,13 @@ form .btn input[type="submit"] {
   overflow: hidden;
 }
 
+#chat-host-loader {
+  position: absolute;
+  top: 12.5%;
+  bottom: 10%;
+  background: var(--dropdown-background);
+}
+
 #chat-loader {
   position: absolute;
   top: 15%;
@@ -1948,7 +2237,7 @@ form .btn input[type="submit"] {
   text-align: center;
   margin: 15px 0;
   width: 100%;
-  display: block;
+  display: inline-block;
 }
 
 #chat-messages div.message {
@@ -2104,6 +2393,47 @@ form .btn input[type="submit"] {
 /*#endregion PROFILE PAGE*/
 
 /*#region BUTTONS*/
+/*About / Help Button*/
+.abouthelp-button {
+  outline: none;
+  height: 40px;
+  text-align: center;
+  width: 50%;
+  min-width: 165px;
+  max-width: 235px;
+  border-radius: 40px;
+  background: var(--green);
+  border: 2px solid var(--green);
+  color: var(--white);
+  letter-spacing: 1px;
+  text-shadow: none;
+  font-size: calc(1vh + 5px);
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  justify-self: center;
+  margin: 20px 0;
+}
+
+.abouthelp-button:hover {
+  color: var(--background);
+  background: var(--white);
+}
+
+.abouthelp-button:active {
+  letter-spacing: 2px;
+  color: var(--white);
+  background: var(--green);
+}
+
+.abouthelp-button:after {
+  content: "About / Help";
+}
+
+.abouthelp-button > i.fa-solid {
+  padding: 0;
+}
+
 /*Rsvp Button*/
 .rsvp-button {
   outline: none;
@@ -2463,6 +2793,10 @@ span > .fa-minus, span > .fa-plus {
     transform: scale(0.90);
   }
 
+  #abouthelp-wrapper {
+    transform: scale(0.90);
+  }
+
   .main-page {
     /*grid-template-rows: 100%;*/
     padding: 7.5% 2.5% 2.5%;
@@ -2568,7 +2902,7 @@ span > .fa-minus, span > .fa-plus {
 
 @media all and (min-width: 1001px) {
   .new-msg-notif [data-notif]::after {
-    left: 19vw;
+    left: calc(62% + 1vw);
   }
 }
 
