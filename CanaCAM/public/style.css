@@ -522,11 +522,13 @@ form .field input:focus::placeholder {
 
 .login-form-inner form .pass-link {
   margin-top: 5px;
+  margin-left: 5px;
 }
 
 .login-form-inner form .signup-link {
   text-align: center;
   margin-top: 30px;
+  margin-bottom: 30px;
 }
 
 .login-form-inner form .pass-link a,
@@ -537,7 +539,19 @@ form .field input:focus::placeholder {
 
 .login-form-inner form .pass-link a:hover,
 .login-form-inner form .signup-link a:hover {
-  text-decoration: underline;
+  cursor: pointer;
+}
+
+.eye-icon {
+  width: 18px;
+  margin-left: -18px;
+  padding-right: 0;
+  transform: translateX(-10px);
+  background: transparent;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  color: var(--background);
   cursor: pointer;
 }
 
@@ -554,7 +568,6 @@ form .btn .btn-layer {
   width: 300%;
   position: absolute;
   left: -100%;
-  /*background: -webkit-linear-gradient(right,#003366,#004080,#0059b3, #0073e6);*/
   background: var(--blue);
   border-radius: 15px;
   transition: all 0.4s ease;
@@ -2486,6 +2499,7 @@ form .btn input[type="submit"] {
   border-left-color: var(--green) !important;
   -webkit-animation: rotating .75s 0.25s linear infinite;
   animation: rotating .75s 0.25s linear infinite;
+  justify-self: center;
 }
 
 .button-onClick:after {

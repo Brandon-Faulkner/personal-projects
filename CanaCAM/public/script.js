@@ -2,7 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
 import { getDatabase, ref as ref_db, onValue, set, remove, update, get, increment } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
 import { getStorage, ref as ref_st, getDownloadURL, uploadBytes, deleteObject } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-storage.js";
-import { getAuth, onAuthStateChanged, reauthenticateWithCredential, signInAnonymously, signInWithEmailAndPassword, updateEmail, sendPasswordResetEmail, EmailAuthProvider, linkWithCredential, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+import { getAuth, onAuthStateChanged, reauthenticateWithCredential, signInAnonymously, sendEmailVerification, signInWithEmailAndPassword, updateEmail, sendPasswordResetEmail, EmailAuthProvider, linkWithCredential, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-messaging.js";
 
 // Your web app's Firebase configuration
@@ -126,7 +126,7 @@ window.addEventListener('load', () => {
   const editInfoSubmitBtn = document.getElementById("editinfo-submit-button");
 
   //Array to hold the data of each week
-  var allWeeksArr = []; var uniqWeeks = [];
+  var allWeeksArr = []; var unsortedWeeksArr = []; var uniqWeeks = [];
   //Arrays to hold group information
   var groupInfoArr = [], hostNameArr = [], userScheduleArr = [];
   //Values to register swipe actions
@@ -169,6 +169,9 @@ window.addEventListener('load', () => {
         ClearLoginAndSignupInputs();
         RemoveOldWeeksFromGroups(groupRef);
 
+        planningBlocked.textContent = "You must be logged in to RSVP to the days you want to attend!";
+        profileBlocked.textContent = "You must log in or sign up to view your profile!";
+
         //Reset admin vars and remove onMessage listener just incase
         isAdmin = false;
         adminGroup = null;
@@ -181,8 +184,42 @@ window.addEventListener('load', () => {
         tabPlanning.addEventListener('click', ShowLogin);
         tabProfile.addEventListener('click', ShowLogin);
         loginCloseBtn.addEventListener('click', ShowLogin);
-      }
-      else {
+
+        //If coming back from forgot password, open up login
+        const currentUrl = window.location.href;
+        const splitUrl = currentUrl.split('.app');
+        if (splitUrl[1] === "/?forgPass=true") {
+          tabProfile.click();
+        }
+      } else if (user?.emailVerified === false) {
+        var actionCodeSettings = {
+          url: 'https://cana-cam.web.app/?emailVerified=true'
+        }
+        sendEmailVerification(auth.currentUser, actionCodeSettings).then(() => {
+          //User signed in but needs to verify email
+          ShowNotifToast("Email Verification Is Needed", "Thank you for signing up! We have sent you an email to verify the email you used to setup your account. You must verify your email before you can fully use this app!", "var(--blue)", true, 20);
+          ClearLoginAndSignupInputs();
+
+          planningBlocked.textContent = "You must verify your email before fully using the app!";
+          profileBlocked.textContent = "You must verify your email before fully using the app!";
+
+          //Remove listeners
+          tabPlanning.removeEventListener('click', ShowLogin);
+          tabProfile.removeEventListener('click', ShowLogin);
+          loginCloseBtn.removeEventListener('click', ShowLogin);
+        }).catch((error) => {
+          //Email failed
+          console.log(error.code + ": " + error.message);
+          ShowNotifToast("Email Verification Error", "We tried sending you an email but there was an error. Please refresh the page and see if you get a valid notification.", "var(--red)", true, 15);
+        });
+      } else {
+        //Check if coming back from verifying email
+        const currentUrl = window.location.href;
+        const splitUrl = currentUrl.split('.app');
+        if (splitUrl[1] === "/?emailVerified=true") {
+          ShowNotifToast("Thank You For Joining!", "Your email is now verified and you have full access to Cana CAM! If you need help or what to know more about what Cana CAM is, click the About/Help Button on the home page!", "var(--green)", true, 20);
+        }
+
         //Signed in with Account
         RemoveOldWeeksFromGroups(groupRef);
         RemoveOldWeeksFromUser(auth);
@@ -190,7 +227,7 @@ window.addEventListener('load', () => {
         //Check users admin status, then setup pages
         CheckAdminStatus();
 
-        // Show message notif to user when recieved on the foreground
+        //Show message notif to user when recieved on the foreground
         unsubscribe = onMessage(messaging, (payload) => {
           //Only show notif if the user does not have the chat view from the host open
           if (!chatScreen.classList.contains('show')) {
@@ -274,11 +311,13 @@ window.addEventListener('load', () => {
       if (!loginScreen.classList.contains('show')) {
         loginScreen.classList.add('show');
         mainScreen.classList.add('disable-click');
+        loginToggleBtn.click();
       }
       else {
         loginScreen.classList.remove('show');
         mainScreen.classList.remove('disable-click');
         ClearLoginAndSignupInputs();
+        loginToggleBtn.click();
       }
     }
   }
@@ -366,7 +405,10 @@ window.addEventListener('load', () => {
   }
 
   function SendForgotPasswordEmail(auth, email) {
-    sendPasswordResetEmail(auth, email)
+    var actionCodeSettings = {
+      url: 'https://cana-cam.web.app/?forgPass=true'
+    }
+    sendPasswordResetEmail(auth, email, actionCodeSettings)
       .then(() => {
         //Email sent
         ShowNotifToast("Email Sent", "An email has been sent to the provided email address that will allow you to reset your password.", "var(--blue)", true, 5);
@@ -377,6 +419,8 @@ window.addEventListener('load', () => {
           ShowNotifToast("Invalid Email", "The email address provided is an invalid email. Make sure there are no typos and that the email is correct.", "var(--red)", true, 8);
         } else if (error.code === "auth/user-not-found") {
           ShowNotifToast("Account Not Found", "There is not an existing account with that email address. Make sure there are no typos and that the email is correct.", "var(--red)", true, 8);
+        } else {
+          ShowNotifToast("Error Sending Email", "There was an error trying to send you a password reset email. Please try again or refresh the page and try again.", "var(--red)", true, 8);
         }
       });
   }
@@ -534,6 +578,14 @@ window.addEventListener('load', () => {
     else if (input.length > 0) { e.target.value = `(${zip}`; }
   });
 
+  signupPassword.addEventListener('keyup', function () {
+    ValidatePassword(signupPassword.value, signupConfirmPass.value, true);
+  });
+
+  signupConfirmPass.addEventListener('keyup', function () {
+    ValidatePassword(signupPassword.value, signupConfirmPass.value, true);
+  });
+
   signupImg.addEventListener('change', function () {
     signupImg.parentElement.setAttribute("data-text", "Upload Profile Picture");
     const fileError = document.getElementById('file-error');
@@ -563,9 +615,11 @@ window.addEventListener('load', () => {
       signupName.classList.remove('login-error');
 
       if (result === false) {
-        //Show error     
-        nameError.classList.remove('hide');
-        signupName.classList.add('login-error');
+        //Show error   
+        setTimeout(() => {
+          nameError.classList.remove('hide');
+          signupName.classList.add('login-error');
+        }, 100);
       }
     }
 
@@ -582,9 +636,11 @@ window.addEventListener('load', () => {
       signupPhone.classList.remove('login-error');
 
       if (result === false) {
-        //Show error     
-        phoneError.classList.remove('hide');
-        signupPhone.classList.add('login-error');
+        //Show error  
+        setTimeout(() => {
+          phoneError.classList.remove('hide');
+          signupPhone.classList.add('login-error');
+        }, 100);
       }
     }
 
@@ -602,15 +658,17 @@ window.addEventListener('load', () => {
 
       if (result === false) {
         //Show error      
-        emailError.classList.remove('hide');
-        signupEmail.classList.add('login-error');
+        setTimeout(() => {
+          emailError.classList.remove('hide');
+          signupEmail.classList.add('login-error');
+        }, 100);
       }
     }
 
     return result;
   }
 
-  function ValidatePassword(password, confirmPass) {
+  function ValidatePassword(password, confirmPass, isUserTyping) {
     var passRegex = new RegExp(/^(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,}$/gm, "gm");
     const passError = document.getElementById("pass-error");
     const confPassError = document.getElementById("conf-pass-error");
@@ -622,15 +680,29 @@ window.addEventListener('load', () => {
       if (password === confirmPass) {
         return true;
       } else {
-        //Show error       
-        confPassError.classList.remove('hide');
-        signupConfirmPass.classList.add('login-error');
+        //Show error 
+        if (isUserTyping != true) {
+          setTimeout(() => {
+            confPassError.classList.remove('hide');
+            signupConfirmPass.classList.add('login-error');
+          }, 100);
+        } else {
+          confPassError.classList.remove('hide');
+        }
+
         return false;
       }
     } else {
-      //Show error      
-      passError.classList.remove('hide');
-      signupPassword.classList.add('login-error');
+      //Show error  
+      if (isUserTyping != true || isUserTyping === null) {
+        setTimeout(() => {
+          passError.classList.remove('hide');
+          signupPassword.classList.add('login-error');
+        }, 100);
+      } else {
+        passError.classList.remove('hide');
+      }
+
       return false;
     }
   }
@@ -647,8 +719,10 @@ window.addEventListener('load', () => {
     } else {
       if (isEditInfo === null) {
         //Show error   
-        fileError.classList.remove('hide');
-        signupImg.classList.add('login-error');
+        setTimeout(() => {
+          fileError.classList.remove('hide');
+          signupImg.classList.add('login-error');
+        }, 100);
       }
 
       return null;
@@ -817,6 +891,7 @@ window.addEventListener('load', () => {
       uniqWeeks = [...new Set(allWeeksArr.map(item => item.week))];
 
       //Sort the week arrays by day and then time
+      unsortedWeeksArr = allWeeksArr.map(a => ({ ...a }));
       DaySorter(allWeeksArr); TimeSorter(allWeeksArr);
 
       //Create Week containers for each week
@@ -832,8 +907,9 @@ window.addEventListener('load', () => {
         });
       });
 
-      //Update overview dropdown
+      //Update overview and planning host dropdown
       SetupDropdowns(overviewWeekSelection, uniqWeeks, false);
+      SetupDropdowns(hostSelection, hostNameArr, true);
 
       //Now setup profile tab
       ProfileSetup(auth, isAnonymous);
@@ -1816,10 +1892,9 @@ window.addEventListener('load', () => {
             if (clickedWeek === null) clickedWeek = uniqWeeks[0];
             ShowEventContainers(clickedWeek, 'planning-container');
 
-            //Setup planning dropdowns
-            var uniqHostWks = [...new Set((allWeeksArr.filter(a => a.group === groupID)).map(item => item.week))];
+            //Setup planning weeks dropdown
+            var uniqHostWks = [...new Set((unsortedWeeksArr.filter(a => a.group === groupID)).map(item => item.week))];
             SetupDropdowns(planWeekSelection, uniqHostWks, false);
-            SetupDropdowns(hostSelection, hostNameArr, true);
 
             Loading(mainLoader, false);
           })
@@ -1969,12 +2044,26 @@ window.addEventListener('load', () => {
   document.addEventListener('click', function (e) {
     e.stopPropagation();
 
+    //Show/Hide password
+    const eyeIcon = e.target.closest('.eye-icon');
+
+    if (eyeIcon) {
+      if (eyeIcon.classList.contains('fa-eye')) {
+        eyeIcon.className = "fa-solid fa-eye-slash eye-icon";
+        eyeIcon.parentElement.children[0].setAttribute('type', 'text');
+      } else {
+        eyeIcon.className = "fa-solid fa-eye eye-icon";
+        eyeIcon.parentElement.children[0].setAttribute('type', 'password');
+      }
+    }
+
     //Clickable rows
     const row = e.target.closest('.clickable-row');
 
     if (row) {
       var liTarget = row.children[2].textContent;
       const selectedWeek = document.getElementById('over-week-selection');
+      hostSelection.value = liTarget;
       PlanningSetup(planRef, auth?.currentUser.isAnonymous, hostNameArr.find(h => h.host === liTarget).group, userScheduleArr, selectedWeek.value);
       tabPlanning.click();
     }
@@ -2166,7 +2255,7 @@ window.addEventListener('load', () => {
     if (removeDayButton) {
       const dashboardDays = document.getElementById('dashboard-days-content');
       const sorter = { 0: "Sunday", 1: "Monday", 2: "Tuesday", 3: "Wednesday", 4: "Thursday", 5: "Friday", 6: "Saturday" };
-      var isDBUpdate = false; const dayUpdates = {};
+      var isDBUpdate = false; const dayUpdates = {}; var localDaysToRemove = [];
 
       Array.from(dashboardDays.children).forEach((day) => {
         if (day.classList.contains('day-clicked')) {
@@ -2185,9 +2274,9 @@ window.addEventListener('load', () => {
               var endString = splitWeek[1] + " 11:59 PM"; var endWeek = new Date(endString);
 
               if (dayDate.getTime() >= beginWeek.getTime() && dayDate.getTime() <= endWeek.getTime()) {
-                //Now add it to updates to be removed then remove locally
+                //Now add it to updates to be removed then add to array to remove locally
                 dayUpdates["Groups/" + adminGroup + "/Weeks/" + encodeURIComponent(week.week) + "/" + dayOfWeek] = null;
-                day.remove();
+                localDaysToRemove.push(day);
               }
             });
           }
@@ -2197,10 +2286,12 @@ window.addEventListener('load', () => {
       if (isDBUpdate === true) {
         //Perform update operation in db
         update(ref_db(database), dayUpdates).then(() => {
-          //maybe show notification of success?
+          ShowNotifToast("Days Removed", 'The days you choose have been removed from your schedule.', "var(--green)", true, 5);
+          localDaysToRemove.forEach(day => { day.remove(); });
         })
           .catch((error) => {
             console.log(error.code + ": " + error.message);
+            ShowNotifToast("Error Removing Days", "There was an error when trying to remove days from your schedule. Please try again.", "var(--red)", true, 5);
           });
       }
     }
@@ -2244,7 +2335,7 @@ window.addEventListener('load', () => {
     //Make sure no pop ups or overlays are being shown first
     if (!loginScreen.classList.contains('show') && mainLoader.classList.contains('fadeOut')
       && !chatScreen.classList.contains('show') && !dashboardPage.classList.contains('show')
-      && !editInfoScreen.classList.contains('show') && isZooming === false) {
+      && !editInfoScreen.classList.contains('show') && !aboutHelpPage.classList.contains('show') && isZooming === false) {
       if (touchEndX < touchStartX && (touchStartX - touchEndX) > 50) {
         if (tabPlanning.checked === true) {
           tabOverview.click();
