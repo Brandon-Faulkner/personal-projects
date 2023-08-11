@@ -27,7 +27,7 @@ const auth = getAuth(app);
 const messaging = getMessaging(app);
 
 window.addEventListener('load', () => {
-  // Ensure that the browser supports the service worker API then register it
+  //Ensure that the browser supports the service worker API then register it
   var registration = null;
   if (navigator.serviceWorker) {
     navigator.serviceWorker.register('service-worker.js').then(reg => {
@@ -448,8 +448,8 @@ window.addEventListener('load', () => {
         isAdmin = false;
         adminGroup = null;
         adminHostName = null;
-        if (unsubFromRSVP) unsubFromRSVP();
         dashboardPage.replaceChildren();
+        if (unsubFromRSVP) unsubFromRSVP();
       }
 
       //Now proceed with setting up the app
@@ -869,7 +869,7 @@ window.addEventListener('load', () => {
       });
 
       //Verify if the user is a host so we can get their week data
-      if (isAdmin === true && adminGroup != null) {
+      if (isAdmin === true && adminGroup != null && snapshot.size > 0) {
         hostWeeksArr = allWeeksArr.filter(a => a.group === adminGroup);
         hostWeeksArr.forEach(h => allWeeksArr.splice(allWeeksArr.findIndex(a => a.group === h.group && a.week === h.week && a.day === h.day && a.time === h.time), 1));
         hostNameArr.splice(hostNameArr.findIndex(h => h.group === adminGroup), 1);
@@ -882,37 +882,54 @@ window.addEventListener('load', () => {
         //Update admin dropdowns
         const dashboardMsgWeekss = document.getElementById('dashboard-msg-weeks');
         const dashboardMsgDayss = document.getElementById('dashboard-msg-days');
-        SetupDropdowns(dashboardMsgWeekss, uniqueHostWks, false);
-        SetupDropdowns(dashboardMsgDayss, uniqHostDays, false);
+
+        if (hostWeeksArr.length > 0) {
+          SetupDropdowns(dashboardMsgWeekss, uniqueHostWks, false);
+          SetupDropdowns(dashboardMsgDayss, uniqHostDays, false);
+        } else {
+          SetupDropdowns(dashboardMsgWeekss, ["No Weeks Available"], false);
+          SetupDropdowns(dashboardMsgDayss, ["No Days Available"], false);
+        }     
       }
 
       //Clear current elements
       overviewWeekHolder.replaceChildren();
 
-      //Create unique arrays for each week to determine all unique days and weeks
-      var uniqDays = [...new Set(allWeeksArr.map(item => item.day))]; DaySorter(uniqDays, true);
-      uniqWeeks = [...new Set(allWeeksArr.map(item => item.week))];
+      if (allWeeksArr.length > 0) {
+        //Create unique arrays for each week to determine all unique days and weeks
+        var uniqDays = [...new Set(allWeeksArr.map(item => item.day))]; DaySorter(uniqDays, true);
+        uniqWeeks = [...new Set(allWeeksArr.map(item => item.week))];
 
-      //Sort the week arrays by day and then time
-      unsortedWeeksArr = allWeeksArr.map(a => ({ ...a }));
-      DaySorter(allWeeksArr); TimeSorter(allWeeksArr);
+        //Sort the week arrays by day and then time
+        unsortedWeeksArr = allWeeksArr.map(a => ({ ...a }));
+        DaySorter(allWeeksArr); TimeSorter(allWeeksArr);
 
-      //Create Week containers for each week
-      uniqWeeks.forEach((week) => {
-        CreateOverviewWeekContainers(week, overviewWeekHolder);
-        var containerElem = document.getElementById(week + "-overview");
-        var filteredArr = allWeeksArr.filter(w => w.week === week);
-        uniqDays.forEach((day) => {
-          if (filteredArr.find(d => d.day === day)) {
-            CreateOverviewTableHeader(day, containerElem);
-            CreateOverviewTableRow(filteredArr, day, containerElem);
-          }
+        //Create Week containers for each week
+        uniqWeeks.forEach((week) => {
+          CreateOverviewWeekContainers(week, overviewWeekHolder);
+          var containerElem = document.getElementById(week + "-overview");
+          var filteredArr = allWeeksArr.filter(w => w.week === week);
+          uniqDays.forEach((day) => {
+            if (filteredArr.find(d => d.day === day)) {
+              CreateOverviewTableHeader(day, containerElem);
+              CreateOverviewTableRow(filteredArr, day, containerElem);
+            }
+          });
         });
-      });
 
-      //Update overview and planning host dropdown
-      SetupDropdowns(overviewWeekSelection, uniqWeeks, false);
-      SetupDropdowns(hostSelection, hostNameArr, true);
+        //Update overview and planning host dropdown
+        SetupDropdowns(overviewWeekSelection, uniqWeeks, false);
+        SetupDropdowns(hostSelection, hostNameArr, true);
+      } else {
+        //Make sure dropdowns are updated
+        SetupDropdowns(overviewWeekSelection, ["No Weeks Available"], false);
+
+        if (hostNameArr.length === 0) {
+          SetupDropdowns(hostSelection, ["No Hosts Available"], false);
+        } else {
+          SetupDropdowns(hostSelection, hostNameArr, true);
+        }
+      }
 
       //Now setup profile tab
       ProfileSetup(auth, isAnonymous);
@@ -1049,7 +1066,8 @@ window.addEventListener('load', () => {
             CreatProfileInfoRow(profileInfo, userName, userEmail, userPhone, userTotalRSVP);
 
             //Setup planning tab and wait till completion to setup chat hosts
-            PlanningSetup(planRef, isAnonymous, allWeeksArr[0].group, userScheduleArr, null);
+            var groupID = allWeeksArr.length > 0 ? allWeeksArr[0].group : null;
+            PlanningSetup(planRef, isAnonymous, groupID, userScheduleArr, null);
             //Setup each host in Contact Host section
             chatHosts.replaceChildren();
             hostNameArr.forEach((host) => {
@@ -1658,6 +1676,7 @@ window.addEventListener('load', () => {
       snapshot.forEach((week) => {
         const decodedWeek = decodeURIComponent(week.key);
         const splitWeekDates = decodedWeek.split('-');
+        const beginWeekDate = new Date(splitWeekDates[0]);
         const endWeekDate = new Date(splitWeekDates[1] + " 11:59:59:999 PM");
         const currentDate = new Date();
 
@@ -1671,26 +1690,47 @@ window.addEventListener('load', () => {
             });
           });
 
-          //Now remove week from old spot
-          remove(ref_db(database, 'RSVPs/' + adminGroup + '/' + week.key));
+          //Remove week from old spot
+          rsvpUpdates["RSVPs/" + adminGroup + '/' + week.key] = null;
         } else {
-          //Week is still good, check for RSVPs
+          const sorter = { "Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3, "Friday": 4, "Saturday": 5, "Sunday": 6 };
+          //Week is still good, check check if individual days have passed and then get rsvps
           week.forEach((day) => {
+            const tempBeginDate = new Date(beginWeekDate);
+            tempBeginDate.setDate(tempBeginDate.getDate() + sorter[day.key]); tempBeginDate.setHours(23, 59, 59, 999);
+
             day.forEach((user) => {
-              const userData = { week: decodedWeek, day: day.key, name: user.child('Name').val(), guests: user.child('Guests').val(), uid: user.key };
-              rsvpdUsersArr.push(userData);
+              if (tempBeginDate.getTime() < currentDate.getTime()) {
+                const userRsvp = { Guests: user.child('Guests').val(), Name: user.child('Name').val() };
+                rsvpUpdates["OldRSVPs/" + adminGroup + '/' + week.key + '/' + day.key + '/' + user.key] = userRsvp;
+              } else {
+                const userData = { week: decodedWeek, day: day.key, name: user.child('Name').val(), guests: user.child('Guests').val(), uid: user.key };
+                rsvpdUsersArr.push(userData);
+              }
             });
+
+            //Check again to remove the day with all user rsvps after users have been moved to oldrsvps
+            if (tempBeginDate.getTime() < currentDate.getTime()) {
+              rsvpUpdates["RSVPs/" + adminGroup + '/' + week.key + '/' + day.key] = null;
+            }
           });
         }
       });
 
-      if (msgDays.value !== "default") {
-        GetRSVPdUsersByDay(msgDays.value, msgWeeks);
-      } else {
-        GetRSVPdUsersByWeek(msgWeeks.value);
-      }
+      //Now commit updates and continue
+      update(ref_db(database), rsvpUpdates).then(() => {
+        if (msgDays.value !== "default") {
+          GetRSVPdUsersByDay(msgDays.value, msgWeeks);
+        } else {
+          GetRSVPdUsersByWeek(msgWeeks.value);
+        }
+      });
     }, error => {
       console.log(error.code + ": " + error.message);
+      if (error.code === "PERMISSION_DENIED") {
+        //Admin status has been removed, reload page
+        window.location.reload();
+      }
     });
 
     return unsubscribeRsvp;
@@ -1842,7 +1882,7 @@ window.addEventListener('load', () => {
       });
     } else {
       dashboardDays.classList.add('no-days');
-      var schedClone = schedDay.cloneNode(); schedClone.textContent = "No Scheduled Days Yet";
+      var schedClone = schedDay.cloneNode(); schedClone.textContent = "No Scheduled Days Yet"; schedClone.classList.remove('scheduled-day');
       dashboardDays.appendChild(schedClone);
     }
   }
@@ -1973,59 +2013,79 @@ window.addEventListener('load', () => {
         //Clear current data in array to avoid dups
         groupInfoArr = [];
 
-        const childSnapshot = snapshot.child(groupID);
-        const groupKey = childSnapshot.key;
-        const address = childSnapshot.child("Address").val();
-        const capacity = childSnapshot.child("Capacity").val();
-        const description = childSnapshot.child("Description").val();
-        const email = childSnapshot.child("Email").val();
-        const image = childSnapshot.child("Image").val();
-        const phone = childSnapshot.child("Phone").val();
+        //Clear the current elements in the list
+        planWeekHolder.replaceChildren();
 
-        getDownloadURL(ref_st(storage, "Groups/" + image))
-          .then((url) => {
-            //Update group array with the new data
-            const data = { group: groupKey, address: address, capacity: capacity, description: description, email: email, image: url, phone: phone };
-            groupInfoArr.unshift(data);
-
-            //Clear the current elements in the list
-            planWeekHolder.replaceChildren();
-
-            DaySorter(allWeeksArr);
-            //Create week containers for each week
-            var uniqHostWks = [...new Set((unsortedWeeksArr.filter(a => a.group === groupID)).map(item => item.week))];
-            uniqHostWks.forEach((week) => {
-              CreatePlanningWeekContainers(week, planWeekHolder);
-              var containerElem = document.getElementById(week + "-planning");
-              CreatePlanningTableHeader(containerElem);
-
-              allWeeksArr.forEach((elem) => {
-                if (elem.group === groupID && elem.week === week) {
-                  CreatePlanningTableRow(elem, groupInfoArr, elem.group, containerElem, userScheduleArr.filter(u => u.group === groupID && u.week === week));
-                }
-              });
-            });
-
-            //Now Update planning intro
-            UpdatePlanningIntro(hostNameArr, groupInfoArr, groupID, planningIntro);
-            if (clickedWeek === null || !uniqHostWks.find(u => u === clickedWeek)) clickedWeek = uniqHostWks[0];
-            ShowEventContainers(clickedWeek, 'planning-container');
-
-            //Setup planning weeks dropdown
-            SetupDropdowns(planWeekSelection, uniqHostWks, false);
-
-            //Make sure db listener gets started on first load
-            if (isFirstLoad === true) {
-              ListenForCapacityChanges();
-              isFirstLoad = false;
-            } else {
-              UpdateCapacityInRows();
-              Loading(mainLoader, false);
+        if (snapshot.size > 0) {
+          if (groupID === null) {
+            if (hostNameArr.length > 0) {
+              groupID = hostNameArr[0].group;
             }
-          })
-          .catch((error) => {
-            console.log(error.code + ": " + error.message);
-          })
+          }
+
+          if (hostNameArr.length > 0) {
+            const childSnapshot = snapshot.child(groupID);
+            const groupKey = childSnapshot.key;
+            const address = childSnapshot.child("Address").val();
+            const capacity = childSnapshot.child("Capacity").val();
+            const description = childSnapshot.child("Description").val();
+            const email = childSnapshot.child("Email").val();
+            const image = childSnapshot.child("Image").val();
+            const phone = childSnapshot.child("Phone").val();
+
+            getDownloadURL(ref_st(storage, "Groups/" + image))
+              .then((url) => {
+                //Update group array with the new data
+                const data = { group: groupKey, address: address, capacity: capacity, description: description, email: email, image: url, phone: phone };
+                groupInfoArr.unshift(data);
+
+                DaySorter(allWeeksArr);
+                //Create week containers for each week
+                var uniqHostWks = [...new Set((unsortedWeeksArr.filter(a => a.group === groupID)).map(item => item.week))];
+                uniqHostWks.forEach((week) => {
+                  CreatePlanningWeekContainers(week, planWeekHolder);
+                  var containerElem = document.getElementById(week + "-planning");
+                  CreatePlanningTableHeader(containerElem);
+
+                  allWeeksArr.forEach((elem) => {
+                    if (elem.group === groupID && elem.week === week) {
+                      CreatePlanningTableRow(elem, groupInfoArr, elem.group, containerElem, userScheduleArr.filter(u => u.group === groupID && u.week === week));
+                    }
+                  });
+                });
+
+                //Now Update planning intro
+                UpdatePlanningIntro(hostNameArr, groupInfoArr, groupID, planningIntro);
+
+                if (allWeeksArr.length > 0) {
+                  if (clickedWeek === null || !uniqHostWks.find(u => u === clickedWeek)) clickedWeek = uniqHostWks[0];
+                  overviewWeekSelection.value = clickedWeek;
+
+                  //Setup planning weeks dropdown
+                  SetupDropdowns(planWeekSelection, uniqHostWks, false);
+                  planWeekSelection.value = clickedWeek;
+                  ShowEventContainers(clickedWeek, 'planning-container');
+                } else {
+                  SetupDropdowns(planWeekSelection, ["No Days Available"], false);
+                }
+
+                //Make sure db listener gets started on first load
+                if (isFirstLoad === true) {
+                  ListenForCapacityChanges();
+                  isFirstLoad = false;
+                } else {
+                  UpdateCapacityInRows();
+                  Loading(mainLoader, false);
+                }
+              })
+              .catch((error) => {
+                console.log(error.code + ": " + error.message);
+              });
+          }
+        } else {
+          Loading(mainLoader, false);
+        }
+
       }, {
         onlyOnce: true
       }, error => {
@@ -2080,7 +2140,7 @@ window.addEventListener('load', () => {
           } else if (week.capacity === 0) {
             //No one can rsvp
             row.children[3].children[0].classList.remove('rsvp-disabled');
-              row.children[4].children[0].classList.remove('counter-disabled');
+            row.children[4].children[0].classList.remove('counter-disabled');
             if (isRSVPd === false) {
               row.children[3].children[0].classList.add('rsvp-disabled');
               row.children[4].children[0].classList.add('counter-disabled');
@@ -2205,11 +2265,16 @@ window.addEventListener('load', () => {
 
     if (selectElem === overviewWeekSelection || selectElem === planWeekSelection) {
       //Make sure both week selects for plan and overview are equal
-      overviewWeekSelection.value = selectElem.value;
-      planWeekSelection.value = selectElem.value;
+      //First check if that value exists as an option in the planning selection
+      for (let index = 0; index < planWeekSelection.length; index++) {
+        if (planWeekSelection.options[index].value === selectElem.value) {
+          planWeekSelection.value = selectElem.value;
+          ShowEventContainers(selectElem.value, "planning-container");
+        }
+      }
 
-      //Switch Event Containers based on selection
-      ShowEventContainers(selectElem.value, "planning-container");
+      //Switch Event Containers based on selection 
+      overviewWeekSelection.value = selectElem.value;
       ShowEventContainers(selectElem.value, "overview-container");
     } else if (selectElem === document.getElementById('dashboard-msg-weeks')) {
       GetRSVPdUsersByWeek(selectElem.value);
@@ -2225,8 +2290,8 @@ window.addEventListener('load', () => {
     }
     else {
       //Host Selection Dropdown
-      const selectedWeek = document.getElementById('plan-week-selection');
-      PlanningSetup(planRef, auth?.currentUser.isAnonymous, hostNameArr.find(h => h.host === selectElem.value).group, userScheduleArr, selectedWeek.value);
+      const selectedWeek = allWeeksArr.length > 0 ? document.getElementById('plan-week-selection').value : "No Weeks Available";
+      PlanningSetup(planRef, auth?.currentUser.isAnonymous, hostNameArr.find(h => h.host === selectElem.value).group, userScheduleArr, selectedWeek);
     }
   }
 
@@ -2284,7 +2349,7 @@ window.addEventListener('load', () => {
 
     if (rsvp) {
       var guests = rsvp.parentElement.parentElement.children[4].children[0];
-      
+
       if (guests.classList.contains('counter-disabled')) {
         guests.children[1].value = 0;
       }
@@ -2530,11 +2595,18 @@ window.addEventListener('load', () => {
         update(ref_db(database), dayUpdates).then(() => {
           ShowNotifToast("Days Removed", 'The days you choose have been removed from your schedule.', "var(--green)", true, 5);
           localDaysToRemove.forEach(day => { day.remove(); });
+          ShowCurrentScheduledDays();
         })
           .catch((error) => {
             console.log(error.code + ": " + error.message);
             ShowNotifToast("Error Removing Days", "There was an error when trying to remove days from your schedule. Please try again.", "var(--red)", true, 5);
           });
+      } else {
+        if (dashboardDays.children.length === 0) {
+          var noDay = document.createElement('p'); noDay.textContent = "No Scheduled Days Yet";
+          dashboardDays.appendChild(noDay);
+          dashboardDays.classList.add('no-days');
+        }
       }
     }
 

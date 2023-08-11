@@ -1233,6 +1233,18 @@ form .btn input[type="submit"] {
 .abouthelp-content ul li:nth-of-type(4) {
   animation-delay: 1s;
 }
+.abouthelp-content ul li:nth-of-type(5) {
+  animation-delay: 1.25s;
+}
+.abouthelp-content ul li:nth-of-type(6) {
+  animation-delay: 1.5s;
+}
+.abouthelp-content ul li:nth-of-type(7) {
+  animation-delay: 1.75s;
+}
+.abouthelp-content ul li:nth-of-type(8) {
+  animation-delay: 2s;
+}
 .abouthelp-content ul li:last-of-type {
   padding-bottom: 0;
 }
@@ -2898,7 +2910,7 @@ span > .fa-minus, span > .fa-plus {
     transform: scale(0.90);
   }
 
-  #abouthelp-wrapper {
+  .abouthelp-wrapper {
     transform: scale(0.90);
   }
 
