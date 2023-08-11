@@ -6,6 +6,10 @@
           ".write" : "$uid === auth.uid"
 				}
     },
+    "Capacities":{
+      ".read": "auth != null && auth.token.firebase.sign_in_provider != 'anonymous'",
+      ".write": "auth != null && auth.token.firebase.sign_in_provider != 'anonymous'"
+    },
     "Groups":{
       ".read": "auth != null",
       ".write": "root.child('Admins').child(auth.uid).exists()"

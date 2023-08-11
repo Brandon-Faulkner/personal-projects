@@ -29,10 +29,10 @@ html {
   -webkit-tap-highlight-color: transparent;
 }
 
-.pop-up {
+.pop-up, .max-pop-up {
   height: 100%;
   width: 100%;
-  z-index: 998;
+  z-index: 899;
   position: fixed;
   left: 0;
   right: 0;
@@ -51,6 +51,10 @@ html {
   animation-timing-function: ease-in-out;
   -webkit-animation-iteration-count: 1;
   animation-iteration-count: 1;
+}
+
+.max-pop-up {
+  z-index: 998;
 }
 
 .main-page {
@@ -679,7 +683,7 @@ form .btn input[type="submit"] {
 /*#region DASHBOARD*/
 .dashboard-wrapper {
   overflow: auto;
-  max-width: 90%;
+  max-width: 1000px;
   height: 90%;
   background: var(--dropdown-background);
   padding: 30px;
@@ -698,7 +702,7 @@ form .btn input[type="submit"] {
 
 #dashboard-content {
   display: inline-grid;
-  grid-template-rows: 12.5% 100% 70%;
+  grid-template-rows: 12.5% 100% 80%;
   opacity: 1;
   position: absolute;
   top: 0;
@@ -770,15 +774,21 @@ form .btn input[type="submit"] {
   color: var(--green);
 }
 
+.rsvpd-user {
+  padding: 0 20px;
+}
+
 .scheduled-day:hover,
-.added-day:hover {
+.added-day:hover,
+.rsvpd-user:hover {
   background: var(--background);
   border-radius: var(--border-radius);
   cursor: pointer;
 }
 
 .scheduled-day:active,
-.added-day:active {
+.added-day:active,
+.rsvpd-user:active {
   background: var(--background-light);
   border-radius: var(--border-radius);
   cursor: pointer;
@@ -802,13 +812,14 @@ form .btn input[type="submit"] {
   justify-self: center;
   align-self: center;
   grid-template-columns: 100%;
-  grid-template-rows: 7% 12% 20% 40% 20%;
+  grid-template-rows: 7% 10% 20% 40% 20%;
   background: var(--background);
   border-radius: var(--border-radius);
   box-shadow: var(--box-shadow);
 }
 
-#dashboard-send-message {
+#dashboard-send-message,
+#viewuser-send-message {
   height: 100%;
   width: 100%;
   display: inline-grid;
@@ -816,7 +827,8 @@ form .btn input[type="submit"] {
   overflow: hidden;
 }
 
-#dashboard-msg-input {
+#dashboard-msg-input,
+#viewuser-msg-input {
   resize: none;
   overflow: auto;
   display: block;
@@ -836,11 +848,13 @@ form .btn input[type="submit"] {
   box-shadow: var(--box-shadow);
 }
 
-#dashboard-msg-input:focus {
+#dashboard-msg-input:focus,
+#viewuser-msg-input:focus {
   border: solid 2px var(--blue-hover);
 }
 
-#dashboard-send-btn {
+#dashboard-send-btn,
+#viewuser-send-btn {
   background: transparent;
   width: 75%;
   height: 100%;
@@ -848,23 +862,27 @@ form .btn input[type="submit"] {
   transition: .25s ease-in-out;
 }
 
-#dashboard-send-btn::after {
+#dashboard-send-btn::after,
+#viewuser-send-btn::after {
   content: "Send";
   display: block;
   color: var(--white);
   font-size: small;
 }
 
-#dashboard-send-btn:hover {
+#dashboard-send-btn:hover,
+#viewuser-send-btn:hover {
   cursor: pointer;
   transform: scale(1.15);
 }
 
-#dashboard-send-btn:active {
+#dashboard-send-btn:active,
+#viewuser-send-btn:active {
   transform: scale(.75);
 }
 
-#dashboard-send-btn svg {
+#dashboard-send-btn svg,
+#viewuser-send-btn svg {
   height: 75%;
   max-height: 85px;
   width: 75%;
@@ -879,7 +897,7 @@ form .btn input[type="submit"] {
   justify-self: center;
   align-self: center;
   grid-template-columns: 100%;
-  grid-template-rows: 10% 25% 15% 36% 12%;
+  grid-template-rows: 10% 12% 18% 45% 10%;
   background: var(--background);
   border-radius: var(--border-radius);
   box-shadow: var(--box-shadow);
@@ -954,12 +972,67 @@ form .btn input[type="submit"] {
   justify-self: center;
 }
 
+#viewuser-loader {
+  top: 12.5%;
+  background: var(--green);
+  position: absolute;
+}
+
+#viewuser-loader .dot {
+  background: var(--background);
+}
+
+#viewUser-page .abouthelp-content {
+  grid-template-rows: 12.5% 87.5%;
+  align-items: center;
+}
+
+.viewUser-header {
+  height: 95%;
+  width: 90%;
+  display: inline-grid;
+  grid-template-rows: 40% 10% 30% 20%;
+  justify-self: center;
+  align-items: center;
+  background: var(--background);
+  border-radius: var(--border-radius);
+}
+
+.viewUser-header .profile-col {
+  padding-top: 0;
+}
+
+.viewUser-header .profile-col .profile-image {
+  margin-bottom: 0;
+}
+
+.host-users-name {
+  font-size: calc(14px + 1vw);
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
+.host-users-info {
+  font-size: calc(14px + 1vw);
+  display: inline-block !important;
+  width: 100%;
+}
+
+.host-users-info .prof-info {
+  text-align: center;
+  font-size: calc(1vw + 12px);
+}
+
+.host-users-info .prof-info::before {
+  color: var(--green);
+}
+
 /*#endregion DASHBOARD*/
 
 /*#region ABOUT/HELP*/
-#abouthelp-wrapper {
+.abouthelp-wrapper {
   overflow: auto;
-  max-width: 90%;
+  max-width: 1000px;
   height: 90%;
   background: var(--green);
   padding: 30px;
@@ -976,7 +1049,7 @@ form .btn input[type="submit"] {
   right: 0;
 }
 
-#abouthelp-content {
+.abouthelp-content{
   display: inline-grid;
   grid-template-rows: 12.5% 10% auto;
   opacity: 1;
@@ -988,7 +1061,7 @@ form .btn input[type="submit"] {
   overflow: auto;
 }
 
-#abouthelp-title {
+.abouthelp-title {
   height: 100%;
   display: inline-flex;
   align-items: center;
@@ -1000,7 +1073,7 @@ form .btn input[type="submit"] {
   font-weight: bold;
 }
 
-#abouthelp-close-btn {
+.abouthelp-close-btn {
   outline: 0;
   position: absolute;
   right: 10px;
@@ -1015,7 +1088,7 @@ form .btn input[type="submit"] {
   z-index: 1;
 }
 
-#abouthelp-close-btn>svg:hover {
+.abouthelp-close-btn>svg:hover {
   fill: var(--background);
 }
 
@@ -1093,13 +1166,13 @@ form .btn input[type="submit"] {
   width: 100%;
 }
 
-#abouthelp-content ul li i:before, 
-#abouthelp-content ul li i:after, 
-#abouthelp-content p {
+.abouthelp-content ul li i:before, 
+.abouthelp-content ul li i:after, 
+.abouthelp-content p {
   transition: all 0.25s ease-in-out;
 }
 
-#abouthelp-content h2 {
+.abouthelp-content h2 {
   font-size: 26px;
   line-height: 34px;
   font-weight: 300;
@@ -1112,7 +1185,7 @@ form .btn input[type="submit"] {
   text-transform: capitalize;
 }
 
-#abouthelp-content p {
+.abouthelp-content p {
   color: var(--background);
   font-size: 17px;
   line-height: 26px;
@@ -1128,18 +1201,18 @@ form .btn input[type="submit"] {
   text-align: left;
 }
 
-#abouthelp-content ul li, 
-#abouthelp-content h1 {
+.abouthelp-content ul li, 
+.abouthelp-content h1 {
   animation: flipdown 0.5s ease both;
 }
 
-#abouthelp-content ul {
+.abouthelp-content ul {
   list-style: none;
   padding: 0;
   margin: 0 20px;
 }
 
-#abouthelp-content ul li {
+.abouthelp-content ul li {
   position: relative;
   padding: 0;
   margin: 0;
@@ -1148,42 +1221,42 @@ form .btn input[type="submit"] {
   border-top: 1px dashed var(--white-hover);
 }
 
-#abouthelp-content ul li:nth-of-type(1) {
+.abouthelp-content ul li:nth-of-type(1) {
   animation-delay: 0.25s;
 }
-#abouthelp-content ul li:nth-of-type(2) {
+.abouthelp-content ul li:nth-of-type(2) {
   animation-delay: 0.5s;
 }
-#abouthelp-content ul li:nth-of-type(3) {
+.abouthelp-content ul li:nth-of-type(3) {
   animation-delay: 0.75s;
 }
-#abouthelp-content ul li:nth-of-type(4) {
+.abouthelp-content ul li:nth-of-type(4) {
   animation-delay: 1s;
 }
-#abouthelp-content ul li:last-of-type {
+.abouthelp-content ul li:last-of-type {
   padding-bottom: 0;
 }
-#abouthelp-content ul li i {
+.abouthelp-content ul li i {
   position: absolute;
   transform: translate(-6px, 0);
   margin-top: 16px;
   right: 0;
 }
-#abouthelp-content ul li i:before, 
-#abouthelp-content ul li i:after {
+.abouthelp-content ul li i:before, 
+.abouthelp-content ul li i:after {
   content: "";
   position: absolute;
   background-color: var(--background);
   width: 3px;
   height: 9px;
 }
-#abouthelp-content ul li i:before {
+.abouthelp-content ul li i:before {
   transform: translate(-2px, 0) rotate(45deg);
 }
-#abouthelp-content ul li i:after {
+.abouthelp-content ul li i:after {
   transform: translate(2px, 0) rotate(-45deg);
 }
-#abouthelp-content ul li input[type=checkbox] {
+.abouthelp-content ul li input[type=checkbox] {
   position: absolute;
   cursor: pointer;
   width: 100%;
@@ -1191,16 +1264,16 @@ form .btn input[type="submit"] {
   z-index: 1;
   opacity: 0;
 }
-#abouthelp-content ul li input[type=checkbox]:checked ~ p {
+.abouthelp-content ul li input[type=checkbox]:checked ~ p {
   margin-top: 0;
   max-height: 0;
   opacity: 0;
   transform: translate(0, 50%);
 }
-#abouthelp-content ul li input[type=checkbox]:checked ~ i:before {
+.abouthelp-content ul li input[type=checkbox]:checked ~ i:before {
   transform: translate(2px, 0) rotate(45deg);
 }
-#abouthelp-content ul li input[type=checkbox]:checked ~ i:after {
+.abouthelp-content ul li input[type=checkbox]:checked ~ i:after {
   transform: translate(-2px, 0) rotate(-45deg);
 }
 
@@ -2407,7 +2480,7 @@ form .btn input[type="submit"] {
 
 /*#region BUTTONS*/
 /*About / Help Button*/
-.abouthelp-button {
+.abouthelp-button, .help-button {
   outline: none;
   height: 40px;
   text-align: center;
@@ -2428,12 +2501,14 @@ form .btn input[type="submit"] {
   margin: 20px 0;
 }
 
-.abouthelp-button:hover {
+.abouthelp-button:hover,
+.help-button:hover {
   color: var(--background);
   background: var(--white);
 }
 
-.abouthelp-button:active {
+.abouthelp-button:active,
+.help-button:active {
   letter-spacing: 2px;
   color: var(--white);
   background: var(--green);
@@ -2443,7 +2518,12 @@ form .btn input[type="submit"] {
   content: "About / Help";
 }
 
-.abouthelp-button > i.fa-solid {
+.help-button:after {
+  content: "Help";
+}
+
+.abouthelp-button > i.fa-solid
+.help-button > i.fa-solid {
   padding: 0;
 }
 
@@ -2464,6 +2544,12 @@ form .btn input[type="submit"] {
   font-weight: bold;
   cursor: pointer;
   transition: all 0.25s ease;
+}
+
+.rsvp-disabled {
+  pointer-events: none;
+  background: lightgray !important;
+  border-color: lightgray !important;
 }
 
 .rsvp-button:hover {
@@ -2751,13 +2837,18 @@ form .btn input[type="submit"] {
   border-radius: 40px;
 }
 
+.counter-disabled {
+  pointer-events: none;
+  background: lightgray !important;
+}
+
 .counter input {
   width: 25px;
   border: 0;
   line-height: 20px;
   font-size: 20px;
   text-align: center;
-  background: var(--green);
+  background: transparent;
   color: var(--white);
   appearance: none;
   outline: 0;
@@ -2932,7 +3023,7 @@ span > .fa-minus, span > .fa-plus {
   }
 
   #dashboard-message {
-    grid-template-rows: 7% 12% 10% 50% 20%;
+    grid-template-rows: 7% 10% 10% 50% 20%;
   }
 
   a:hover {

@@ -73,7 +73,6 @@ window.addEventListener('load', () => {
   const mainScreen = document.getElementById('main-page');
   const aboutHelpBtn = document.getElementById('abouthelp-button');
   const aboutHelpPage = document.getElementById('abouthelp-page');
-  const aboutHelpCloseBtn = document.getElementById('abouthelp-close-btn');
   const aboutToggleBtn = document.getElementById('abouthelp-slider-about');
   const helpToggleBtn = document.getElementById('abouthelp-slider-help');
   const aboutHelpAboutPage = document.getElementById('abouthelp-aboutpage');
@@ -125,10 +124,11 @@ window.addEventListener('load', () => {
   const editInfoVerifyBtn = document.getElementById("editinfo-credsubmit-button");
   const editInfoSubmitBtn = document.getElementById("editinfo-submit-button");
 
+  var isFirstLoad = true;
   //Array to hold the data of each week
   var allWeeksArr = []; var unsortedWeeksArr = []; var uniqWeeks = [];
   //Arrays to hold group information
-  var groupInfoArr = [], hostNameArr = [], userScheduleArr = [];
+  var groupInfoArr = [], hostNameArr = [], userScheduleArr = [], groupsCurrCapac = [];
   //Values to register swipe actions
   var touchStartX = 0, touchStartY = 0; var touchEndX = 0, touchEndY = 0;
   //Used to determine if Forgot Password Page is open
@@ -197,7 +197,7 @@ window.addEventListener('load', () => {
         }
         sendEmailVerification(auth.currentUser, actionCodeSettings).then(() => {
           //User signed in but needs to verify email
-          ShowNotifToast("Email Verification Is Needed", "Thank you for signing up! We have sent you an email to verify the email you used to setup your account. You must verify your email before you can fully use this app!", "var(--blue)", true, 20);
+          ShowNotifToast("Email Verification Is Needed", "Thank you for signing up! We have sent you an email to verify your account which you must do before you can fully use this app! If you are not recieving the email, try refreshing the page or clearing your cache/cookies! If you still have issues, contact brandon@canachurch.com", "var(--blue)", false);
           ClearLoginAndSignupInputs();
 
           planningBlocked.textContent = "You must verify your email before fully using the app!";
@@ -332,7 +332,7 @@ window.addEventListener('load', () => {
       });
   }
 
-  function UpgradeAnonymous(auth, credential, img, imgName, name, phone) {
+  function UpgradeAnonymous(auth, credential, img, imgName, name, phone, email) {
     linkWithCredential(auth.currentUser, credential)
       .then((usercred) => {
         //Upload prof pic to storage
@@ -344,6 +344,7 @@ window.addEventListener('load', () => {
             set(ref_db(database, 'Users/' + usercred.user.uid), {
               Image: imgName,
               Name: name,
+              Email: email,
               Phone: phone,
               "Total RSVP'd": 0,
             })
@@ -518,7 +519,7 @@ window.addEventListener('load', () => {
     //Upgrade annonymous account if data is valid
     if (isNameValid && isPhoneValid && isEmailValid && isPasswordValid && img != null) {
       const credential = EmailAuthProvider.credential(email, password);
-      UpgradeAnonymous(auth, credential, img, imgName, name, phone);
+      UpgradeAnonymous(auth, credential, img, imgName, name, phone, email);
     } else {
       signupButton.parentElement.classList.remove('signup-click');
     }
@@ -593,10 +594,10 @@ window.addEventListener('load', () => {
 
     if (signupImg.files.length > 0) {
       const fileSize = signupImg.files.item(0).size;
-      const fileMb = fileSize / 1024 ** 2;
-      if (fileMb >= 2) {
+      const fileMb = 5242880; //5MB
+      if (fileSize >= fileMb) {
         //Bad
-        fileError.children[0].textContent = "Please select a file less than 2MB.";
+        fileError.children[0].textContent = "Please select a file less than 5MB.";
         fileError.classList.remove('hide');
       } else {
         //Good
@@ -769,6 +770,7 @@ window.addEventListener('load', () => {
           //If the entire week has passed
           if (endWeekDate.getTime() < currentDate.getTime()) {
             remove(ref_db(database, 'Groups/' + group.key + '/Weeks/' + week.key));
+            remove(ref_db(database, 'Capacities/' + group.key + week.key));
           } else {
             const sorter = { "Monday": 0, "Tuesday": 1, "Wednesday": 2, "Thursday": 3, "Friday": 4, "Saturday": 5, "Sunday": 6 };
             //Week is still valid, check if individual days have passed and remove
@@ -777,6 +779,7 @@ window.addEventListener('load', () => {
               tempBeginDate.setDate(tempBeginDate.getDate() + sorter[day.key]); AddTimeToDate(day.val(), tempBeginDate);
               if (tempBeginDate.getTime() < currentDate.getTime()) {
                 remove(ref_db(database, 'Groups/' + group.key + '/Weeks/' + week.key + '/' + day.key));
+                remove(ref_db(database, 'Capacities/' + group.key + '/' + week.key + '/' + day.key));
               }
             });
           }
@@ -992,12 +995,6 @@ window.addEventListener('load', () => {
     if (aboutHelpHelpPage.classList.contains('hide')) {
       aboutHelpHelpPage.classList.remove('hide');
       aboutHelpAboutPage.classList.add('hide');
-    }
-  });
-
-  aboutHelpCloseBtn.addEventListener('click', function () {
-    if (aboutHelpPage.classList.contains('show')) {
-      aboutHelpPage.classList.remove('show');
     }
   });
   //#endregion Overview Setup
@@ -1365,9 +1362,9 @@ window.addEventListener('load', () => {
     if (auth?.currentUser.isAnonymous === false) {
       editInfoSubmitBtn.parentElement.classList.add('submit-click');
       //If const is -1 then it is unused. If it is true or false then it is used
-      const nameValid = editInfoName.value != "" ? ValidateName(editInfoName.value, true) : -1;
-      const phoneValid = editInfoPhone.value != "" ? ValidatePhone(editInfoPhone.value, true) : -1;
-      const emailValid = editInfoEmail.value != "" ? ValidateEmail(editInfoEmail.value, true) : -1;
+      const nameValid = editInfoName.value.trim() != "" ? ValidateName(editInfoName.value.trim(), true) : -1;
+      const phoneValid = editInfoPhone.value.trim() != "" ? ValidatePhone(editInfoPhone.value.trim(), true) : -1;
+      const emailValid = editInfoEmail.value.trim() != "" ? ValidateEmail(editInfoEmail.value.trim(), true) : -1;
       const imgValid = editInfoImg.files[0] != null ? ValidateImg(editInfoImg.files[0], true) : -1;
       var invalidCounter = 0;
       var errorString = "The information you put for the item(s) you wanted to update is invalid.";
@@ -1401,11 +1398,11 @@ window.addEventListener('load', () => {
         const infoUpdates = {};
 
         if (nameValid === true) {
-          infoUpdates["Users/" + auth?.currentUser.uid + "/Name"] = editInfoName.value;
+          infoUpdates["Users/" + auth?.currentUser.uid + "/Name"] = editInfoName.value.trim();
         }
 
         if (phoneValid === true) {
-          infoUpdates["Users/" + auth?.currentUser.uid + "/Phone"] = editInfoPhone.value;
+          infoUpdates["Users/" + auth?.currentUser.uid + "/Phone"] = editInfoPhone.value.trim();
         }
 
         if (imgValid instanceof File) {
@@ -1419,23 +1416,27 @@ window.addEventListener('load', () => {
             uploadBytes(ref_st(storage, "Users/" + auth?.currentUser.uid + "/" + newImgName), imgValid, metaData).then(() => {
               //Upload successful, now proceed with update
               infoUpdates["Users/" + auth?.currentUser.uid + "/Image"] = newImgName;
-              update(ref_db(database), infoUpdates).then(() => {
-                if (emailValid === true) {
-                  updateEmail(auth.currentUser, editInfoEmail.value).then(() => {
+              if (emailValid === true) {
+                updateEmail(auth.currentUser, editInfoEmail.value.trim()).then(() => {
+                  infoUpdates["Users/" + auth?.currentUser.uid + "/Email"] = editInfoEmail.value.trim();
+                  update(ref_db(database), infoUpdates).then(() => {
                     //Update local then show toast
                     UpdateLocalProfInfo(nameValid, phoneValid, emailValid, imgValid);
                     ShowNotifToast("Updated Profile Info", "You have successfully updated your profile information.", "var(--green)", true, 5);
                     ClearEditInfoInputs();
                     editInfoCloseBtn.click();
                   });
-                } else {
+                });
+              } else {
+                update(ref_db(database), infoUpdates).then(() => {
                   //Update local then show toast
                   UpdateLocalProfInfo(nameValid, phoneValid, emailValid, imgValid);
                   ShowNotifToast("Updated Profile Info", "You have successfully updated your profile information.", "var(--green)", true, 5);
                   ClearEditInfoInputs();
                   editInfoCloseBtn.click();
-                }
-              });
+                });
+              }
+
             });
           }).catch((error) => {
             console.log(error.code + ": " + error.message);
@@ -1443,27 +1444,34 @@ window.addEventListener('load', () => {
             editInfoSubmitBtn.parentElement.classList.remove('submit-click');
           });
         } else {
-          update(ref_db(database), infoUpdates).then(() => {
-            if (emailValid === true) {
-              updateEmail(auth.currentUser, editInfoEmail.value).then(() => {
+          if (emailValid === true) {
+            updateEmail(auth.currentUser, editInfoEmail.value.trim()).then(() => {
+              infoUpdates["Users/" + auth?.currentUser.uid + "/Email"] = editInfoEmail.value.trim();
+              update(ref_db(database), infoUpdates).then(() => {
                 //Update local then show toast
                 UpdateLocalProfInfo(nameValid, phoneValid, emailValid, imgValid);
                 ShowNotifToast("Updated Profile Info", "You have successfully updated your profile information.", "var(--green)", true, 5);
                 ClearEditInfoInputs();
                 editInfoCloseBtn.click();
-              });
-            } else {
+              })
+            }).catch((error) => {
+              console.log(error.code + ": " + error.message);
+              ShowNotifToast("Error Updating Info", "There was an error when trying to update your information in the database. Please try to submit again.", "var(--red)", true, 8);
+              editInfoSubmitBtn.parentElement.classList.remove('submit-click');
+            });;
+          } else {
+            update(ref_db(database), infoUpdates).then(() => {
               //Update local then show toast
               UpdateLocalProfInfo(nameValid, phoneValid, emailValid, imgValid);
               ShowNotifToast("Updated Profile Info", "You have successfully updated your profile information.", "var(--green)", true, 5);
               ClearEditInfoInputs();
               editInfoCloseBtn.click();
-            }
-          }).catch((error) => {
-            console.log(error.code + ": " + error.message);
-            ShowNotifToast("Error Updating Info", "There was an error when trying to update your information in the database. Please try to submit again.", "var(--red)", true, 8);
-            editInfoSubmitBtn.parentElement.classList.remove('submit-click');
-          });
+            }).catch((error) => {
+              console.log(error.code + ": " + error.message);
+              ShowNotifToast("Error Updating Info", "There was an error when trying to update your information in the database. Please try to submit again.", "var(--red)", true, 8);
+              editInfoSubmitBtn.parentElement.classList.remove('submit-click');
+            });
+          }
         }
       } else if (invalidCounter > 0) {
         //Something is invalid
@@ -1477,15 +1485,15 @@ window.addEventListener('load', () => {
     var profInfoElem = document.getElementById("profile-info").children[2];
 
     if (nameValid === true) {
-      profInfoElem.children[1].textContent = editInfoName.value;
+      profInfoElem.children[1].textContent = editInfoName.value.trim();
     }
 
     if (phoneValid === true) {
-      profInfoElem.children[3].textContent = editInfoPhone.value;
+      profInfoElem.children[3].textContent = editInfoPhone.value.trim();
     }
 
     if (emailValid === true) {
-      profInfoElem.children[2].textContent = editInfoEmail.value;
+      profInfoElem.children[2].textContent = editInfoEmail.value.trim();
     }
 
     if (imgValid instanceof File) {
@@ -1516,8 +1524,7 @@ window.addEventListener('load', () => {
   //#region Admin Dashboard
   function CreateAdminDashboard(dashPage) {
     const dashContent = dashPage.children[0].children[0];
-    //Remove curr schedule, messages and add days but keep title element
-    document.getElementById('dashboard-curr-schedule')?.remove();
+    //Remove messages and add days but keep title element and pop ups
     document.getElementById('dashboard-message')?.remove();
     document.getElementById('dashboard-add-days')?.remove();
 
@@ -1527,9 +1534,10 @@ window.addEventListener('load', () => {
     var messageTitle = document.createElement('h2'); messageTitle.style = "color:var(--white);font-size:calc(1.25vw + 1.5vh);margin:auto;";
     messageTitle.textContent = "View or Message All RSVP'd Users"; dashMessage.appendChild(messageTitle);
 
-    var messageDesc = document.createElement('p'); messageDesc.style = "color:var(--white);margin:auto;padding:0 5% 10px;";
-    messageDesc.textContent = "Select a week from the first dropdown below. After selecting a week, RSVP'd users from all days that week will show up. You can then specify a certain day by using the second dropdown."
-    dashMessage.appendChild(messageDesc);
+    SetupHelpForDashboard(dashMessage, "messages");
+    //var messageDesc = document.createElement('p'); messageDesc.style = "color:var(--white);margin:auto;padding:0 5% 10px;";
+    //messageDesc.textContent = "Select a week from the first dropdown below.\nAfter selecting a week, RSVP'd users from all days that week will show up.\nYou can then specify a certain day by using the second dropdown."
+    //dashMessage.appendChild(messageDesc);
 
     var svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg'); svg.setAttribute('viewBox', '0 0 16 16');
     var path = document.createElementNS("http://www.w3.org/2000/svg", 'path'); path.setAttribute('d', "M 7.247 11.14 L 2.451 5.658 C 1.885 5.013 2.345 4 3.204 4 h 9.592 a 1 1 0 0 1 0.753 1.659 l -4.796 5.48 a 1 1 0 0 1 -1.506 0 Z");
@@ -1562,9 +1570,11 @@ window.addEventListener('load', () => {
     var addDays = document.createElement('div'); addDays.setAttribute('id', 'dashboard-add-days');
     var daysTitle = document.createElement('h2'); daysTitle.style = "color:var(--white);font-size:calc(1.25vw + 1.5vh);margin:auto;";
     daysTitle.textContent = "Add/Remove Scheduled Days"; addDays.appendChild(daysTitle);
-    var daysDesc = document.createElement('p'); daysDesc.style = "color:var(--white);margin:auto;padding:0 5% 10px;";
-    daysDesc.textContent = "Your current scheduled days will appear in white. Select a date and time below to host. Add that to the list and repeat as much as you want. These new days will appear in green. When you are done, click \"Schedule Days\" to submit these days. You can also remove a new or already scheduled day.";
-    addDays.appendChild(daysDesc);
+
+    SetupHelpForDashboard(addDays, "schedule");
+    //var daysDesc = document.createElement('p'); daysDesc.style = "color:var(--white);margin:auto;padding:0 5% 10px;";
+    //daysDesc.textContent = "Your current scheduled days will appear in white. Select a date and time below to host. Add that to the list and repeat as much as you want. These new days will appear in green. When you are done, click \"Schedule Days\" to submit these days. You can also remove a new or already scheduled day.";
+    //addDays.appendChild(daysDesc);
 
     var addDateTime = document.createElement('div'); addDateTime.setAttribute('id', 'dashboard-add-datetime');
     var dateTime = document.createElement('div'); dateTime.setAttribute('id', "dashboard-datetime");
@@ -1591,6 +1601,22 @@ window.addEventListener('load', () => {
     addDays.appendChild(removeAndSchedule);
 
     dashContent.appendChild(addDays);
+  }
+
+  function SetupHelpForDashboard(parentElem, helpContentName) {
+    //Create help button
+    var helpBtn = document.createElement('button'); helpBtn.classList.add("help-button");
+    var helpIcon = document.createElement('i'); helpIcon.className = "fa-solid fa-circle-question"; helpBtn.appendChild(helpIcon);
+
+    if (helpContentName === "messages") {
+      helpBtn.setAttribute("id", "messageshelp-button");
+      helpBtn.setAttribute("data-pageId", "messageshelp-page");
+      parentElem.appendChild(helpBtn);
+    } else if (helpContentName === "schedule") {
+      helpBtn.setAttribute("id", "schedulehelp-button");
+      helpBtn.setAttribute("data-pageId", "schedulehelp-page");
+      parentElem.appendChild(helpBtn);
+    }
   }
 
   function ChatUsersSetup(parentElem, user) {
@@ -1673,7 +1699,7 @@ window.addEventListener('load', () => {
   function GetRSVPdUsersByWeek(week) {
     const dashboardRsvpUsers = document.getElementById('dashboard-rsvp-content');
     dashboardRsvpUsers.replaceChildren();
-    var rsvp = document.createElement('p'); rsvp.style = "padding: 0 20px";
+    var rsvp = document.createElement('p');
     var tempArr = rsvpdUsersArr.filter(r => r.week === week);
 
     //Get only unique names from the arr
@@ -1683,12 +1709,14 @@ window.addEventListener('load', () => {
       //Update ui to show rsvpd users
       dashboardRsvpUsers.classList.remove('no-rsvps');
       uniqNames.forEach((user) => {
-        var rsvpClone = rsvp.cloneNode(); rsvpClone.textContent = user.name;
+        var rsvpClone = rsvp.cloneNode(); rsvpClone.className = "rsvpd-user";
+        rsvpClone.textContent = user.name;
         dashboardRsvpUsers.appendChild(rsvpClone);
       });
     } else {
       dashboardRsvpUsers.classList.add('no-rsvps');
-      var rsvpClone = rsvp.cloneNode(); rsvpClone.textContent = "No RSVP's Yet";
+      var rsvpClone = rsvp.cloneNode(); rsvpClone.style = "padding: 0 20px";
+      rsvpClone.textContent = "No RSVP's Yet";
       dashboardRsvpUsers.appendChild(rsvpClone);
     }
   }
@@ -1696,22 +1724,104 @@ window.addEventListener('load', () => {
   function GetRSVPdUsersByDay(day, msgWeeks) {
     const dashboardRsvpUsers = document.getElementById('dashboard-rsvp-content');
     dashboardRsvpUsers.replaceChildren();
-    var rsvp = document.createElement('p'); rsvp.style = "padding: 0 20px;";
+    var rsvp = document.createElement('p');
     const tempArr = rsvpdUsersArr.filter(r => r.week === msgWeeks.value);
 
     if (tempArr.length > 0 && day !== "default") {
       dashboardRsvpUsers.classList.remove('no-rsvps');
       tempArr.forEach((user) => {
         if (user.day === day) {
-          var rsvpClone = rsvp.cloneNode(); rsvpClone.textContent = user.name + "\n Guests:" + user.guests;
+          var rsvpClone = rsvp.cloneNode(); rsvpClone.className = "rsvpd-user";
+          rsvpClone.textContent = user.name + "\n Guests:" + user.guests;
           dashboardRsvpUsers.appendChild(rsvpClone);
         }
       });
     } else {
       dashboardRsvpUsers.classList.add('no-rsvps');
-      var rsvpClone = rsvp.cloneNode(); rsvpClone.textContent = "No RSVP's Yet";
+      var rsvpClone = rsvp.cloneNode(); rsvpClone.style = "padding: 0 20px";
+      rsvpClone.textContent = "No RSVP's Yet";
       dashboardRsvpUsers.appendChild(rsvpClone);
     }
+  }
+
+  var prevUsersName;
+  function ViewRSVPdUser(usersName) {
+    Loading(document.getElementById("viewuser-loader"), true);
+
+    if (prevUsersName == null && prevUsersName != usersName) {
+      //Get user from arr
+      var tempUser = rsvpdUsersArr.find(u => usersName === u.name);
+      if (tempUser === null) {
+        //Couldnt find user in array
+        //Tell host and close screen
+        ShowNotifToast("Unable To Get User Info", "There was an error trying to get this users information. Please try again.", "var(--red)", true, 5);
+        var userPage = document.getElementById('viewUser-page');
+        if (userPage.classList.contains('show')) {
+          userPage.classList.remove('show');
+        }
+      } else {
+        //Found user so get their info
+        get(ref_db(database, 'Users/' + tempUser.uid)).then((snapshot) => {
+          //Elements to update
+          var parentElem = document.querySelector("#viewUser-page > div > div > div.viewUser-header");
+          var profImg = parentElem.children[0].children[0];
+          var profName = parentElem.children[1];
+          var profEmail = parentElem.children[2].children[0];
+          var profPhone = parentElem.children[2].children[1];
+          var profDays = parentElem.children[2].children[2];
+
+          //First make sure img comes through before updating anything
+          getDownloadURL(ref_st(storage, "Users/" + tempUser.uid + "/" + snapshot.child("Image").val())).then((url) => {
+            profImg.src = url;
+            profName.textContent = snapshot.child("Name").val();
+            profEmail.textContent = snapshot.child("Email").val();
+            profPhone.textContent = snapshot.child("Phone").val();
+            profDays.textContent = snapshot.child("Total RSVP'd").val();
+
+            //Make sure message box is cleared
+            document.getElementById("viewuser-msg-input").value = null;
+
+            //Now show everything
+            setTimeout(() => {
+              prevUsersName = usersName;
+              Loading(document.getElementById("viewuser-loader"), false);
+            }, 1000);
+
+          }).catch((error) => {
+            console.log(error.code + ": " + error.message);
+            ShowNotifToast("Unable To Get User Info", "There was an error trying to get this users information. Please try again.", "var(--red)", true, 5);
+            var userPage = document.getElementById('viewUser-page');
+            if (userPage.classList.contains('show')) {
+              userPage.classList.remove('show');
+            }
+          });
+        }).catch((error) => {
+          console.log(error.code + ": " + error.message);
+          ShowNotifToast("Unable To Get User Info", "There was an error trying to get this users information. Please try again.", "var(--red)", true, 5);
+          var userPage = document.getElementById('viewUser-page');
+          if (userPage.classList.contains('show')) {
+            userPage.classList.remove('show');
+          }
+        });
+      }
+    } else {
+      //This users info is already loaded
+      Loading(document.getElementById("viewuser-loader"), false);
+    }
+  }
+
+  function SendViewedUserMessage(usersName, msgElem) {
+    const msgUpdate = {}; const timestamp = Date.now();
+    var tempUser = rsvpdUsersArr.find(u => usersName === u.name);
+
+    msgUpdate['UsersMessages/' + adminHostName + '/' + tempUser.uid + "/HostMsgs/" + timestamp] = msgElem.value;
+    update(ref_db(database), msgUpdate).then(() => {
+      ShowNotifToast("Message Sent", "Your message to " + usersName + " was successully sent.", "var(--green)", true, 5);
+      msgElem.value = null;
+    }).catch((error) => {
+      console.log(error.code + ": " + error.message);
+      ShowNotifToast("Error Sending Message", "There was an error when trying to send your message to this user. Please try again.", "var(--red)", true, 5);
+    });
   }
 
   function ShowCurrentScheduledDays() {
@@ -1783,7 +1893,13 @@ window.addEventListener('load', () => {
   function SendMsgToAllRsvpUsers(rsvpContentArr, msgBox) {
     const msgUpdates = {}; const timestamp = Date.now();
     rsvpContentArr.forEach((user) => {
-      var temp = rsvpdUsersArr.find(u => user.textContent === u.name);
+      var usersName;
+      if (document.getElementById('dashboard-msg-days').value != "default") {
+        usersName = user.textContent.split("\n Guests:")[0];
+      } else {
+        usersName = user.textContent;
+      }
+      var temp = rsvpdUsersArr.find(u => usersName === u.name);
       msgUpdates['UsersMessages/' + adminHostName + '/' + temp.uid + '/HostMsgs/' + timestamp] = msgBox.value;
     });
 
@@ -1814,6 +1930,7 @@ window.addEventListener('load', () => {
         const beginString = (beginWeek.getMonth() + 1) + "/" + ('0' + beginWeek.getDate()).slice(-2) + "/" + ('0' + beginWeek.getFullYear()).slice(-2);
         const endString = (endWeek.getMonth() + 1) + "/" + ('0' + endWeek.getDate()).slice(-2) + "/" + ('0' + endWeek.getFullYear()).slice(-2);
 
+        dayUpdates["Capacities/" + adminGroup + "/" + encodeURIComponent(beginString + '-' + endString) + "/" + dayOfWeek] = groupInfoArr.find(g => adminGroup === g.group).capacity;
         dayUpdates["Groups/" + adminGroup + "/Weeks/" + encodeURIComponent(beginString + '-' + endString) + "/" + dayOfWeek] = splitDateTime[1];
       }
     });
@@ -1859,6 +1976,7 @@ window.addEventListener('load', () => {
         const childSnapshot = snapshot.child(groupID);
         const groupKey = childSnapshot.key;
         const address = childSnapshot.child("Address").val();
+        const capacity = childSnapshot.child("Capacity").val();
         const description = childSnapshot.child("Description").val();
         const email = childSnapshot.child("Email").val();
         const image = childSnapshot.child("Image").val();
@@ -1867,7 +1985,7 @@ window.addEventListener('load', () => {
         getDownloadURL(ref_st(storage, "Groups/" + image))
           .then((url) => {
             //Update group array with the new data
-            const data = { group: groupKey, address: address, description: description, email: email, image: url, phone: phone };
+            const data = { group: groupKey, address: address, capacity: capacity, description: description, email: email, image: url, phone: phone };
             groupInfoArr.unshift(data);
 
             //Clear the current elements in the list
@@ -1875,7 +1993,8 @@ window.addEventListener('load', () => {
 
             DaySorter(allWeeksArr);
             //Create week containers for each week
-            uniqWeeks.forEach((week) => {
+            var uniqHostWks = [...new Set((unsortedWeeksArr.filter(a => a.group === groupID)).map(item => item.week))];
+            uniqHostWks.forEach((week) => {
               CreatePlanningWeekContainers(week, planWeekHolder);
               var containerElem = document.getElementById(week + "-planning");
               CreatePlanningTableHeader(containerElem);
@@ -1889,14 +2008,20 @@ window.addEventListener('load', () => {
 
             //Now Update planning intro
             UpdatePlanningIntro(hostNameArr, groupInfoArr, groupID, planningIntro);
-            if (clickedWeek === null) clickedWeek = uniqWeeks[0];
+            if (clickedWeek === null || !uniqHostWks.find(u => u === clickedWeek)) clickedWeek = uniqHostWks[0];
             ShowEventContainers(clickedWeek, 'planning-container');
 
             //Setup planning weeks dropdown
-            var uniqHostWks = [...new Set((unsortedWeeksArr.filter(a => a.group === groupID)).map(item => item.week))];
             SetupDropdowns(planWeekSelection, uniqHostWks, false);
 
-            Loading(mainLoader, false);
+            //Make sure db listener gets started on first load
+            if (isFirstLoad === true) {
+              ListenForCapacityChanges();
+              isFirstLoad = false;
+            } else {
+              UpdateCapacityInRows();
+              Loading(mainLoader, false);
+            }
           })
           .catch((error) => {
             console.log(error.code + ": " + error.message);
@@ -1907,6 +2032,71 @@ window.addEventListener('load', () => {
         console.log(error.code + ": " + error.message);
       });
     }
+  }
+
+  function ListenForCapacityChanges() {
+    onValue(ref_db(database, "Capacities/"), (snapshot) => {
+      groupsCurrCapac = [];
+
+      //Load all capacity data
+      snapshot.forEach((group) => {
+        group.forEach((week) => {
+          week.forEach((day) => {
+            var capData = { group: group.key, week: decodeURIComponent(week.key), day: day.key, capacity: day.val() };
+            groupsCurrCapac.push(capData);
+          });
+        });
+      });
+
+      UpdateCapacityInRows();
+
+      Loading(mainLoader, false);
+    }, error => {
+      console.log(error.code + ": " + error.message);
+    });
+  }
+
+  function UpdateCapacityInRows() {
+    //Capacity is loaded for each group's days, now update planning rows for those that are loaded
+    var filteredByCurrGroup = groupsCurrCapac.filter(g => hostNameArr.find(h => hostSelection.value === h.host).group === g.group);
+
+    filteredByCurrGroup.forEach((week) => {
+      var tableElem = document.getElementById(week.week + "-planning");
+      var tableElemArr = Array.from(tableElem.children);
+
+      tableElemArr.forEach((row) => {
+        var rowDate = row.children[0].textContent.split('/')[0];
+        if (row.classList.contains('table-row') && rowDate === week.day) {
+          row.children[2].textContent = week.capacity;
+          var isRSVPd = row.children[3].children[0].classList.contains('rsvp-cancel-button');
+
+          if (week.capacity === 1) {
+            //Only user can rsvp, no friends
+            row.children[3].children[0].classList.remove('rsvp-disabled');
+            row.children[4].children[0].classList.remove('counter-disabled');
+            if (isRSVPd === false) {
+              row.children[4].children[0].classList.add('counter-disabled');
+            }
+          } else if (week.capacity === 0) {
+            //No one can rsvp
+            row.children[3].children[0].classList.remove('rsvp-disabled');
+              row.children[4].children[0].classList.remove('counter-disabled');
+            if (isRSVPd === false) {
+              row.children[3].children[0].classList.add('rsvp-disabled');
+              row.children[4].children[0].classList.add('counter-disabled');
+            }
+          } else {
+            if (isRSVPd === false) {
+              row.children[3].children[0].classList.remove('rsvp-disabled');
+              row.children[4].children[0].classList.remove('counter-disabled');
+              if (parseInt(row.children[4].children[0].children[1].value, 10) >= week.capacity) {
+                row.children[4].children[0].children[1].value = week.capacity - 1;
+              }
+            }
+          }
+        }
+      });
+    });
   }
 
   function UpdatePlanningIntro(hostNameArr, groupInfoArr, groupID, parentElem) {
@@ -1930,7 +2120,7 @@ window.addEventListener('load', () => {
     tableHeader.classList.add('table-header');
     var headerDiv1 = document.createElement('div'); headerDiv1.className = "col"; headerDiv1.textContent = "Day/Time"; tableHeader.appendChild(headerDiv1);
     var headerDiv2 = document.createElement('div'); headerDiv2.className = "col"; headerDiv2.textContent = "Address"; tableHeader.appendChild(headerDiv2);
-    var headerDiv3 = document.createElement('div'); headerDiv3.className = "col"; headerDiv3.textContent = "Status"; tableHeader.appendChild(headerDiv3);
+    var headerDiv3 = document.createElement('div'); headerDiv3.className = "col"; headerDiv3.textContent = "Spaces Available"; tableHeader.appendChild(headerDiv3);
     var headerDiv4 = document.createElement('div'); headerDiv4.className = "col"; headerDiv4.textContent = "I'm Going"; tableHeader.appendChild(headerDiv4);
     var headerDiv5 = document.createElement('div'); headerDiv5.className = "col"; headerDiv5.textContent = "Friends"; tableHeader.appendChild(headerDiv5);
     parentElem.appendChild(tableHeader);
@@ -1947,7 +2137,7 @@ window.addEventListener('load', () => {
 
     //Check user schedule to update these values if they exist
     //First create elements, update values if needed, then add to row in order
-    var col3 = document.createElement('div'); col3.className = "col"; col3.setAttribute('data-label', "Status:"); col3.textContent = "Not Going";
+    var col3 = document.createElement('div'); col3.className = "col"; col3.setAttribute('data-label', "Spaces Available:"); col3.textContent = groupInfoArr.find(g => g.group === groupID).capacity;
 
     var col4 = document.createElement('div'); col4.className = "col"; col4.setAttribute('data-label', "I'm Going:");
     var rsvp = document.createElement('button'); rsvp.className = "rsvp-button"; rsvp.setAttribute('data-groupID', groupID); rsvp.setAttribute('data-week', elem.week); rsvp.setAttribute('data-day', elem.day);
@@ -1955,14 +2145,13 @@ window.addEventListener('load', () => {
     var col5 = document.createElement('div'); col5.className = "col"; col5.setAttribute('data-label', "Friends:");
     var counter = document.createElement('div'); counter.className = "counter";
     var minus = document.createElement('span'); minus.className = "guest-down"; var minusIcon = document.createElement('i'); minusIcon.className = "fa-solid fa-minus"; minus.appendChild(minusIcon);
-    var counterInput = document.createElement('input'); counterInput.setAttribute("id", "counter-input-" + Math.floor(Math.random() * 100000)); counterInput.setAttribute("type", "text"); counterInput.value = 0;
+    var counterInput = document.createElement('input'); counterInput.setAttribute("id", "counter-input-" + groupID + '-' + elem.week + '-' + elem.day); counterInput.setAttribute("type", "text"); counterInput.value = 0;
     var plus = document.createElement('span'); plus.className = "guest-up"; var plusIcon = document.createElement('i'); plusIcon.className = "fa-solid fa-plus"; plus.appendChild(plusIcon);
 
     //Check schedule
     if (userScheduleArr != null) {
       userScheduleArr.forEach((userDay) => {
         if (elem.day === userDay.day && elem.time === userDay.time) {
-          col3.textContent = "Going";
           minus.classList.add('hide'); plus.classList.add('hide');
           counterInput.value = userDay.guests;
           rsvp.classList.add('rsvp-cancel-button');
@@ -1987,7 +2176,7 @@ window.addEventListener('load', () => {
     if (isAdmin === true && select === document.getElementById('dashboard-msg-days')) {
       var option = document.createElement('option');
       option.value = "default";
-      option.innerText = "No Day";
+      option.innerText = "All RSVPs This Week";
       select.appendChild(option);
     }
 
@@ -2004,8 +2193,8 @@ window.addEventListener('load', () => {
 
     // Show the first container from the first option in lists
     if (!isHostArr) {
-      ShowEventContainers(uniqWeeks[0], "planning-container");
-      ShowEventContainers(uniqWeeks[0], "overview-container");
+      ShowEventContainers(optionsArr[0], "planning-container");
+      ShowEventContainers(optionsArr[0], "overview-container");
     }
   }
   //#endregion
@@ -2044,6 +2233,28 @@ window.addEventListener('load', () => {
   document.addEventListener('click', function (e) {
     e.stopPropagation();
 
+    //About/Help Buttons 
+    var dashboardHelpBtn = e.target.closest('.help-button');
+    var aboutHelpCloseBtn = e.target.closest('.abouthelp-close-btn');
+
+    if (dashboardHelpBtn) {
+      var pageId = dashboardHelpBtn.getAttribute('data-pageId');
+      var helpPage = document.getElementById(pageId);
+
+      if (!helpPage.classList.contains('show')) {
+        helpPage.classList.add('show');
+      }
+    }
+
+    if (aboutHelpCloseBtn) {
+      var pageId = aboutHelpCloseBtn.getAttribute('data-pageId');
+      var aboutHelpPage = document.getElementById(pageId);
+
+      if (aboutHelpPage.classList.contains('show')) {
+        aboutHelpPage.classList.remove('show');
+      }
+    }
+
     //Show/Hide password
     const eyeIcon = e.target.closest('.eye-icon');
 
@@ -2072,6 +2283,12 @@ window.addEventListener('load', () => {
     const rsvp = e.target.closest('.rsvp-button');
 
     if (rsvp) {
+      var guests = rsvp.parentElement.parentElement.children[4].children[0];
+      
+      if (guests.classList.contains('counter-disabled')) {
+        guests.children[1].value = 0;
+      }
+
       rsvp.classList.add('button-onClick');
       if (!rsvp.classList.contains('rsvp-cancel-button')) {
         setTimeout(ValidateRSVP(auth, rsvp, false), 250);
@@ -2186,16 +2403,41 @@ window.addEventListener('load', () => {
       }
     }
 
+    //Admin dashboard view user 
+    var rsvpdUser = e.target.closest('.rsvpd-user');
+
+    if (rsvpdUser) {
+      var userPage = document.getElementById('viewUser-page');
+      if (!userPage.classList.contains('show')) {
+        userPage.classList.add('show');
+
+        var usersName = rsvpdUser.textContent;
+        if (document.getElementById('dashboard-msg-days').value != "default") {
+          usersName = rsvpdUser.textContent.split("\n Guests:")[0];
+        }
+
+        ViewRSVPdUser(usersName);
+      }
+    }
+
+    //Admin dashboard send user msg
+    var sendUserMsg = e.target.closest("#viewuser-send-btn");
+    var textInput = document.getElementById("viewuser-msg-input");
+
+    if (sendUserMsg && textInput.value.trim() != null && textInput.value.length > 0) {
+      var parentElem = document.querySelector("#viewUser-page > div > div > div.viewUser-header");
+      SendViewedUserMessage(parentElem.children[1].textContent, textInput);
+    }
+
     //Admin dashboard send messages
     var sendMsgs = e.target.closest('#dashboard-send-btn');
     const rsvpContent = document.getElementById('dashboard-rsvp-content');
 
     if (sendMsgs) {
       const msgBox = document.getElementById('dashboard-msg-input');
-      if (msgBox.value != null && msgBox.value != " ") {
+      if (msgBox.value.trim() != null && msgBox.value.length > 0) {
         if (!rsvpContent.classList.contains('no-rsvps')) {
           var rsvpsArr = Array.from(rsvpContent.children);
-
           SendMsgToAllRsvpUsers(rsvpsArr, msgBox);
         }
       }
@@ -2486,6 +2728,8 @@ window.addEventListener('load', () => {
             console.log(error);
           });
         });
+      } else {
+        Loading(chatHostLoader, false);
       }
     }).catch((error) => {
       Loading(chatHostLoader, false);
@@ -2531,7 +2775,6 @@ window.addEventListener('load', () => {
       if (isNotRsvp === true) {
         guests.nextElementSibling.classList.remove('hide');
         guests.previousElementSibling.classList.remove('hide');
-        guests.value = 0;
 
         //Remove day from user schedule in db
         set(ref_db(database, 'Users/' + auth?.currentUser.uid + '/Schedule/' + week + '/' + dayAndTime[0] + '-' + groupNum), {
@@ -2542,12 +2785,15 @@ window.addEventListener('load', () => {
           .then(() => {
             //Remove rsvp from RSVPs in db
             remove(ref_db(database, 'RSVPs/' + groupID + "/" + week + "/" + dayAndTime[0] + "/" + auth?.currentUser.uid));
+            //Increase capacity depending on guest value
+            updates['Capacities/' + groupID + '/' + week + '/' + dayAndTime[0]] = increment(parseInt(guests.value, 10) + 1);
             //Subtract total day rsvp from user
             updates['Users/' + auth?.currentUser.uid + "/Total RSVP'd"] = increment(-1);
             update(ref_db(database), updates).then(() => {
               totalRsvpElem.textContent = --userTotalRSVP;
               button.classList.remove('button-onClick');
               button.classList.add('rsvp-validate');
+              guests.value = 0;
 
               //Remove from userScheduleArr to keep data valid
               const scheduleIndex = userScheduleArr.findIndex(u => u.group === groupID && u.week === decodedWeek && u.day === dayAndTime[0] && u.time === dayAndTime[1]);
@@ -2573,6 +2819,8 @@ window.addEventListener('load', () => {
           Time: dayAndTime[1]
         })
           .then(() => {
+            //Update capacity based on guests and user
+            updates['Capacities/' + groupID + '/' + week + '/' + dayAndTime[0]] = increment(-(parseInt(guests.value, 10) + 1));
             //Add total day rsvp from user
             updates['Users/' + auth?.currentUser.uid + "/Total RSVP'd"] = increment(1);
             //Add to RSVPs in db with user's name and number of guests
@@ -2609,14 +2857,13 @@ window.addEventListener('load', () => {
 
       if (isNotRsvp === true) {
         button.classList.remove('rsvp-cancel-button');
-        button.parentElement.parentElement.children[2].textContent = "Not Going";
         AddOrRemoveNotifBadge(groupID + '-' + week + '-' + day, null, 'remove')
       } else {
         button.classList.add('rsvp-cancel-button');
-        button.parentElement.parentElement.children[2].textContent = "Going";
         AddOrRemoveNotifBadge(groupID + '-' + week + '-' + day, 'RSVP\'d', 'add');
       }
       button.classList.remove('rsvp-validate');
+      UpdateCapacityInRows(true);
     }, 1250);
   }
 
@@ -2645,7 +2892,8 @@ window.addEventListener('load', () => {
     var input = elem.previousElementSibling;
     var value = parseInt(input.value, 10);
     value = isNaN(value) ? 0 : value;
-    if (value < 10) {
+    var curCap = parseInt(input.parentElement.parentElement.parentElement.children[2].textContent, 10);
+    if (value < (curCap - 1)) {
       value++;
       input.value = value;
     }

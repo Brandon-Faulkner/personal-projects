@@ -153,6 +153,115 @@
             </svg>
           </button>
         </div>
+        <div id="viewUser-page" class="max-pop-up">
+          <div class="abouthelp-wrapper">
+            <div class="abouthelp-content">
+              <div class="abouthelp-title">
+                View Users Profile Info
+                <button class="abouthelp-close-btn" data-pageId="viewUser-page">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
+                    <path
+                      d="M 25 3 C 12.86158 3 3 12.86158 3 25 C 3 37.13842 12.86158 47 25 47 C 37.13842 47 47 37.13842 47 25 C 47 12.86158 37.13842 3 25 3 z M 25 5 C 36.05754 5 45 13.94246 45 25 C 45 36.05754 36.05754 45 25 45 C 13.94246 45 5 36.05754 5 25 C 5 13.94246 13.94246 5 25 5 z M 16.990234 15.990234 A 1.0001 1.0001 0 0 0 16.292969 17.707031 L 23.585938 25 L 16.292969 32.292969 A 1.0001 1.0001 0 1 0 17.707031 33.707031 L 25 26.414062 L 32.292969 33.707031 A 1.0001 1.0001 0 1 0 33.707031 32.292969 L 26.414062 25 L 33.707031 17.707031 A 1.0001 1.0001 0 0 0 32.980469 15.990234 A 1.0001 1.0001 0 0 0 32.292969 16.292969 L 25 23.585938 L 17.707031 16.292969 A 1.0001 1.0001 0 0 0 16.990234 15.990234 z">
+                    </path>
+                  </svg>
+                </button>
+              </div>
+              <div class="viewUser-header">
+                <div class="profile-col"><img src="" class="profile-image"></div>
+                <div class="profile-col host-users-name">Users Name</div>
+                <div class="profile-col host-users-info">
+                  <h3 class="prof-info" data-label="Email:">User Email</h3>
+                  <h3 class="prof-info" data-label="Phone:">User Phone</h3>
+                  <h3 class="prof-info" data-label="Total Days RSVP'd:">0</h3>
+                </div>
+                <div id="viewuser-send-message">
+                  <textarea id="viewuser-msg-input" type="text"
+                    placeholder="Send a message..." maxlength="240">
+                  </textarea>
+                  <button id="viewuser-send-btn">
+                    <svg
+                      viewBox="0 0 512 512" height="1em">
+                      <path
+                        d="M 205 34.8 c 11.5 5.1 19 16.6 19 29.2 v 64 H 336 c 97.2 0 176 78.8 176 176 c 0 113.3 -81.5 163.9 -100.2 174.1 c -2.5 1.4 -5.3 1.9 -8.1 1.9 c -10.9 0 -19.7 -8.9 -19.7 -19.7 c 0 -7.5 4.3 -14.4 9.8 -19.5 c 9.4 -8.8 22.2 -26.4 22.2 -56.7 c 0 -53 -43 -96 -96 -96 H 224 v 64 c 0 12.6 -7.4 24.1 -19 29.2 s -25 3 -34.4 -5.4 l -160 -144 C 3.9 225.7 0 217.1 0 208 s 3.9 -17.7 10.6 -23.8 l 160 -144 c 9.4 -8.5 22.9 -10.6 34.4 -5.4 Z">
+                      </path>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div id="viewuser-loader" class="loader fadeIn">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="messageshelp-page" class="max-pop-up">
+          <div class="abouthelp-wrapper">
+            <div class="abouthelp-content">
+              <div class="abouthelp-title">
+                Host Messaging Help
+                <button class="abouthelp-close-btn" data-pageId="messageshelp-page">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
+                    <path
+                      d="M 25 3 C 12.86158 3 3 12.86158 3 25 C 3 37.13842 12.86158 47 25 47 C 37.13842 47 47 37.13842 47 25 C 47 12.86158 37.13842 3 25 3 z M 25 5 C 36.05754 5 45 13.94246 45 25 C 45 36.05754 36.05754 45 25 45 C 13.94246 45 5 36.05754 5 25 C 5 13.94246 13.94246 5 25 5 z M 16.990234 15.990234 A 1.0001 1.0001 0 0 0 16.292969 17.707031 L 23.585938 25 L 16.292969 32.292969 A 1.0001 1.0001 0 1 0 17.707031 33.707031 L 25 26.414062 L 32.292969 33.707031 A 1.0001 1.0001 0 1 0 33.707031 32.292969 L 26.414062 25 L 33.707031 17.707031 A 1.0001 1.0001 0 0 0 32.980469 15.990234 A 1.0001 1.0001 0 0 0 32.292969 16.292969 L 25 23.585938 L 17.707031 16.292969 A 1.0001 1.0001 0 0 0 16.990234 15.990234 z">
+                    </path>
+                  </svg>
+                </button>
+              </div>
+              <div id="dashboardhelp-list">
+                <ul>
+                  <li>
+                    <input type="checkbox" checked>
+                    <i></i>
+                    <h2>First Steps!</h2>
+                    <p>Install the app on your homescreen!</p>
+                  </li>
+                  <li>
+                    <input type="checkbox" checked>
+                    <i></i>
+                    <h2>What is Cana C.A.M?</h2>
+                    <p>It's a cool lil web app. Yuh.</p>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="schedulehelp-page" class="max-pop-up">
+          <div class="abouthelp-wrapper">
+            <div class="abouthelp-content">
+              <div class="abouthelp-title">
+                Host Scheduling Help
+                <button class="abouthelp-close-btn" data-pageId="schedulehelp-page">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
+                    <path
+                      d="M 25 3 C 12.86158 3 3 12.86158 3 25 C 3 37.13842 12.86158 47 25 47 C 37.13842 47 47 37.13842 47 25 C 47 12.86158 37.13842 3 25 3 z M 25 5 C 36.05754 5 45 13.94246 45 25 C 45 36.05754 36.05754 45 25 45 C 13.94246 45 5 36.05754 5 25 C 5 13.94246 13.94246 5 25 5 z M 16.990234 15.990234 A 1.0001 1.0001 0 0 0 16.292969 17.707031 L 23.585938 25 L 16.292969 32.292969 A 1.0001 1.0001 0 1 0 17.707031 33.707031 L 25 26.414062 L 32.292969 33.707031 A 1.0001 1.0001 0 1 0 33.707031 32.292969 L 26.414062 25 L 33.707031 17.707031 A 1.0001 1.0001 0 0 0 32.980469 15.990234 A 1.0001 1.0001 0 0 0 32.292969 16.292969 L 25 23.585938 L 17.707031 16.292969 A 1.0001 1.0001 0 0 0 16.990234 15.990234 z">
+                    </path>
+                  </svg>
+                </button>
+              </div>
+              <div class="dashboardhelp-list">
+                <ul>
+                  <li>
+                    <input type="checkbox" checked>
+                    <i></i>
+                    <h2>First Steps!</h2>
+                    <p>Install the app on your homescreen!</p>
+                  </li>
+                  <li>
+                    <input type="checkbox" checked>
+                    <i></i>
+                    <h2>What is Cana C.A.M?</h2>
+                    <p>It's a cool lil web app. Yuh.</p>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -232,11 +341,11 @@
             <i class="fa-solid fa-circle-info"></i>
           </button>
           <div id="abouthelp-page" class="pop-up">
-            <div id="abouthelp-wrapper">
-              <div id="abouthelp-content">
-                <div id="abouthelp-title">
+            <div class="abouthelp-wrapper">
+              <div class="abouthelp-content">
+                <div class="abouthelp-title">
                   Welcome to Cana C.A.M!
-                  <button id="abouthelp-close-btn">
+                  <button class="abouthelp-close-btn" data-pageId="abouthelp-page">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
                       <path
                         d="M 25 3 C 12.86158 3 3 12.86158 3 25 C 3 37.13842 12.86158 47 25 47 C 37.13842 47 47 37.13842 47 25 C 47 12.86158 37.13842 3 25 3 z M 25 5 C 36.05754 5 45 13.94246 45 25 C 45 36.05754 36.05754 45 25 45 C 13.94246 45 5 36.05754 5 25 C 5 13.94246 13.94246 5 25 5 z M 16.990234 15.990234 A 1.0001 1.0001 0 0 0 16.292969 17.707031 L 23.585938 25 L 16.292969 32.292969 A 1.0001 1.0001 0 1 0 17.707031 33.707031 L 25 26.414062 L 32.292969 33.707031 A 1.0001 1.0001 0 1 0 33.707031 32.292969 L 26.414062 25 L 33.707031 17.707031 A 1.0001 1.0001 0 0 0 32.980469 15.990234 A 1.0001 1.0001 0 0 0 32.292969 16.292969 L 25 23.585938 L 17.707031 16.292969 A 1.0001 1.0001 0 0 0 16.990234 15.990234 z">
@@ -258,26 +367,14 @@
                     <li>
                       <input type="checkbox" checked>
                       <i></i>
-                      <h2>First Steps!</h2>
-                      <p>Install the app on your homescreen!</p>
+                      <h2>Work In Progress</h2>
+                      <p>This app is still in its beta phase and will have more work done to it. This means that the about/help sections will soon be populated. Please email brandon@canachurch.com with any issues you face!</p>
                     </li>
                     <li>
                       <input type="checkbox" checked>
                       <i></i>
-                      <h2>What is Cana C.A.M?</h2>
-                      <p>It's a cool lil web app. Yuh.</p>
-                    </li>
-                    <li>
-                      <input type="checkbox" checked>
-                      <i></i>
-                      <h2>Where does Cana C.A.M. come from?</h2>
-                      <p>It comes from Cana Church, duh.</p>
-                    </li>
-                    <li>
-                      <input type="checkbox" checked>
-                      <i></i>
-                      <h2>Why should I use Cana C.A.M?</h2>
-                      <p>Uhhh cuz itz kool and the craigslist of family-style meals.</p>
+                      <h2>Software Information</h2>
+                      <p>Version: Beta 1.3.4 <br> Developer: Brandon Faulkner <br> Support: brandon@canachurch.com</p>
                     </li>
                   </ul>
                 </div>
@@ -286,26 +383,14 @@
                     <li>
                       <input type="checkbox" checked>
                       <i></i>
+                      <h2>Work In Progres</h2>
+                      <p>This help section is still a work in progress. It will be updated with helpful information soon.</p>
+                    </li>
+                    <li>
+                      <input type="checkbox" checked>
+                      <i></i>
                       <h2>Need more help or have feedback?</h2>
-                      <p>Send me a DM on MySpace.</p>
-                    </li>
-                    <li>
-                      <input type="checkbox" checked>
-                      <i></i>
-                      <h2>Overview Page</h2>
-                      <p>General information about hostz and datez.</p>
-                    </li>
-                    <li>
-                      <input type="checkbox" checked>
-                      <i></i>
-                      <h2>Planning Page</h2>
-                      <p>Plan all your hunger mealz here.</p>
-                    </li>
-                    <li>
-                      <input type="checkbox" checked>
-                      <i></i>
-                      <h2>Profile Page</h2>
-                      <p>This is where you can look at your kool profile picture.</p>
+                      <p>Email brandon@canachurch.com for support.</p>
                     </li>
                   </ul>
                 </div>
