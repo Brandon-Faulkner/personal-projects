@@ -1897,7 +1897,8 @@ window.addEventListener('load', () => {
     var timeH2 = (timeH % 12 ? timeH % 12 : 12);
     const timeString = timeH2 + ":" + timeM + (timeH >= 12 ? ' PM' : ' AM');
 
-    const dateVal = new Date(dateElem.value + " " + timeString);
+    const rawDateString = new Date(dateElem.value.replace(/-/g, "/") + " " + timeString);
+    const dateVal = new Date(rawDateString);
     const dateString = (dateVal.getMonth() + 1) + "/" + ('0' + dateVal.getDate()).slice(-2) + "/" + ('0' + dateVal.getFullYear()).slice(-2);
     const minDate = new Date(dateElem.getAttribute('min'));
     const maxDate = new Date(dateElem.getAttribute('max'));
@@ -1923,7 +1924,6 @@ window.addEventListener('load', () => {
       }
 
     } else {
-      ShowNotifToast("Testing", dateVal + ", " + dateString + ", " + timeString + ", " + minDate + ", " + maxDate, "var(--blue)", false);
       dashboardDateTime.classList.add('login-error');
       setTimeout(() => {
         dashboardDateTime.classList.remove('login-error');
