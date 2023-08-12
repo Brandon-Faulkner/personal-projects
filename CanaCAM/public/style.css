@@ -120,7 +120,7 @@ a {
 .planning-image {
   height: auto;
   max-width: 90%;
-  max-height: 90%;
+  max-height: 550px;
   border-radius: var(--border-radius);
   box-shadow: var(--box-shadow);
   background-color: #fff;

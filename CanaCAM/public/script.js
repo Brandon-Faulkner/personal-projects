@@ -1066,7 +1066,7 @@ window.addEventListener('load', () => {
             CreatProfileInfoRow(profileInfo, userName, userEmail, userPhone, userTotalRSVP);
 
             //Setup planning tab and wait till completion to setup chat hosts
-            var groupID = allWeeksArr.length > 0 ? allWeeksArr[0].group : hostNameArr[0].group;
+            var groupID = hostNameArr.length > 0 ? hostNameArr[0].group : null;
             PlanningSetup(planRef, isAnonymous, groupID, userScheduleArr, null);
             //Setup each host in Contact Host section
             chatHosts.replaceChildren();
@@ -1100,7 +1100,7 @@ window.addEventListener('load', () => {
 
     var profCol1 = document.createElement('div'); profCol1.className = "profile-col";
     var profImg = document.createElement('img'); profImg.src = imgUrl; profImg.className = "profile-image"; profImg.setAttribute("data-imgName", imgName);
-    profCol1.appendChild(profImg); profileHeader.appendChild(profCol1);
+    profImg.setAttribute('loading', "lazy"); profCol1.appendChild(profImg); profileHeader.appendChild(profCol1);
 
     var profCol2 = document.createElement('div'); profCol2.className = "profile-col-buttons";
     var profSignOut = document.createElement('button'); profSignOut.setAttribute('id', 'signout-button'); profSignOut.className = "signout-button";
@@ -2019,8 +2019,7 @@ window.addEventListener('load', () => {
         planWeekHolder.replaceChildren();
 
         if (hostNameArr.length > 0) {
-          snapshot.forEach((child) => {
-            const childSnapshot = child;
+          snapshot.forEach((childSnapshot) => {
             const groupKey = childSnapshot.key;
             const address = childSnapshot.child("Address").val();
             const capacity = childSnapshot.child("Capacity").val();
@@ -2029,7 +2028,7 @@ window.addEventListener('load', () => {
             const image = childSnapshot.child("Image").val();
             const phone = childSnapshot.child("Phone").val();
 
-            if (child.key === groupID) {
+            if (groupKey === groupID) {
               getDownloadURL(ref_st(storage, "Groups/" + image))
                 .then((url) => {
                   //Update group array with the new data
@@ -2054,7 +2053,7 @@ window.addEventListener('load', () => {
                   //Now Update planning intro
                   UpdatePlanningIntro(hostNameArr, groupInfoArr, groupID, planningIntro);
 
-                  if (allWeeksArr.length > 0) {
+                  if (allWeeksArr.length > 0 && allWeeksArr.find(a => a.group === groupID) != null) {
                     if (clickedWeek === null || !uniqHostWks.find(u => u === clickedWeek)) clickedWeek = uniqHostWks[0];
                     overviewWeekSelection.value = clickedWeek;
 
@@ -2064,6 +2063,7 @@ window.addEventListener('load', () => {
                     ShowEventContainers(clickedWeek, 'planning-container');
                   } else {
                     SetupDropdowns(planWeekSelection, ["No Days Available"], false);
+                    ShowEventContainers(overviewWeekSelection.options[0].value, 'overview-container');
                   }
 
                   //Make sure db listener gets started on first load
@@ -2079,12 +2079,13 @@ window.addEventListener('load', () => {
                   console.log(error.code + ": " + error.message);
                 });
             } else {
-              //Update group array with the new data
+              //Only update group array with the new data
               const data = { group: groupKey, address: address, capacity: capacity, description: description, email: email, image: image, phone: phone };
               groupInfoArr.unshift(data);
             }
           });
         } else {
+          SetupDropdowns(planWeekSelection, ["No Days Available"], false);
           Loading(mainLoader, false);
         }
       }, {
@@ -2275,8 +2276,11 @@ window.addEventListener('load', () => {
       }
 
       //Switch Event Containers based on selection 
-      overviewWeekSelection.value = selectElem.value;
-      ShowEventContainers(selectElem.value, "overview-container");
+      //First check if the selectElem.value is coming from an empty planning section
+      if (selectElem.value != "No Days Available") {
+        overviewWeekSelection.value = selectElem.value;
+        ShowEventContainers(selectElem.value, "overview-container");
+      }
     } else if (selectElem === document.getElementById('dashboard-msg-weeks')) {
       GetRSVPdUsersByWeek(selectElem.value);
       var specificWeek = hostWeeksArr.filter(h => h.week === selectElem.value);
