@@ -263,6 +263,14 @@ a {
   }
 }
 
+#loading-error-page .login-wrapper {
+  max-height: 400px;
+}
+
+#loading-error-page .pop-up {
+  z-index: 9999;
+}
+
 /*#endregion LOADING*/
 
 /*#region LOGIN SCREEN*/
@@ -1362,8 +1370,8 @@ form .btn input[type="submit"] {
   font-size: 16px;
   font-weight: 400;
   color: #666666;
-  max-height: 100px;
   overflow: auto;
+  overflow-wrap: break-word;
 }
 
 .toast-message span.toast-title {
@@ -3076,6 +3084,10 @@ span > .fa-minus, span > .fa-plus {
     row-gap: 10px;
     justify-content: stretch;
     min-width: 25%;
+  }
+
+  .toast-message {
+    width: 80%;
   }
 }
 

@@ -140,6 +140,36 @@
     <div class="toast-progress"></div>
   </div>
 
+  <div id="loading-error-page" class="pop-up">
+    <div class="login-wrapper">
+      <button id="loading-error-close-btn" class="login-close-button">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50">
+          <path
+            d="M 25 3 C 12.86158 3 3 12.86158 3 25 C 3 37.13842 12.86158 47 25 47 C 37.13842 47 47 37.13842 47 25 C 47 12.86158 37.13842 3 25 3 z M 25 5 C 36.05754 5 45 13.94246 45 25 C 45 36.05754 36.05754 45 25 45 C 13.94246 45 5 36.05754 5 25 C 5 13.94246 13.94246 5 25 5 z M 16.990234 15.990234 A 1.0001 1.0001 0 0 0 16.292969 17.707031 L 23.585938 25 L 16.292969 32.292969 A 1.0001 1.0001 0 1 0 17.707031 33.707031 L 25 26.414062 L 32.292969 33.707031 A 1.0001 1.0001 0 1 0 33.707031 32.292969 L 26.414062 25 L 33.707031 17.707031 A 1.0001 1.0001 0 0 0 32.980469 15.990234 A 1.0001 1.0001 0 0 0 32.292969 16.292969 L 25 23.585938 L 17.707031 16.292969 A 1.0001 1.0001 0 0 0 16.990234 15.990234 z">
+          </path>
+        </svg>
+      </button>
+      <div id="loading-error-container" class="login-form-container">
+        <div class="login-title-text">
+          <div class="login-title login">Loading Issues</div>
+        </div>
+        <div class="login-form-inner">
+          <form action="" class="login">
+            <div class="signup-link">
+              <h3>There seems to be issues loading the content. This can be due to slow internet or a weak connection to
+                the database. You can try waiting until this message disappears, reloading the page with the button
+                below or try checking to see if your internet is currently strong enough.</h3>
+            </div>
+            <div class="field btn">
+              <div class="btn-layer"></div>
+              <input id="reload-button" type="submit" value="Reload Page">
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="dashboard-page" class="pop-up">
     <div id="dashboard-wrapper" class="dashboard-wrapper">
       <div id="dashboard-content">
@@ -175,12 +205,10 @@
                   <h3 class="prof-info" data-label="Total Days RSVP'd:">0</h3>
                 </div>
                 <div id="viewuser-send-message">
-                  <textarea id="viewuser-msg-input" type="text"
-                    placeholder="Send a message..." maxlength="240">
+                  <textarea id="viewuser-msg-input" type="text" placeholder="Send a message..." maxlength="240">
                   </textarea>
                   <button id="viewuser-send-btn">
-                    <svg
-                      viewBox="0 0 512 512" height="1em">
+                    <svg viewBox="0 0 512 512" height="1em">
                       <path
                         d="M 205 34.8 c 11.5 5.1 19 16.6 19 29.2 v 64 H 336 c 97.2 0 176 78.8 176 176 c 0 113.3 -81.5 163.9 -100.2 174.1 c -2.5 1.4 -5.3 1.9 -8.1 1.9 c -10.9 0 -19.7 -8.9 -19.7 -19.7 c 0 -7.5 4.3 -14.4 9.8 -19.5 c 9.4 -8.8 22.2 -26.4 22.2 -56.7 c 0 -53 -43 -96 -96 -96 H 224 v 64 c 0 12.6 -7.4 24.1 -19 29.2 s -25 3 -34.4 -5.4 l -160 -144 C 3.9 225.7 0 217.1 0 208 s 3.9 -17.7 10.6 -23.8 l 160 -144 c 9.4 -8.5 22.9 -10.6 34.4 -5.4 Z">
                       </path>
@@ -216,14 +244,81 @@
                   <li>
                     <input type="checkbox" checked>
                     <i></i>
-                    <h2>First Steps!</h2>
-                    <p>Install the app on your homescreen!</p>
+                    <h2>Messaging Overview</h2>
+                    <p>The messaging section of the dashboard is where you can view all the current RSVP'd users for any
+                      scheduled week/day and optionally send a message to a group of users or an individual.
+                      Be careful when you are messaging as there are two different areas where you can send a message.
+                      The first option is the one you see on the page already, which is for group messaging.
+                      The other one is when you view a specific user and is for individualy messaging that user.
+                    </p>
                   </li>
                   <li>
                     <input type="checkbox" checked>
                     <i></i>
-                    <h2>What is Cana C.A.M?</h2>
-                    <p>It's a cool lil web app. Yuh.</p>
+                    <h2>Dropdowns</h2>
+                    <p>The first things you will see on this page are two dropdowns.
+                      <br><br>The first one contains all of the weeks that contain the days that you have opened your
+                      house to.
+                      When you switch between weeks, the area below the dropdowns will populate based on whether or not
+                      someone has RSVP'd. If they have, you will see the names of all the users.
+                      <br><br>The second one contains all of the days you have scheduled for the week that is selected
+                      in the first dropdown.
+                      As you can see, the default option for the second dropdown is "All RSVP's This Week", which means
+                      that any user who has RSVP'd for a day in this week will be shown in the area.
+                      If you were to choose a day from this dropdown, you will only see the users that have RSVP'd for
+                      that day in that week. This will show the users name AND the number of guests they will be
+                      bringing.
+                    </p>
+                  </li>
+                  <li>
+                    <input type="checkbox" checked>
+                    <i></i>
+                    <h2>View Specific RSVP'd User</h2>
+                    <p>Once you have choosen values from the dropdowns (see Dropdown section for help) and populated the
+                      area, you can click on any users name that shows up.
+                      When you click this user, a pop up will show and load this users information from the database.
+                      You will be able to see their profile picture and information.
+                      Below their information, you will see another message box which will allow you to send a message
+                      to only them (see Individual Messaging section for help).
+                    </p>
+                  </li>
+                  <li>
+                    <input type="checkbox" checked>
+                    <i></i>
+                    <h2>Group Messaging</h2>
+                    <p>Once you have choosen values from the dropdowns (see Dropdown section for help) and populated the
+                      area, you will have the option to send a message to all of the users that are showing in the area.
+                      Of course, if there are no current RSVPs for the selected values, you will not be able to send a
+                      message. To send a message to all the users that you see in the area, simply type your message in
+                      the box below the area and press the send button.
+                      If your message was able to send, you will get a notification stating so. If you recieve an error
+                      notification, simply try to send the message again.
+                    </p>
+                  </li>
+                  <li>
+                    <input type="checkbox" checked>
+                    <i></i>
+                    <h2>Individual Messaging</h2>
+                    <p>Once you have clicked on an RSVP'd user (see Dropdown section and then View Specific RSVP'd User
+                      for help) and loaded their information, you will be able to send them an individual message.
+                      To do so, simply type in your message in the box below the users information and press the send
+                      button. If your message was able to send, you will get a notification stating so. If you recieve
+                      an error notification, simply try to send the message again.
+                    </p>
+                  </li>
+                  <li>
+                    <input type="checkbox" checked>
+                    <i></i>
+                    <h2>Viewing Sent/Recieved User Messages</h2>
+                    <p>After you have sent either a group (see Group Messaging section for help) or individual (see
+                      Individual Messaging section for help) message, you can see the message and conversations in a
+                      seperate place.
+                      Close the Host Dashboard and look for the Messages button under your profile picture. After
+                      clicking the button, at the bottom of the pop up you will see two options, Hosts or Users. To
+                      view the messages you have sent to users, click on the Users tab and look for the conversation you
+                      want to view. The Hosts tab is for viewing your conversations with other hosts as an RSVP'd user
+                      to one of their days.
+                    </p>
                   </li>
                 </ul>
               </div>
@@ -248,14 +343,70 @@
                   <li>
                     <input type="checkbox" checked>
                     <i></i>
-                    <h2>First Steps!</h2>
-                    <p>Install the app on your homescreen!</p>
+                    <h2>Scheduling Overview</h2>
+                    <p>The scheduling section of the dashboard is where you can view the current days you have scheduled
+                      and either add more or remove current ones.
+                      White colored days are days that are already scheduled. Green colored days are days that you have
+                      just added but are not scheduled yet.
+                      The first thing you see is a date/time input and the Add Day button. Below that is the area where
+                      you will see all scheduled or added days.
+                      Below that area is the Remove Days and Schedule Days buttons.
+                    </p>
                   </li>
                   <li>
                     <input type="checkbox" checked>
                     <i></i>
-                    <h2>What is Cana C.A.M?</h2>
-                    <p>It's a cool lil web app. Yuh.</p>
+                    <h2>Days Viewer</h2>
+                    <p>Below the date/time input and Add Day button, is an area that will contain all of your scheduled
+                      or added days. Any days that you have already scheduled before will populate this area in a white
+                      colored text.
+                      Once you add news days to this area (see Adding Days section for help), you will see the day you
+                      just added in a green colored text.
+                      <br><br>Each of the days in this area can be clicked on. When you click on a day, it will have a
+                      dark background applied to it. Once you have clicked the days you wanted, you can then proceed to
+                      remove them (see Removing Days section for help).
+                    </p>
+                  </li>
+                  <li>
+                    <input type="checkbox" checked>
+                    <i></i>
+                    <h2>Adding Days</h2>
+                    <p>In order to add a day, you must first select the date that you want to open your house as well as
+                      the time for that day. The date/time input next to the Add Day button is where this will be done.
+                      If you click on the date, you will then be able to choose your date. The same can be done with the
+                      time. Once both your date and time have been chosen, you can try to add the day with the Add Day
+                      button.
+                      If you are able to add the day, you will see it populate the area below (see Days Viewer section
+                      for help).
+                      <br><br>There are a few reasons why you won't be able to add a day. If the day you have chosen is
+                      before todays date, it will not accept it.
+                      If the day is over a year from todays date, it will not accept it. If you already have that date
+                      in the days viewer, it will not accept it. In most of these cases the date/time input will shake
+                      and get a red colored border if there is an error trying to add the day.
+                    </p>
+                  </li>
+                  <li>
+                    <input type="checkbox" checked>
+                    <i></i>
+                    <h2>Scheduling Days</h2>
+                    <p>Once you have added the days you want and have populated the days viewer
+                      (see Adding Days section and Days Viewer section for help), you can then press the Schedule Days
+                      button below the days viewer area.
+                      If you were successfully able to schedule days, you will get a notification saying so and the
+                      green colored days will turn to white. If there was an error scheduling days, you will get a
+                      notification saying so. If this happens, try to schedule the days again.
+                    </p>
+                  </li>
+                  <li>
+                    <input type="checkbox" checked>
+                    <i></i>
+                    <h2>Removing Days</h2>
+                    <p>Once you have added or scheduled the days you want and have populated the days viewer
+                      (see Adding Days, Scheduling Days, and Days Viewer sections for help), then you can proceed with removing days.
+                      In order to remove a day, you must first click on the day in the day viewer that you want to remove. Once the background of this day has changed colors, you can press the Remove Days button.
+                      More than one day can be clicked and removed at one time. If the day you removed was already scheduled, you will recieve a notification saying it was removed or that there was an error.
+                      If the day you removed was just added but not scheduled, it will just be removed from the days viewer. If you recieve any errors, try to remove the days again.
+                    </p>
                   </li>
                 </ul>
               </div>
@@ -311,7 +462,7 @@
           <div id="plan-week-select-grid" class="week-select-grid">
             <label class="dropdown" for="host-selection">
               <select id="host-selection" required="required">
-                <option value="default">Week Dates</option>
+                <option value="default">Host Names</option>
               </select>
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
                 <path
@@ -367,14 +518,40 @@
                     <li>
                       <input type="checkbox" checked>
                       <i></i>
-                      <h2>Work In Progress</h2>
-                      <p>This app is still in its beta phase and will have more work done to it. This means that the about/help sections will soon be populated. Please email brandon@canachurch.com with any issues you face!</p>
+                      <h2>What Is CAM?</h2>
+                      <p>C.A.M, which stands for Continuous Access Ministry, was developed with the idea of community
+                        for
+                        young adults. Sometimes, you just need a hot-cooked meal. If you are a young adult flying solo
+                        or are young and married without children, Cana CAM is the place for a hot meal and mealtime
+                        spiritual conversation. Select a time and location, RSVP, contact the host through the app, and
+                        you're set. You can go as often and to as many homes as you like. Cana's trusted hosts will be
+                        looking for you at the scheduled time. Invite some friends and let someone else do the cooking.
+                      </p>
+                    </li>
+                    <li>
+                      <input type="checkbox" checked>
+                      <i></i>
+                      <h2>What Do I Do First?</h2>
+                      <p>The first thing you are going to want to do is install the app, preferably before you signup!
+                        <br><br>1. Installing on iOS:
+                        <br>&emsp;1. Open Cana CAM in Safari (Safari is required for installation).
+                        <br>&emsp;2. Click the Action or Share button in the middle of the Safari bar at the bottom.
+                        <br>&emsp;3. Scroll down and find "Add to Home Screen" and click it.
+                        <br>&emsp;4. Tap "Add" in the top right corner to complete the installation.
+                        <br><br>2. Installing on Android:
+                        <br>&emsp;1. Open Cana CAM in Chrome.
+                        <br>&emsp;2. Click the vertical dots in the top right corner.
+                        <br>&emsp;3. Scroll down and locate "Install Cana CAM".
+                        <br>&emsp;4. After clicking "Install", the app will be ready for use.
+                        <br><br> If you have a different browser on Android, you will have to look up the specifics for
+                        installation but the general idea should be the same.
+                      </p>
                     </li>
                     <li>
                       <input type="checkbox" checked>
                       <i></i>
                       <h2>Software Information</h2>
-                      <p>Version: Beta 1.5.2 <br> Developer: Brandon Faulkner <br> Support: brandon@canachurch.com</p>
+                      <p>Version: Beta 1.6.0 <br> Developer: Brandon Faulkner <br> Support: brandon@canachurch.com</p>
                     </li>
                   </ul>
                 </div>
@@ -383,14 +560,69 @@
                     <li>
                       <input type="checkbox" checked>
                       <i></i>
-                      <h2>Work In Progress</h2>
-                      <p>This help section is still a work in progress. It will be updated with helpful information soon.</p>
+                      <h2>Overview Page</h2>
+                      <p>The Overview page is the home page of Cana C.A.M, which is the middle tab (House Icon) on the
+                        navigation bar at the top.
+                        On this page you can view all the weeks/days that are available from hosts for you to RSVP to.
+                        <br><br>
+                        Below the About/Help button is the Weeks Dropdown. This dropdown contains all of the weeks that
+                        are available for each host.
+                        When a week is selected, you will see all the days in that week that you can RSVP to. If you
+                        click on one of the days,
+                        it will take you to the Planning Page and pull up the correct information depending on the day
+                        you clicked.
+                        <br><br>
+                        Once you RSVP for a day, you will see an "RSVP'd" badge on the day that you RSVP'd for on the
+                        Overview page.
+                      </p>
                     </li>
                     <li>
                       <input type="checkbox" checked>
                       <i></i>
-                      <h2>Need more help or have feedback?</h2>
-                      <p>Email brandon@canachurch.com for support.</p>
+                      <h2>Planning Page</h2>
+                      <p>The planning page is the left tab (Calender Icon) on the navigation bar at the top.
+                        On this page you can view detailed information about each host and the days they have available.
+                        At the top of the page there is a small introduction for the selected host. This will show their
+                        picture, a description and a contact button.
+                        If you need to ask this host a question or get more information, you can click the contact
+                        button to send them a message.
+                        <br><br>
+                        Below the introduction, you will see two dropdowns. The first is a dropdown of all the hosts
+                        that are associated with C.A.M.
+                        The second dropdown is a list of all the weeks that the current host has days available.
+                        Once a week has been selected, you can view each day and the spaces that are available for them.
+                        If there are enough spaces available, you can RSVP by clicking the RSVP button. If you have
+                        friends that you want to bring, you can add them before you RSVP.
+                        <br><br>
+                        After you have RSVP'd, you will see an "RSVP'd" badge on that day on the Overview Page and the
+                        RSVP button will change to Cancel RSVP.
+                      </p>
+                    </li>
+                    <li>
+                      <input type="checkbox" checked>
+                      <i></i>
+                      <h2>Profile Page</h2>
+                      <p>The profile page is the right tab (User Icon) on the navigation bar at the top.
+                        On this page you can view all of the information that is associated with your account.
+                        Below your profile picture you can either sign out or view/send messages.
+                        Below this is a list with your information. If you need to change any info, you can click Edit
+                        Information and fill out what you need.
+                      </p>
+                    </li>
+                    <li>
+                      <input type="checkbox" checked>
+                      <i></i>
+                      <h2>Account Deletion</h2>
+                      <p>If you want to delete your account, please email brandon@canachurch.com. In your email, provide
+                        the email associated with your account, your full name and your phone number. You must provide
+                        all this information in order to verify your identity and to find your account.
+                      </p>
+                    </li>
+                    <li>
+                      <input type="checkbox" checked>
+                      <i></i>
+                      <h2>Need help or have feedback?</h2>
+                      <p>Email brandon@canachurch.com for support or for any feedback/improvement ideas.</p>
                     </li>
                   </ul>
                 </div>

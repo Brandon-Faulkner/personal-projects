@@ -39,6 +39,9 @@ window.addEventListener('load', () => {
   //#region Variables
   // Main Elements used before & after login
   const mainLoader = document.getElementById('loader');
+  const loadingErrorPage = document.getElementById('loading-error-page');
+  const loadingErrorCloseBtn = document.getElementById("loading-error-close-btn");
+  const loadingErrorReloadBtn = document.getElementById("reload-button");
   const loginScreen = document.getElementById('login-page');
   const loginCloseBtn = document.getElementById('login-close-btn');
   const loginText = document.querySelector(".login-title-text .login");
@@ -141,6 +144,7 @@ window.addEventListener('load', () => {
   //Used to stop user from recieving messages on an authChange state
   var unsubscribe = null;
 
+  var loadingTimeout = null;
   function Loading(loaderElem, show) {
     if (show) {
       //Show loading indicator
@@ -148,6 +152,15 @@ window.addEventListener('load', () => {
         loaderElem.classList.remove('fadeOut');
         loaderElem.classList.add('fadeIn');
       }
+
+      if (loadingTimeout != null) clearTimeout(loadingTimeout);
+
+      //Check to see if still loading after 5 seconds
+      loadingTimeout = setTimeout(() => {
+        if (loaderElem.classList.contains('fadeIn')) {
+          loadingErrorPage.classList.add('show');
+        }
+      }, 5000);
     }
     else {
       setTimeout(() => {
@@ -155,10 +168,21 @@ window.addEventListener('load', () => {
         if (loaderElem.classList.contains('fadeIn')) {
           loaderElem.classList.remove('fadeIn');
           loaderElem.classList.add('fadeOut');
+          loadingErrorPage.classList.remove('show');
         }
       }, 500);
     }
   }
+
+  loadingErrorCloseBtn.addEventListener('click', function () {
+    if (loadingErrorPage.classList.contains('show')) {
+      loadingErrorPage.classList.remove('show');
+    }
+  });
+
+  loadingErrorReloadBtn.addEventListener('click', function () {
+    window.location.reload();
+  });
   //#endregion Variables
 
   //#region Authentication Functions
@@ -197,7 +221,7 @@ window.addEventListener('load', () => {
         }
         sendEmailVerification(auth.currentUser, actionCodeSettings).then(() => {
           //User signed in but needs to verify email
-          ShowNotifToast("Email Verification Is Needed", "Thank you for signing up! We have sent you an email to verify your account which you must do before you can fully use this app! If you are not recieving the email, try refreshing the page or clearing your cache/cookies! If you still have issues, contact brandon@canachurch.com", "var(--blue)", false);
+          ShowNotifToast("Email Verification Is Needed", "We have sent you an email to verify your account so you can fully use this app. If you are not recieving the email, try refreshing the page or clearing your cache/cookies. If you still have issues, contact brandon@canachurch.com", "var(--blue)", false);
           ClearLoginAndSignupInputs();
 
           planningBlocked.textContent = "You must verify your email before fully using the app!";
@@ -207,6 +231,9 @@ window.addEventListener('load', () => {
           tabPlanning.removeEventListener('click', ShowLogin);
           tabProfile.removeEventListener('click', ShowLogin);
           loginCloseBtn.removeEventListener('click', ShowLogin);
+
+          //Only allow anonymous access
+          OverviewSetup(groupRef, true);
         }).catch((error) => {
           //Email failed
           console.log(error.code + ": " + error.message);
@@ -350,7 +377,7 @@ window.addEventListener('load', () => {
             })
               .then(() => {
                 //Signed in with Account
-                OverviewSetup(groupRef, usercred.user?.isAnonymous);
+                SetupMessagingRequirements(auth, registration, true);
 
                 //Remove listeners
                 tabPlanning.removeEventListener('click', ShowLogin);
@@ -868,6 +895,9 @@ window.addEventListener('load', () => {
         });
       });
 
+      //Sort the allWeeksArr by week first
+      WeekSorter(allWeeksArr);
+
       //Verify if the user is a host so we can get their week data
       if (isAdmin === true && adminGroup != null) {
         hostWeeksArr = allWeeksArr.filter(a => a.group === adminGroup);
@@ -936,6 +966,19 @@ window.addEventListener('load', () => {
     }, error => {
       console.log(error.code + ": " + error.message);
     });
+  }
+
+  function WeekSorter(weekArr) {
+    weekArr.sort(function sortByWeek(a,b) {
+      var aDates = new Date(a.week.split('-')[1] + " 11:59 PM");
+      var bDates = new Date(b.week.split('-')[0] + " 11:59 PM");
+
+      var week1, week2;
+      week1 = aDates.getMonth() + 1;
+      week2 = bDates.getMonth() + 1;
+
+      return week1 - week2;
+    }); 
   }
 
   function DaySorter(weekArr, isUniq) {
@@ -1229,7 +1272,7 @@ window.addEventListener('load', () => {
     }
   });
 
-  function SetupMessagingRequirements(auth, reg) {
+  function SetupMessagingRequirements(auth, reg, isSignup) {
     if (auth?.currentUser.isAnonymous === false && ('Notification' in window)) {
       getToken(messaging, { serviceWorkerRegistration: reg, vapidKey: "BPN_vJi33qNLzcxQdUGrfBckm5ONtGrKXgtJqDmIWBuLNjQbT79i8eBYFoFUHffm-93MieygaJm6_fCfQKH5tAM" })
         .then((currentToken) => {
@@ -1240,7 +1283,7 @@ window.addEventListener('load', () => {
             if (isAdmin === true) {
               updateUserToken["Admins/" + auth?.currentUser.uid + "/notifToken"] = currentToken;
             }
-            update(ref_db(database), updateUserToken);
+            update(ref_db(database), updateUserToken).then(() => { if (isSignup === true) { location.reload(); } });
           } else {
             //Show notification request
             if (!("Notification" in window)) {
@@ -1248,13 +1291,13 @@ window.addEventListener('load', () => {
             } else if (checkNotificationPromise()) {
               Notification.requestPermission().then((result) => {
                 if (result === 'granted') {
-                  SetupMessagingRequirements(auth, reg);
+                  SetupMessagingRequirements(auth, reg, isSignup);
                 }
               });
             } else {
               Notification.requestPermission((permission) => {
                 if (Notification.permission === 'granted') {
-                  SetupMessagingRequirements(auth, reg);
+                  SetupMessagingRequirements(auth, reg, isSignup);
                 }
               })
             }
@@ -1553,9 +1596,6 @@ window.addEventListener('load', () => {
     messageTitle.textContent = "View or Message All RSVP'd Users"; dashMessage.appendChild(messageTitle);
 
     SetupHelpForDashboard(dashMessage, "messages");
-    //var messageDesc = document.createElement('p'); messageDesc.style = "color:var(--white);margin:auto;padding:0 5% 10px;";
-    //messageDesc.textContent = "Select a week from the first dropdown below.\nAfter selecting a week, RSVP'd users from all days that week will show up.\nYou can then specify a certain day by using the second dropdown."
-    //dashMessage.appendChild(messageDesc);
 
     var svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg'); svg.setAttribute('viewBox', '0 0 16 16');
     var path = document.createElementNS("http://www.w3.org/2000/svg", 'path'); path.setAttribute('d', "M 7.247 11.14 L 2.451 5.658 C 1.885 5.013 2.345 4 3.204 4 h 9.592 a 1 1 0 0 1 0.753 1.659 l -4.796 5.48 a 1 1 0 0 1 -1.506 0 Z");
@@ -1590,9 +1630,6 @@ window.addEventListener('load', () => {
     daysTitle.textContent = "Add/Remove Scheduled Days"; addDays.appendChild(daysTitle);
 
     SetupHelpForDashboard(addDays, "schedule");
-    //var daysDesc = document.createElement('p'); daysDesc.style = "color:var(--white);margin:auto;padding:0 5% 10px;";
-    //daysDesc.textContent = "Your current scheduled days will appear in white. Select a date and time below to host. Add that to the list and repeat as much as you want. These new days will appear in green. When you are done, click \"Schedule Days\" to submit these days. You can also remove a new or already scheduled day.";
-    //addDays.appendChild(daysDesc);
 
     var addDateTime = document.createElement('div'); addDateTime.setAttribute('id', 'dashboard-add-datetime');
     var dateTime = document.createElement('div'); dateTime.setAttribute('id', "dashboard-datetime");
@@ -1970,8 +2007,6 @@ window.addEventListener('load', () => {
         var beginWeek = new Date(date.setDate(begin));
         const beginString = (beginWeek.getMonth() + 1) + "/" + ('0' + beginWeek.getDate()).slice(-2) + "/" + ('0' + beginWeek.getFullYear()).slice(-2);
         const endString = (endWeek.getMonth() + 1) + "/" + ('0' + endWeek.getDate()).slice(-2) + "/" + ('0' + endWeek.getFullYear()).slice(-2);
-        console.log(groupInfoArr.find(g => adminGroup === g.group))
-        console.log(groupInfoArr);
         dayUpdates["Capacities/" + adminGroup + "/" + encodeURIComponent(beginString + '-' + endString) + "/" + dayOfWeek] = groupInfoArr.find(g => adminGroup === g.group).capacity;
         dayUpdates["Groups/" + adminGroup + "/Weeks/" + encodeURIComponent(beginString + '-' + endString) + "/" + dayOfWeek] = splitDateTime[1];
       }
@@ -2003,6 +2038,7 @@ window.addEventListener('load', () => {
       planningWeekSelectParent.classList.add('hide');
       planWeekHolder.replaceChildren();
       Loading(mainLoader, false);
+      if (tabOverview.checked === true && auth?.currentUser.isAnonymous === true) aboutHelpBtn.click();
     } else {
       onValue(planRef, (snapshot) => {
         loginScreen.classList.remove('show');
@@ -2345,7 +2381,12 @@ window.addEventListener('load', () => {
       var liTarget = row.children[2].textContent;
       const selectedWeek = document.getElementById('over-week-selection');
       hostSelection.value = liTarget;
-      PlanningSetup(planRef, auth?.currentUser.isAnonymous, hostNameArr.find(h => h.host === liTarget).group, userScheduleArr, selectedWeek.value);
+
+      if (auth?.currentUser.isAnonymous === true) {
+        PlanningSetup(planRef, auth?.currentUser.isAnonymous, hostNameArr.find(h => h.host === liTarget).group, userScheduleArr, selectedWeek.value);
+      } else if (auth?.currentUser.isAnonymous === false && auth?.currentUser.emailVerified === true) {
+        PlanningSetup(planRef, auth?.currentUser.isAnonymous, hostNameArr.find(h => h.host === liTarget).group, userScheduleArr, selectedWeek.value);
+      }
       tabPlanning.click();
     }
 
@@ -2587,6 +2628,7 @@ window.addEventListener('load', () => {
 
               if (dayDate.getTime() >= beginWeek.getTime() && dayDate.getTime() <= endWeek.getTime()) {
                 //Now add it to updates to be removed then add to array to remove locally
+                dayUpdates["Capacities/" + adminGroup + "/" + encodeURIComponent(week.week) + "/" + dayOfWeek] = null;
                 dayUpdates["Groups/" + adminGroup + "/Weeks/" + encodeURIComponent(week.week) + "/" + dayOfWeek] = null;
                 localDaysToRemove.push(day);
               }
@@ -2654,7 +2696,8 @@ window.addEventListener('load', () => {
     //Make sure no pop ups or overlays are being shown first
     if (!loginScreen.classList.contains('show') && mainLoader.classList.contains('fadeOut')
       && !chatScreen.classList.contains('show') && !dashboardPage.classList.contains('show')
-      && !editInfoScreen.classList.contains('show') && !aboutHelpPage.classList.contains('show') && isZooming === false) {
+      && !editInfoScreen.classList.contains('show') && !aboutHelpPage.classList.contains('show')
+      && !loadingErrorPage.classList.contains('show') && isZooming === false) {
       if (touchEndX < touchStartX && (touchStartX - touchEndX) > 50) {
         if (tabPlanning.checked === true) {
           tabOverview.click();
