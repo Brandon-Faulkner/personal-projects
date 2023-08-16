@@ -6,9 +6,16 @@
           ".write" : "$uid === auth.uid"
 				}
     },
-    "Capacities":{
+    "Capacities": {
       ".read": "auth != null && auth.token.firebase.sign_in_provider != 'anonymous'",
-      ".write": "auth != null && auth.token.firebase.sign_in_provider != 'anonymous'"
+      ".write": "auth != null && auth.token.firebase.sign_in_provider != 'anonymous'",
+      "$groupID": {
+        "$week": {
+					"$day": {
+            ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 40"
+          }
+        }
+      }
     },
     "Groups":{
       ".read": "auth != null",
@@ -40,7 +47,19 @@
       ".read": "root.child('Admins').child(auth.uid).exists()",
       "$uid": {
         ".read": "$uid === auth.uid || root.child('Admins').child(auth.uid).exists()",
-        ".write": "$uid === auth.uid"
+        ".write": "$uid === auth.uid",
+        "Email": {
+          ".validate": "newData.isString() && newData.val().matches(/^[A-Za-z0-9_!#$%&'*+\/=?`{|}~^.-]+@[A-Za-z0-9.-]+$/)"
+        },
+        "Name": {
+          ".validate": "newData.isString() && newData.val().matches(/^[a-zA-z]+ [a-zA-z]+$/)"
+        },
+        "Phone": {
+          ".validate": "newData.isString() && newData.val().matches(/^(\\()?\\d{3}(\\))?(-|\\s)?\\d{3}(-|\\s)\\d{4}$/)"
+        },
+        "Total RSVP'd": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 40"
+        }
       }
     },
     "UsersMessages": {
