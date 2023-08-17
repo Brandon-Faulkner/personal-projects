@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en-us" data-theme="light">
+
+<head>
+  <title>Cana Goals</title>
+  <meta charset="utf-8">
+  <link href="https://fonts.cdnfonts.com/css/futura-pt" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw=="
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+
+  <link rel="apple-touch-icon" sizes="120x120" href="Resources/Icons/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="Resources/Icons/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="Resources/Icons/favicon-16x16.png">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="mask-icon" href="Resources/Icons/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="apple-mobile-web-app-title" content="Cana Goals">
+  <meta name="application-name" content="Cana Goals">
+  <meta name="msapplication-TileColor" content="#00a300">
+  <meta name="theme-color" content="#2d2d2d">
+  <meta name="description"
+    content="Web app used to add, monitor and complete goals during 100 day or 300 day goal periods for Cana Church staff members.">
+</head>
+
+<body>
+  <div id="main-page">
+    <header>
+      <div>
+        <img src="Resources/Icons/android-chrome-96x96.png">
+        <h1>Cana Goals</h1>
+        <button id="header-login-btn"><i class="fa-solid fa-right-to-bracket"></i></button>
+        <div id="darkmodetoggle-container" style="display: none;">
+          <input type="checkbox" class="checkbox" id="checkbox">
+          <label for="checkbox" class="checkbox-label">
+            <i class="fas fa-moon"></i>
+            <i class="fas fa-sun"></i>
+            <span class="ball"></span>
+          </label>
+        </div>
+        
+      </div>
+    </header>
+    <div id="tables-container">
+      <div id="default-table-1" class="table-wrapper">
+        <h2>Brandon Faulkner</h2>
+        <table class="table-items">
+          <thead>
+            <tr>
+              <th>Header 1</th>
+              <th>Header 2</th>
+              <th>Header 3</th>
+              <th>Header 4</th>
+              <th>Header 5</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Content 1</td>
+              <td>Content 1</td>
+              <td>Content 1</td>
+              <td>Content 1</td>
+              <td>Content 1</td>
+            </tr>
+            <tr>
+              <td>Content 2</td>
+              <td>Content 2</td>
+              <td>Content 2</td>
+              <td>Content 2</td>
+              <td>Content 2</td>
+            </tr>
+            <tr>
+              <td>Content 3</td>
+              <td>Content 3</td>
+              <td>Content 3</td>
+              <td>Content 3</td>
+              <td>Content 3</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="script.js"></script>
+</body>
+
+</html>
