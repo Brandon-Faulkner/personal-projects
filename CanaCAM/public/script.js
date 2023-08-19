@@ -973,11 +973,7 @@ window.addEventListener('load', () => {
       var aDates = new Date(a.week.split('-')[1] + " 11:59 PM");
       var bDates = new Date(b.week.split('-')[0] + " 11:59 PM");
 
-      var week1, week2;
-      week1 = aDates.getMonth() + 1;
-      week2 = bDates.getMonth() + 1;
-
-      return week1 - week2;
+      return aDates.getTime() - bDates.getTime();
     }); 
   }
 

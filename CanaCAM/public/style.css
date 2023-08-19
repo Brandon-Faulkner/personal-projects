@@ -29,7 +29,8 @@ html {
   -webkit-tap-highlight-color: transparent;
 }
 
-.pop-up, .max-pop-up {
+.pop-up,
+.max-pop-up {
   height: 100%;
   width: 100%;
   z-index: 899;
@@ -109,12 +110,12 @@ p {
 }
 
 a {
-  -webkit-backface-visibility:hidden;
-  backface-visibility:hidden;
-	position:relative;
-  transition:0.5s color ease;
-	text-decoration:none;
-	color:var(--blue);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  position: relative;
+  transition: 0.5s color ease;
+  text-decoration: none;
+  color: var(--blue);
 }
 
 .planning-image {
@@ -808,7 +809,8 @@ form .btn input[type="submit"] {
   cursor: pointer;
 }
 
-.no-rsvps, .no-days {
+.no-rsvps,
+.no-days {
   grid-template-columns: 100% !important;
   grid-auto-rows: 100% !important;
 }
@@ -1057,7 +1059,7 @@ form .btn input[type="submit"] {
   right: 0;
 }
 
-.abouthelp-content{
+.abouthelp-content {
   display: inline-grid;
   grid-template-rows: 12.5% 10% auto;
   opacity: 1;
@@ -1174,8 +1176,8 @@ form .btn input[type="submit"] {
   width: 100%;
 }
 
-.abouthelp-content ul li i:before, 
-.abouthelp-content ul li i:after, 
+.abouthelp-content ul li i:before,
+.abouthelp-content ul li i:after,
 .abouthelp-content p {
   transition: all 0.25s ease-in-out;
 }
@@ -1209,7 +1211,7 @@ form .btn input[type="submit"] {
   text-align: left;
 }
 
-.abouthelp-content ul li, 
+.abouthelp-content ul li,
 .abouthelp-content h1 {
   animation: flipdown 0.5s ease both;
 }
@@ -1232,37 +1234,47 @@ form .btn input[type="submit"] {
 .abouthelp-content ul li:nth-of-type(1) {
   animation-delay: 0.25s;
 }
+
 .abouthelp-content ul li:nth-of-type(2) {
   animation-delay: 0.5s;
 }
+
 .abouthelp-content ul li:nth-of-type(3) {
   animation-delay: 0.75s;
 }
+
 .abouthelp-content ul li:nth-of-type(4) {
   animation-delay: 1s;
 }
+
 .abouthelp-content ul li:nth-of-type(5) {
   animation-delay: 1.25s;
 }
+
 .abouthelp-content ul li:nth-of-type(6) {
   animation-delay: 1.5s;
 }
+
 .abouthelp-content ul li:nth-of-type(7) {
   animation-delay: 1.75s;
 }
+
 .abouthelp-content ul li:nth-of-type(8) {
   animation-delay: 2s;
 }
+
 .abouthelp-content ul li:last-of-type {
   padding-bottom: 0;
 }
+
 .abouthelp-content ul li i {
   position: absolute;
   transform: translate(-6px, 0);
   margin-top: 16px;
   right: 0;
 }
-.abouthelp-content ul li i:before, 
+
+.abouthelp-content ul li i:before,
 .abouthelp-content ul li i:after {
   content: "";
   position: absolute;
@@ -1270,12 +1282,15 @@ form .btn input[type="submit"] {
   width: 3px;
   height: 9px;
 }
+
 .abouthelp-content ul li i:before {
   transform: translate(-2px, 0) rotate(45deg);
 }
+
 .abouthelp-content ul li i:after {
   transform: translate(2px, 0) rotate(-45deg);
 }
+
 .abouthelp-content ul li input[type=checkbox] {
   position: absolute;
   cursor: pointer;
@@ -1284,16 +1299,19 @@ form .btn input[type="submit"] {
   z-index: 1;
   opacity: 0;
 }
-.abouthelp-content ul li input[type=checkbox]:checked ~ p {
+
+.abouthelp-content ul li input[type=checkbox]:checked~p {
   margin-top: 0;
   max-height: 0;
   opacity: 0;
   transform: translate(0, 50%);
 }
-.abouthelp-content ul li input[type=checkbox]:checked ~ i:before {
+
+.abouthelp-content ul li input[type=checkbox]:checked~i:before {
   transform: translate(2px, 0) rotate(45deg);
 }
-.abouthelp-content ul li input[type=checkbox]:checked ~ i:after {
+
+.abouthelp-content ul li input[type=checkbox]:checked~i:after {
   transform: translate(-2px, 0) rotate(-45deg);
 }
 
@@ -1303,18 +1321,23 @@ form .btn input[type="submit"] {
     transform-origin: top center;
     transform: rotateX(-90deg);
   }
+
   5% {
     opacity: 1;
   }
+
   80% {
     transform: rotateX(8deg);
   }
+
   83% {
     transform: rotateX(6deg);
   }
+
   92% {
     transform: rotateX(-3deg);
   }
+
   100% {
     transform-origin: top center;
     transform: rotateX(0deg);
@@ -1406,7 +1429,7 @@ form .btn input[type="submit"] {
   bottom: 0;
   right: 0;
   height: 100%;
-  width: 100%; 
+  width: 100%;
 }
 
 .toast-progress.active:before {
@@ -2500,7 +2523,8 @@ form .btn input[type="submit"] {
 
 /*#region BUTTONS*/
 /*About / Help Button*/
-.abouthelp-button, .help-button {
+.abouthelp-button,
+.help-button {
   outline: none;
   height: 40px;
   text-align: center;
@@ -2542,8 +2566,7 @@ form .btn input[type="submit"] {
   content: "Help";
 }
 
-.abouthelp-button > i.fa-solid
-.help-button > i.fa-solid {
+.abouthelp-button>i.fa-solid .help-button>i.fa-solid {
   padding: 0;
 }
 
@@ -2810,6 +2833,7 @@ form .btn input[type="submit"] {
 #dashboard-schedule-days::after {
   content: "Schedule Days";
 }
+
 /*Edit Info Button*/
 .editinfo-button {
   outline: none;
@@ -2892,7 +2916,8 @@ form .btn input[type="submit"] {
   width: 20px;
 }
 
-span > .fa-minus, span > .fa-plus {
+span>.fa-minus,
+span>.fa-plus {
   padding-right: 0;
 }
 
@@ -2911,15 +2936,23 @@ span > .fa-minus, span > .fa-plus {
 /*#region MOBILE RESPONSIVENESS*/
 @media all and (max-width: 767px) {
   .login-wrapper {
-    transform: scale(0.75);
+    transform: scale(0.9);
   }
 
   .dashboard-wrapper {
-    transform: scale(0.90);
+    height: 100%;
+    position: fixed;
+    border-radius: 0;
+    width: 100%;
+    padding: 0;
   }
 
   .abouthelp-wrapper {
-    transform: scale(0.90);
+    height: 100%;
+    position: fixed;
+    border-radius: 0;
+    width: 100%;
+    padding: 0;
   }
 
   .main-page {
@@ -3009,6 +3042,22 @@ span > .fa-minus, span > .fa-plus {
   #dashboard-datetime {
     max-width: 200px;
   }
+
+  #chat-wrapper,
+  #editinfo-wrapper {
+    width: 100%;
+    min-width: none;
+    max-width: none;
+    border-radius: 0;
+    height: 100%;
+    max-height: none;
+    position: fixed;
+  }
+
+  #chat-close-btn,
+  #editinfo-close-btn {
+    max-width: 50px;
+  }
 }
 
 @media all and (max-width: 1000px) {
@@ -3049,25 +3098,25 @@ span > .fa-minus, span > .fa-plus {
   a:hover {
     color: var(--blue-hover);
   }
-  
-  a:after{
+
+  a:after {
     content: "";
-    transition:0.5s all ease;
-    -webkit-backface-visibility:hidden;
-    backface-visibility:hidden;
-    position:absolute;
+    transition: 0.5s all ease;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    position: absolute;
     bottom: -0.25em;
-    height:5px;
-    height:0.15rem;
-    width:0;
+    height: 5px;
+    height: 0.15rem;
+    width: 0;
     background: var(--blue-hover);
-    left:50%;
-    -webkit-transform:translateX(-50%);
-    transform:translateX(-50%);
+    left: 50%;
+    -webkit-transform: translateX(-50%);
+    transform: translateX(-50%);
   }
-  
-  a:hover:after{
-    width:100%;
+
+  a:hover:after {
+    width: 100%;
   }
 
   .profile-col-buttons {
