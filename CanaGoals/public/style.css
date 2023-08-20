@@ -11,8 +11,9 @@
     --table-skyblue: lightskyblue;
     --border-radius: 5px;
     --box-shadow: 0 0 28px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.22);
-    --dropdown-background: #222429;
-    --dropdown-border: #494d59;
+    --scrollbar-dark: #494d59;
+    --scrollbar-light: #b6b8bd;
+    --scrollbar-hover: #6d717a;
 }
 
 [data-theme="light"] {
@@ -20,6 +21,7 @@
     --color-fg: var(--dark);
     --table-odd: var(--off-white);
     --table-even: #f8f8f8;
+    --scrollbar: var(--scrollbar-light);
 }
 
 [data-theme="dark"] {
@@ -27,6 +29,7 @@
     --color-fg: var(--white);
     --table-odd: var(--table-gray);
     --table-even: var(--table-skyblue);
+    --scrollbar: var(--scrollbar-dark);
 }
 
 body,
@@ -191,15 +194,15 @@ h2 {
 
 ::-webkit-scrollbar-thumb {
     border-radius: 10px;
-    background: var(--green);
+    background: var(--scrollbar);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: var(--table-green);
+    background: var(--scrollbar-hover);
 }
 
 ::-webkit-scrollbar-thumb:active {
-    background: var(--green);
+    background: var(--scrollbar);
 }
 
 /*#endregion MAIN STYLES*/
@@ -264,6 +267,82 @@ h2 {
 
 .table-items td:nth-child(even) {
     background: var(--table-even);
+}
+
+#table-buttons {
+    height: 60px;
+    width: 100%;
+    display: inline-flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.table-btn {
+    width: auto;
+    min-width: 80px;
+    height: 35px;
+    color: var(--white);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    outline: none;
+    text-align: center;
+    border: none;
+    letter-spacing: 1px;
+    text-shadow: none;
+    font-weight: bold;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+.table-btn:hover {
+    color: var(--dark);
+    transform: scale(1.05);
+}
+
+.table-btn:active {
+    color: var(--dark);
+    transform: scale(0.95);
+}
+
+#save-btn {
+    background: var(--green);
+}
+
+#save-btn::after {
+    content: "Save";
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+#addrow-btn {
+    background: var(--table-gray);
+}
+
+#addrow-btn::after {
+    content: "Add Row";
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+#addcol-btn {
+    background: var(--table-blue);
+}
+
+#addcol-btn::after {
+    content: "Add Column";
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+#delete-btn {
+    background: var(--red);
+}
+
+#delete-btn::after {
+    content: "Delete";
+    font-weight: 800;
+    text-transform: uppercase;
 }
 
 /*#endregion TABLE CONTAINER & TABLES*/
