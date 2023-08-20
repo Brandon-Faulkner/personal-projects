@@ -155,12 +155,12 @@ window.addEventListener('load', () => {
 
       if (loadingTimeout != null) clearTimeout(loadingTimeout);
 
-      //Check to see if still loading after 5 seconds
+      //Check to see if still loading after 10 seconds
       loadingTimeout = setTimeout(() => {
         if (loaderElem.classList.contains('fadeIn')) {
           loadingErrorPage.classList.add('show');
         }
-      }, 5000);
+      }, 10000);
     }
     else {
       setTimeout(() => {
@@ -1799,7 +1799,7 @@ window.addEventListener('load', () => {
     dashboardRsvpUsers.replaceChildren();
     var rsvp = document.createElement('p');
     const tempArr = rsvpdUsersArr.filter(r => r.week === msgWeeks.value);
-
+    
     if (tempArr.length > 0 && day !== "default") {
       dashboardRsvpUsers.classList.remove('no-rsvps');
       tempArr.forEach((user) => {
@@ -2053,18 +2053,16 @@ window.addEventListener('load', () => {
         if (hostNameArr.length > 0) {
           snapshot.forEach((childSnapshot) => {
             const groupKey = childSnapshot.key;
-            const address = childSnapshot.child("Address").val();
+            const location = childSnapshot.child("Location").val();
             const capacity = childSnapshot.child("Capacity").val();
             const description = childSnapshot.child("Description").val();
-            const email = childSnapshot.child("Email").val();
             const image = childSnapshot.child("Image").val();
-            const phone = childSnapshot.child("Phone").val();
 
             if (groupKey === groupID) {
               getDownloadURL(ref_st(storage, "Groups/" + image))
                 .then((url) => {
                   //Update group array with the new data
-                  const data = { group: groupKey, address: address, capacity: capacity, description: description, email: email, image: url, phone: phone };
+                  const data = { group: groupKey, location: location, capacity: capacity, description: description, image: url };
                   groupInfoArr.unshift(data);
 
                   DaySorter(allWeeksArr);
@@ -2112,7 +2110,7 @@ window.addEventListener('load', () => {
                 });
             } else {
               //Only update group array with the new data
-              const data = { group: groupKey, address: address, capacity: capacity, description: description, email: email, image: image, phone: phone };
+              const data = { group: groupKey, location: location, capacity: capacity, description: description, image: image };
               groupInfoArr.unshift(data);
             }
           });
@@ -2213,7 +2211,7 @@ window.addEventListener('load', () => {
     var tableHeader = document.createElement('li');
     tableHeader.classList.add('table-header');
     var headerDiv1 = document.createElement('div'); headerDiv1.className = "col"; headerDiv1.textContent = "Day/Time"; tableHeader.appendChild(headerDiv1);
-    var headerDiv2 = document.createElement('div'); headerDiv2.className = "col"; headerDiv2.textContent = "Address"; tableHeader.appendChild(headerDiv2);
+    var headerDiv2 = document.createElement('div'); headerDiv2.className = "col"; headerDiv2.textContent = "General Location"; tableHeader.appendChild(headerDiv2);
     var headerDiv3 = document.createElement('div'); headerDiv3.className = "col"; headerDiv3.textContent = "Spaces Available"; tableHeader.appendChild(headerDiv3);
     var headerDiv4 = document.createElement('div'); headerDiv4.className = "col"; headerDiv4.textContent = "I'm Going"; tableHeader.appendChild(headerDiv4);
     var headerDiv5 = document.createElement('div'); headerDiv5.className = "col"; headerDiv5.textContent = "Friends"; tableHeader.appendChild(headerDiv5);
@@ -2223,11 +2221,9 @@ window.addEventListener('load', () => {
   function CreatePlanningTableRow(elem, groupInfoArr, groupID, parentElem, userScheduleArr) {
     var row = document.createElement('li');
     row.className = "table-row";
-
+    
     var col1 = document.createElement('div'); col1.className = "col"; col1.setAttribute('data-label', "Day/Time:"); col1.textContent = elem.day + "/" + elem.time; row.appendChild(col1);
-    var col2 = document.createElement('a'); col2.className = "col"; col2.setAttribute('data-label', "Address:"); col2.textContent = groupInfoArr.find(g => g.group === groupID).address;
-    col2.href = "https://maps.google.com/maps/search/?api=1&query=" + encodeURIComponent(col2.textContent);
-    col2.target = "_Address"; col2.rel = "noopener noreferrer"; row.appendChild(col2);
+    var col2 = document.createElement('div'); col2.className = "col"; col2.setAttribute('data-label', "General Location:"); col2.textContent = groupInfoArr.find(g => g.group === groupID).location; row.appendChild(col2);
 
     //Check user schedule to update these values if they exist
     //First create elements, update values if needed, then add to row in order

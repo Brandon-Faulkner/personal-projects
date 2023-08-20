@@ -55,7 +55,7 @@ exports.sendHostNotification = functions.database.ref('/UsersMessages/{host}/{ui
                 }
             });
 
-            if (hostsDataArr[0].token !== "null") {
+            if (hostsDataArr[0].token !== null) {
                 const message = {
                     token: hostsDataArr[0].token,
                     data: {
@@ -70,7 +70,7 @@ exports.sendHostNotification = functions.database.ref('/UsersMessages/{host}/{ui
             }
 
             if (hostsDataArr.length === 2) {
-                if (hostsDataArr[1].token !== "null") {
+                if (hostsDataArr[1].token !== null) {
                     const message = {
                         token: hostsDataArr[1].token,
                         data: {
