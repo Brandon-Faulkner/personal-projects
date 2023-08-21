@@ -969,12 +969,12 @@ window.addEventListener('load', () => {
   }
 
   function WeekSorter(weekArr) {
-    weekArr.sort(function sortByWeek(a,b) {
+    weekArr.sort(function sortByWeek(a, b) {
       var aDates = new Date(a.week.split('-')[1] + " 11:59 PM");
       var bDates = new Date(b.week.split('-')[0] + " 11:59 PM");
 
       return aDates.getTime() - bDates.getTime();
-    }); 
+    });
   }
 
   function DaySorter(weekArr, isUniq) {
@@ -1799,7 +1799,7 @@ window.addEventListener('load', () => {
     dashboardRsvpUsers.replaceChildren();
     var rsvp = document.createElement('p');
     const tempArr = rsvpdUsersArr.filter(r => r.week === msgWeeks.value);
-    
+
     if (tempArr.length > 0 && day !== "default") {
       dashboardRsvpUsers.classList.remove('no-rsvps');
       tempArr.forEach((user) => {
@@ -2036,93 +2036,93 @@ window.addEventListener('load', () => {
       Loading(mainLoader, false);
       if (tabOverview.checked === true && auth?.currentUser.isAnonymous === true) aboutHelpBtn.click();
     } else {
-      onValue(planRef, (snapshot) => {
-        loginScreen.classList.remove('show');
-        mainScreen.classList.remove('disable-click');
-        planningBlocked.classList.add('hide');
-        planningIntro.parentElement.classList.remove('hide');
-        planningWeekSelectParent.classList.remove('hide');
-        Loading(mainLoader, true);
+      loginScreen.classList.remove('show');
+      mainScreen.classList.remove('disable-click');
+      planningBlocked.classList.add('hide');
+      planningIntro.parentElement.classList.remove('hide');
+      planningWeekSelectParent.classList.remove('hide');
+      Loading(mainLoader, true);
 
-        //Clear current data in array to avoid dups
-        groupInfoArr = [];
+      //Clear the current elements in the list
+      planWeekHolder.replaceChildren();
 
-        //Clear the current elements in the list
-        planWeekHolder.replaceChildren();
-
-        if (hostNameArr.length > 0) {
-          snapshot.forEach((childSnapshot) => {
+      if (hostNameArr.length > 0) {
+        if (groupInfoArr.length > 0 && groupInfoArr.find(g => g.group === groupID) != null) {
+          //We already have this groups info, just update UI
+          PlanningSetupHelper(groupID, userScheduleArr, clickedWeek);
+        } else {
+          //We don't have this groups info, get from DB
+          onValue(planRef, (snapshot) => {
+            const childSnapshot = snapshot.child(groupID);
             const groupKey = childSnapshot.key;
             const location = childSnapshot.child("Location").val();
             const capacity = childSnapshot.child("Capacity").val();
             const description = childSnapshot.child("Description").val();
             const image = childSnapshot.child("Image").val();
 
-            if (groupKey === groupID) {
-              getDownloadURL(ref_st(storage, "Groups/" + image))
-                .then((url) => {
-                  //Update group array with the new data
-                  const data = { group: groupKey, location: location, capacity: capacity, description: description, image: url };
-                  groupInfoArr.unshift(data);
+            getDownloadURL(ref_st(storage, "Groups/" + image))
+              .then((url) => {
+                //Update group array with the new data
+                const data = { group: groupKey, location: location, capacity: capacity, description: description, image: url };
+                groupInfoArr.unshift(data);
 
-                  DaySorter(allWeeksArr);
-                  //Create week containers for each week
-                  var uniqHostWks = [...new Set((unsortedWeeksArr.filter(a => a.group === groupID)).map(item => item.week))];
-                  uniqHostWks.forEach((week) => {
-                    CreatePlanningWeekContainers(week, planWeekHolder);
-                    var containerElem = document.getElementById(week + "-planning");
-                    CreatePlanningTableHeader(containerElem);
-
-                    allWeeksArr.forEach((elem) => {
-                      if (elem.group === groupID && elem.week === week) {
-                        CreatePlanningTableRow(elem, groupInfoArr, elem.group, containerElem, userScheduleArr.filter(u => u.group === groupID && u.week === week));
-                      }
-                    });
-                  });
-
-                  //Now Update planning intro
-                  UpdatePlanningIntro(hostNameArr, groupInfoArr, groupID, planningIntro);
-
-                  if (allWeeksArr.length > 0 && allWeeksArr.find(a => a.group === groupID) != null) {
-                    if (clickedWeek === null || !uniqHostWks.find(u => u === clickedWeek)) clickedWeek = uniqHostWks[0];
-                    overviewWeekSelection.value = clickedWeek;
-
-                    //Setup planning weeks dropdown
-                    SetupDropdowns(planWeekSelection, uniqHostWks, false);
-                    planWeekSelection.value = clickedWeek;
-                    ShowEventContainers(clickedWeek, 'planning-container');
-                  } else {
-                    SetupDropdowns(planWeekSelection, ["No Days Available"], false);
-                    ShowEventContainers(overviewWeekSelection.options[0].value, 'overview-container');
-                  }
-
-                  //Make sure db listener gets started on first load
-                  if (isFirstLoad === true) {
-                    ListenForCapacityChanges();
-                    isFirstLoad = false;
-                  } else {
-                    UpdateCapacityInRows();
-                    Loading(mainLoader, false);
-                  }
-                })
-                .catch((error) => {
-                  console.log(error.code + ": " + error.message);
-                });
-            } else {
-              //Only update group array with the new data
-              const data = { group: groupKey, location: location, capacity: capacity, description: description, image: image };
-              groupInfoArr.unshift(data);
-            }
+                PlanningSetupHelper(groupID, userScheduleArr, clickedWeek);
+              })
+              .catch((error) => {
+                console.log(error.code + ": " + error.message);
+              });
+          }, {
+            onlyOnce: true
+          }, error => {
+            console.log(error.code + ": " + error.message);
           });
-        } else {
-          SetupDropdowns(planWeekSelection, ["No Days Available"], false);
-          Loading(mainLoader, false);
         }
-      }, {
-        onlyOnce: true
-      }, error => {
-        console.log(error.code + ": " + error.message);
+      } else {
+        SetupDropdowns(planWeekSelection, ["No Days Available"], false);
+        Loading(mainLoader, false);
+      }
+    }
+  }
+
+  function PlanningSetupHelper(groupID, userScheduleArr, clickedWeek) {
+    DaySorter(allWeeksArr);
+    //Create week containers for each week
+    var uniqHostWks = [...new Set((unsortedWeeksArr.filter(a => a.group === groupID)).map(item => item.week))];
+    uniqHostWks.forEach((week) => {
+      CreatePlanningWeekContainers(week, planWeekHolder);
+      var containerElem = document.getElementById(week + "-planning");
+      CreatePlanningTableHeader(containerElem);
+
+      allWeeksArr.forEach((elem) => {
+        if (elem.group === groupID && elem.week === week) {
+          CreatePlanningTableRow(elem, groupInfoArr, elem.group, containerElem, userScheduleArr.filter(u => u.group === groupID && u.week === week));
+        }
       });
+    });
+
+    //Now Update planning intro
+    UpdatePlanningIntro(hostNameArr, groupInfoArr, groupID, planningIntro);
+
+    if (allWeeksArr.length > 0 && allWeeksArr.find(a => a.group === groupID) != null) {
+      if (clickedWeek === null || !uniqHostWks.find(u => u === clickedWeek)) clickedWeek = uniqHostWks[0];
+      overviewWeekSelection.value = clickedWeek;
+
+      //Setup planning weeks dropdown
+      SetupDropdowns(planWeekSelection, uniqHostWks, false);
+      planWeekSelection.value = clickedWeek;
+      ShowEventContainers(clickedWeek, 'planning-container');
+    } else {
+      SetupDropdowns(planWeekSelection, ["No Days Available"], false);
+      ShowEventContainers(overviewWeekSelection.options[0].value, 'overview-container');
+    }
+
+    //Make sure db listener gets started on first load
+    if (isFirstLoad === true) {
+      ListenForCapacityChanges();
+      isFirstLoad = false;
+    } else {
+      UpdateCapacityInRows();
+      Loading(mainLoader, false);
     }
   }
 
@@ -2221,7 +2221,7 @@ window.addEventListener('load', () => {
   function CreatePlanningTableRow(elem, groupInfoArr, groupID, parentElem, userScheduleArr) {
     var row = document.createElement('li');
     row.className = "table-row";
-    
+
     var col1 = document.createElement('div'); col1.className = "col"; col1.setAttribute('data-label', "Day/Time:"); col1.textContent = elem.day + "/" + elem.time; row.appendChild(col1);
     var col2 = document.createElement('div'); col2.className = "col"; col2.setAttribute('data-label', "General Location:"); col2.textContent = groupInfoArr.find(g => g.group === groupID).location; row.appendChild(col2);
 
