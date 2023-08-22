@@ -197,9 +197,19 @@ window.addEventListener('load', () => {
   //#endregion LOGIN FUNCTIONS
 
   //#region TABLE FUNCTIONS
+  var isFirstLoad = true;
   function ListenForUsersTables() {
     onValue(ref(database, 'Tables/'), (snapshot) => {
-      tableContainer.replaceChildren();
+
+      if (isFirstLoad === true) {
+        tableContainer.replaceChildren();
+      } else {
+        Array.from(tableContainer.children).forEach((table) => {
+          if (table.getAttribute('id') !== 'user-table') {
+            table.remove();
+          }
+        });
+      }
 
       if (snapshot.exists()) {
         // Clear the arrays first so no dups
@@ -229,16 +239,18 @@ window.addEventListener('load', () => {
           usersTablesArr.push(tableData);
         });
 
-        //Create main user table first, then other users
-        const userTable = usersTablesArr.filter(u => u.isMainUser === true);
+        if (isFirstLoad === true) {
+          //Create main user table first, then other users
+          const userTable = usersTablesArr.filter(u => u.isMainUser === true);
 
-        if (userTable !== null) {
-          CreateTable("user-table", userTable[0].user, userTable[0], userTable[0].cols, userTable[0].rows, true);
-        } else {
-          //Create default user table since they dont have one yet
-          CreateTable("user-table", "Enter Name...", null, 3, 3, true);
+          if (userTable !== null) {
+            CreateTable("user-table", userTable[0].user, userTable[0], userTable[0].cols, userTable[0].rows, true);
+          } else {
+            //Create default user table since they dont have one yet
+            CreateTable("user-table", "Enter Name...", null, 3, 3, true);
+          }
         }
-        
+
         //Other users tables
         usersTablesArr.forEach((table) => {
           if (table.isMainUser != true) {
@@ -249,6 +261,8 @@ window.addEventListener('load', () => {
         // No tables in DB, create default one for user
         CreateTable("user-table", "Enter Name...", null, 3, 3, true);
       }
+
+      isFirstLoad = false;
     }, error => {
       console.log(error.code + ": " + error.message);
     });
@@ -256,8 +270,8 @@ window.addEventListener('load', () => {
 
   function CreateTable(tableID, userName, tableArr, col, row, isUsersTable) {
     var tableWrap = document.createElement("div"); tableWrap.setAttribute("id", tableID); tableWrap.className = "table-wrapper";
-    var h2 = document.createElement("h2"); h2.textContent = userName; h2.contentEditable = isUsersTable === true ? "plaintext-only" : false; 
-    isUsersTable === true ? h2.className = "editable" : null; isUsersTable === true ? h2.setAttribute('placeholder', "Enter Name..."): null; tableWrap.appendChild(h2);
+    var h2 = document.createElement("h2"); h2.textContent = userName; h2.contentEditable = isUsersTable === true ? "plaintext-only" : false;
+    isUsersTable === true ? h2.className = "editable" : null; isUsersTable === true ? h2.setAttribute('placeholder', "Enter Name...") : null; tableWrap.appendChild(h2);
     var table = document.createElement("table"); table.className = "table-items";
 
     var thead = document.createElement("thead");
@@ -265,9 +279,9 @@ window.addEventListener('load', () => {
     for (let i = 0; i < col; i++) {
       var th = document.createElement("th");
       th.textContent = tableArr === null ? "Title" : tableArr.headers[i].header;
-      th.contentEditable = isUsersTable === true ? "plaintext-only" : false; 
-      isUsersTable === true ? th.className = "editable" : null; 
-      isUsersTable === true ? th.setAttribute('placeholder', "Title..."): null; headTr.appendChild(th);
+      th.contentEditable = isUsersTable === true ? "plaintext-only" : false;
+      isUsersTable === true ? th.className = "editable" : null;
+      isUsersTable === true ? th.setAttribute('placeholder', "Title...") : null; headTr.appendChild(th);
     }
     thead.appendChild(headTr); table.appendChild(thead);
 
@@ -285,9 +299,9 @@ window.addEventListener('load', () => {
       for (let j = 0; j < row; j++) {
         var td = document.createElement("td");
         td.textContent = tableArr === null ? "Content" : rowData[j].row;
-        td.contentEditable = isUsersTable === true ? "plaintext-only" : false; 
-        isUsersTable === true ? td.className = "editable" : null; 
-        isUsersTable === true ? td.setAttribute('placeholder', "Content..."): null; bodyTr.appendChild(td);
+        td.contentEditable = isUsersTable === true ? "plaintext-only" : false;
+        isUsersTable === true ? td.className = "editable" : null;
+        isUsersTable === true ? td.setAttribute('placeholder', "Content...") : null; bodyTr.appendChild(td);
       }
       tbody.appendChild(bodyTr);
     }
@@ -318,6 +332,8 @@ window.addEventListener('load', () => {
 
     if (saveBtn) {
       saveBtn.classList.add('button-onClick');
+      var userTable = saveBtn.parentElement.parentElement;
+      SaveTableToDB(userTable, saveBtn);
     }
 
     //Add Row
@@ -369,6 +385,38 @@ window.addEventListener('load', () => {
       RemoveRowOrCol(trashBtn);
     }
   });
+
+  function SaveTableToDB(userTable, saveBtn) {
+    var userName = userTable.children[0].textContent;
+    var headers = userTable.children[1].children[0].children[0];
+    var rows = userTable.children[1].children[1];
+    var headersArr = []; var rowsArr = []; var cellsArr = [];
+
+    Array.from(headers.children).forEach((header) => {
+      headersArr.push(header.textContent);
+    });
+
+    Array.from(rows.children).forEach((row) => {
+      cellsArr = [];
+      Array.from(row.children).forEach((cell) => {
+        cellsArr.push(cell.textContent);
+      });
+      rowsArr.push(cellsArr);
+    });
+
+    set(ref(database, 'Tables/' + auth?.currentUser.uid), {
+      Content: rowsArr,
+      Headers: headersArr,
+      Name: userName
+    }).then(() => {
+      ShowNotifToast("Saved Table", "Any changes made to your table has been saved.", "var(--green)", true, 5);
+      saveBtn.classList.remove('button-onClick');
+    }).catch((error) => {
+      console.log(error.code + ": " + error.message);
+      ShowNotifToast("Error Saving Table", "There was an error saving your table. Please try again.", "var(--red)", true, 5);
+      saveBtn.classList.remove('button-onClick');
+    });
+  }
 
   function AddRemoveDeleteIcons(deleteBtn, isAdd) {
     var userTable = document.getElementById("user-table").children[1];
