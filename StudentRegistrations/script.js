@@ -6,9 +6,8 @@
 
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-app.js";
-import { getDatabase, ref as ref_db, get, onValue, child, push, set } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-database.js";
+import { getDatabase, ref as ref_db, get, child, push } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-database.js";
 import { getStorage, ref as ref_st, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-storage.js";
-import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-auth.js";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -28,10 +27,9 @@ const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 // Initialize Storage
 const storage = getStorage(app);
-// Initialize Auth
-const auth = getAuth(app);
 
-window.addEventListener('load', (event) => {
+window.addEventListener('load', () => {
+  //#region VARIABLES
   var mainGrid = document.getElementById('main-grid');
   var baptismLabel = document.getElementById("baptism-label");
   var baptismForm = document.getElementById("baptism-form");
@@ -75,19 +73,19 @@ window.addEventListener('load', (event) => {
 
   var logo = document.getElementById('logo-img');
   var loading = document.getElementById('loading-overlay');
-  var loginScreenGrid = document.getElementById('login-screen-grid');
-  var isLoggedIn = false;
 
-  //Input box validation variables********************************
+  //Input box validation 
   var emailGood = { value: false }, eventNameGood = { value: false }, activityNameGood = { value: false }, phoneGood = { value: false };
+  
+  //#endregion VARIABLES
 
-  //******MAIN GRID******//
+  //#region MAIN GRID
   var previousForm = null;
   var currentForm = baptismForm;
 
   baptismLabel.addEventListener('click', function () {
     previousForm = currentForm;
-    currentForm = baptismForm
+    currentForm = baptismForm;
     if (!baptismLabel.children[0].classList.contains('selected')) {
       //Take care of styling first
       Set_Icon_Style(baptismLabel, "fa-solid fa-heart fa-label filled", "add");
@@ -157,10 +155,9 @@ window.addEventListener('load', (event) => {
 
     Switch_Form_Shown(mainGrid, eventsGrid, layers);
   });
-  //******END MAIN GRID ******//
+  //#endregion MAIN GRID
 
-  //******GO BACK BTNS ******//
-  //******BAPTISM GRID ******//
+  //#region BUTTONS
   baptismGoBack.addEventListener('click', function () {
     var layers = Start_Layer_Anim("right");
 
@@ -170,7 +167,7 @@ window.addEventListener('load', (event) => {
 
     Switch_Form_Shown(baptismGrid, mainGrid, layers);
   });
-  //******JOSHUA GRID ******//
+
   joshuaGoBack.addEventListener('click', function () {
     var layers = Start_Layer_Anim("left");
 
@@ -181,7 +178,7 @@ window.addEventListener('load', (event) => {
     Switch_Form_Shown(joshuaGrid, mainGrid, layers);
   });
 
-  //******EVENT GRID ******//
+
   eventsGoBack.addEventListener('click', function () {
     var layers = Start_Layer_Anim("top");
 
@@ -192,7 +189,7 @@ window.addEventListener('load', (event) => {
     Switch_Form_Shown(eventsGrid, mainGrid, layers);
   });
 
-  //******EVENTS ACTIVITY/EVENT GRID ******//
+
   eventsActivityGoBack.addEventListener('click', function () {
     var layers = Start_Layer_Anim("right");
 
@@ -213,9 +210,6 @@ window.addEventListener('load', (event) => {
     Switch_Form_Shown(eventsEventGrid, eventsGrid, layers);
   });
 
-  //******END GO BACK BTNS******//
-
-  //******SUBMIT BTNS******//
   eventsEventSubmit.addEventListener('click', function () {
     if (emailGood.value == true && phoneGood.value == true && eventNameGood.value == true) {
       //Send text and email
@@ -240,8 +234,10 @@ window.addEventListener('load', (event) => {
       openSubmitModal("Error With Submission", "Please make sure that you have entered your name correctly and that you have selected whether or not you will be there.");
     }
   });
-  //******END SUBMIT BTNS******//
 
+  //#endregion BUTTONS
+
+  //#region EVENTS/ACTIVITIES
   activityNameInput.addEventListener('input', function () {
     this.value = this.value.replace(/[0123456789,./\\/-=+/';"\]\[{}/()!@#$%^&*`~_<>?:|/]/g, "");
   });
@@ -294,24 +290,10 @@ window.addEventListener('load', (event) => {
   }
 
   const body = document.querySelector("body");
-  const modal = document.getElementById("adminModal");
   const submitModal = document.getElementById("submitModal");
   const submitTitle = document.getElementById("submitTitle");
   const submitDesc = document.getElementById("submitDesc");
-  const emailBlock = document.getElementById("email-block");
-  const passwordBlock = document.getElementById("password-block");
-  const closeButton = document.getElementById("adminCloseButton");
   const submitCloseButton = document.getElementById("submitCloseButton");
-  const loginButton = document.getElementById("loginButton");
-  const adminEmail = document.getElementById("email");
-  const adminPassword = document.getElementById("password");
-
-  let isOpened = false;
-
-  const openModal = () => {
-    modal.classList.add("is-open");
-    body.style.overflow = "hidden";
-  };
 
   const openSubmitModal = (title, desc) => {
     submitTitle.textContent = title;
@@ -320,52 +302,15 @@ window.addEventListener('load', (event) => {
     body.style.overflow = "hidden";
   }
 
-  const closeModal = () => {
-    modal.classList.remove("is-open");
-    body.style.overflow = "initial";
-  };
-
   const closeSubmitModal = () => {
     submitModal.classList.remove("is-open");
     body.style.overflow = "initial";
   };
 
-  closeButton.addEventListener("click", closeModal);
   submitCloseButton.addEventListener("click", closeSubmitModal);
+  //#endregion EVENTS/ACTIVITIES
 
-  logo.addEventListener('click', function () {
-    if (!mainGrid.classList.contains("hidden")) {
-      openModal();
-    }
-  });
-
-  loginButton.addEventListener('click', function () {
-    signInWithEmailAndPassword(auth, adminEmail.value, adminPassword.value).then((userCredential) => {
-      //Signed in
-      const user = userCredential.user;
-    }).catch((error) => {
-      //Login error
-      const errorCode = error.code;
-      switch (errorCode) {
-        case "auth/invalid-email":
-          emailBlock.classList.add("shake");
-          setTimeout(() => {
-            emailBlock.classList.remove("shake");
-          }, 1000);
-          break;
-        case "auth/wrong-password":
-          passwordBlock.classList.add("shake");
-          setTimeout(() => {
-            passwordBlock.classList.remove("shake");
-          }, 1000);
-          break;
-        default:
-          break;
-      }
-    });
-  });
-
-  //FUNCTIONS ----------------------------------------------------
+//#region HELPER FUNCTIONS
   function Set_Login_Screen(elem, currentState) {
     if (currentState === "hidden") {
       Set_Grid_Animations(elem, "fade-in");
@@ -389,9 +334,9 @@ window.addEventListener('load', (event) => {
     label.children[0].children[0].classList = changedClass;
   }
 
-  function Show_Forms(curr, prev, other) {
+  function Show_Forms(curr, prev) {
     curr.style = "animation: fade-in .5s ease-in-out forwards;";
-    prev.style.display = "none";
+    prev.style = "display: none;";
   }
 
   function Start_Layer_Anim(direction) {
@@ -525,4 +470,6 @@ window.addEventListener('load', (event) => {
   setInputFilter(eventNameInput, /^[a-zA-Z]+ [a-zA-Z]+$/, eventNameGood);
   setInputFilter(activityNameInput, /^[a-zA-Z]+ [a-zA-Z]+$/, activityNameGood);
   setInputFilter(eventEmailInput, /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/, emailGood);
+  
+  //#endregion HELPER FUNCTIONS
 });

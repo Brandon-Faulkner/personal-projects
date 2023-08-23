@@ -59,6 +59,9 @@ window.addEventListener('load', () => {
         ShowNotifToast(title, message, statusColor, isTimed, seconds);
       }, 1000);
     } else {
+      //Disable Login/Sign out btn for convenience
+      loginSignOutBtn.classList.add('disabled-btn');
+
       //Change --toast-status css var to statusColor
       toastElem.style.setProperty('--toast-status', statusColor);
 
@@ -80,6 +83,7 @@ window.addEventListener('load', () => {
 
         progressTimeout = setTimeout(() => {
           toastProgress.classList.remove('active');
+          loginSignOutBtn.classList.remove('disabled-btn');
         }, (seconds * 1000) + 500);
       }
     }
@@ -91,11 +95,12 @@ window.addEventListener('load', () => {
     clearTimeout(progressTimeout);
     toastProgress.classList.remove('active');
     toastElem.classList.remove('active');
+    loginSignOutBtn.classList.remove('disabled-btn');
   });
 
   var usersTablesArr = []; var headersArr = []; var contentArr = [];
   //#endregion VARIABLES
-
+  
   //#region LOGIN FUNCTIONS
   //Detect login status and setup tables
   onAuthStateChanged(auth, (user) => {

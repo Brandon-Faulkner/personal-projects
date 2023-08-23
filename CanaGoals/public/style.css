@@ -562,7 +562,7 @@ form .btn input[type="submit"] {
 /*#region NOTIFICATION TOAST*/
 .toast {
     position: absolute;
-    top: 0;
+    top: 70px;
     right: 0;
     border-radius: var(--border-radius);
     background: var(--white);
