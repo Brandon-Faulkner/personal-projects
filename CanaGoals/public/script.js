@@ -98,17 +98,19 @@ window.addEventListener('load', () => {
     loginSignOutBtn.classList.remove('disabled-btn');
   });
 
-  var usersTablesArr = []; var headersArr = []; var contentArr = [];
+  var usersTablesArr = []; var headersArr = [];
+  var contentArr = []; var bbArr = []; var isFirstLoad = true;
   //#endregion VARIABLES
-  
+
   //#region LOGIN FUNCTIONS
   //Detect login status and setup tables
   onAuthStateChanged(auth, (user) => {
     if (user === null) {
       // No one is signed in
+      isFirstLoad = true;
       tableContainer.replaceChildren();
       loginSignOutBtn.className = "header-login-btn";
-      CreateTable("default-table-1", "Default Name", null, 3, 3, false);
+      CreateTable("default-table", "Default Name", null, 3, false);
     } else if (user.isAnonymous === false) {
       // User is signed in
       ListenForUsersTables();
@@ -202,7 +204,6 @@ window.addEventListener('load', () => {
   //#endregion LOGIN FUNCTIONS
 
   //#region TABLE FUNCTIONS
-  var isFirstLoad = true;
   function ListenForUsersTables() {
     onValue(ref(database, 'Tables/'), (snapshot) => {
 
@@ -222,7 +223,7 @@ window.addEventListener('load', () => {
 
         //Get data for each table based on user
         snapshot.forEach((uid) => {
-          headersArr = []; contentArr = [];
+          headersArr = []; contentArr = []; bbArr = [];
           const isThisUser = uid.key === auth.currentUser.uid;
           const usersName = uid.child('Name').val();
 
@@ -234,37 +235,49 @@ window.addEventListener('load', () => {
           var index = 0;
           uid.child('Content').forEach((rows) => {
             rows.forEach((row) => {
-              const rowData = { user: usersName, rowNum: index, row: row.val() }
-              contentArr.push(rowData);
+              if (row.key !== "BB") {
+                const rowData = { user: usersName, rowNum: index, row: row.val() };
+                contentArr.push(rowData);
+              } else {
+                row.forEach((bb) => {
+                  //Building blocks
+                  var bbIndex = 0;
+                  bb.forEach((con) => {
+                    const bbData = { user: usersName, rowNum: index, bbNum: bbIndex, row: con.val() };
+                    bbArr.push(bbData);
+                    bbIndex++;
+                  });     
+                });
+              }
             });
             index++;
           });
 
-          const tableData = { user: usersName, isMainUser: isThisUser, headers: headersArr, content: contentArr, cols: headersArr.length, rows: index };
+          const tableData = { user: usersName, uid: uid.key, isMainUser: isThisUser, headers: headersArr, content: contentArr, buildingBlocks: bbArr, cols: headersArr.length };
           usersTablesArr.push(tableData);
         });
 
         if (isFirstLoad === true) {
           //Create main user table first, then other users
           const userTable = usersTablesArr.filter(u => u.isMainUser === true);
-
-          if (userTable !== null) {
-            CreateTable("user-table", userTable[0].user, userTable[0], userTable[0].cols, userTable[0].rows, true);
+          if (userTable.length > 0) {
+            console.log(userTable);
+            CreateTable(userTable[0].uid + "-table", userTable[0].user, userTable[0], userTable[0].cols, true);
           } else {
             //Create default user table since they dont have one yet
-            CreateTable("user-table", "Enter Name...", null, 3, 3, true);
+            CreateTable(auth.currentUser.uid + "-table", null, null, 3, true);
           }
         }
 
         //Other users tables
         usersTablesArr.forEach((table) => {
           if (table.isMainUser != true) {
-            CreateTable(table.usersName + "-table", table.user, table, table.cols, table.rows, false);
+            CreateTable(table.uid + "-table", table.user, table, table.cols, true);
           }
         });
       } else {
         // No tables in DB, create default one for user
-        CreateTable("user-table", "Enter Name...", null, 3, 3, true);
+        CreateTable(auth.currentUser.uid + "-table", null, null, 3, true);
       }
 
       isFirstLoad = false;
@@ -273,7 +286,7 @@ window.addEventListener('load', () => {
     });
   }
 
-  function CreateTable(tableID, userName, tableArr, col, row, isUsersTable) {
+  function CreateTable(tableID, userName, tableArr, col, isUsersTable) {
     var tableWrap = document.createElement("div"); tableWrap.setAttribute("id", tableID); tableWrap.className = "table-wrapper";
     var h2 = document.createElement("h2"); h2.textContent = userName; h2.contentEditable = isUsersTable === true ? "plaintext-only" : false;
     isUsersTable === true ? h2.className = "editable" : null; isUsersTable === true ? h2.setAttribute('placeholder', "Enter Name...") : null; tableWrap.appendChild(h2);
@@ -281,34 +294,79 @@ window.addEventListener('load', () => {
 
     var thead = document.createElement("thead");
     var headTr = document.createElement("tr");
-    for (let i = 0; i < col; i++) {
-      var th = document.createElement("th");
-      th.textContent = tableArr === null ? "Title" : tableArr.headers[i].header;
-      th.contentEditable = isUsersTable === true ? "plaintext-only" : false;
-      isUsersTable === true ? th.className = "editable" : null;
-      isUsersTable === true ? th.setAttribute('placeholder', "Title...") : null; headTr.appendChild(th);
+    for (let i = 0; i <= col; i++) {
+      if (i === 0) {
+        var thEmpty = document.createElement('th');
+        thEmpty.classList.add('empty-th'); headTr.appendChild(thEmpty);
+      } else {
+        var th = document.createElement("th");
+        th.textContent = tableArr === null ? null : tableArr.headers[i - 1].header;
+        th.setAttribute('placeholder', "Title..."); headTr.appendChild(th);
+      }
     }
     thead.appendChild(headTr); table.appendChild(thead);
 
     var tbody = document.createElement("tbody");
     for (let i = 0; i < col; i++) {
       var bodyTr = document.createElement("tr");
-      var rowData = [];
-      if (tableArr != null) {
-        tableArr.content.forEach((row) => {
-          if (row.rowNum === i) {
-            rowData.push(row);
+      bodyTr.className = "view";
+
+      //Create View Row, aka the goal row
+      var rowData = tableArr.content.filter(c => c.rowNum === i);
+
+      if (rowData.length > 0) {
+        for (let k = 0; k < rowData.length; k++) {
+          if (k === 0) {
+            var tdDrop = document.createElement('td');
+            tdDrop.classList.add('view-td');
+            var arrow = document.createElement('i');
+            arrow.className = "fa-solid fa-caret-down"; tdDrop.appendChild(arrow);
+            bodyTr.appendChild(tdDrop);
           }
-        });
+          var td = document.createElement("td");
+          td.textContent = tableArr === null ? null : rowData[k].row;
+          td.contentEditable = isUsersTable === true ? "plaintext-only" : false;
+          isUsersTable === true ? td.className = "editable" : null;
+          isUsersTable === true ? td.setAttribute('placeholder', "Content...") : null; bodyTr.appendChild(td);
+
+        }
       }
-      for (let j = 0; j < row; j++) {
-        var td = document.createElement("td");
-        td.textContent = tableArr === null ? "Content" : rowData[j].row;
-        td.contentEditable = isUsersTable === true ? "plaintext-only" : false;
-        isUsersTable === true ? td.className = "editable" : null;
-        isUsersTable === true ? td.setAttribute('placeholder', "Content...") : null; bodyTr.appendChild(td);
-      }
+
       tbody.appendChild(bodyTr);
+
+      //Create Fold Row, aka building blocks row
+      var foldTr = document.createElement("tr"); foldTr.className = "fold";
+      var foldTd = document.createElement('td'); foldTd.setAttribute('colspan', 4);
+      foldTd.classList.add('fold-main-td'); foldTr.appendChild(foldTd);
+
+      var foldDiv = document.createElement('div'); foldDiv.className = "fold-div"; foldTd.appendChild(foldDiv);
+      var foldTable = document.createElement('table'); foldDiv.appendChild(foldTable);
+      var foldHead = document.createElement('thead'); foldTable.appendChild(foldHead);
+      var foldBody = document.createElement('tbody'); foldTable.appendChild(foldBody);
+
+      //Fold cols
+      var foldHTr = document.createElement('tr'); foldHead.appendChild(foldHTr);
+      for (let i = 0; i < col; i++) {
+        var th = document.createElement("th");
+        th.textContent = tableArr === null ? null : i === 0 ? "Building Blocks" : tableArr.headers[i].header;
+        th.setAttribute('placeholder', "Title..."); foldHTr.appendChild(th);
+
+        //Fold Rows
+        var foldBTr = document.createElement('tr'); foldBody.appendChild(foldBTr);
+        var rowData = tableArr.buildingBlocks;
+        if (rowData.length > 0) {
+          for (let j = 0; j < rowData.length; j++) {
+            if (rowData[j].rowNum === i && rowData[j].bbNum === j) {
+              var td = document.createElement("td");
+              td.textContent = tableArr === null ? null : "Testss";
+              td.contentEditable = isUsersTable === true ? "plaintext-only" : false;
+              isUsersTable === true ? td.className = "editable" : null;
+              isUsersTable === true ? td.setAttribute('placeholder', "Content...") : null; foldBTr.appendChild(td);
+            }
+          }
+        }
+      }
+      tbody.appendChild(foldTr);
     }
     table.appendChild(tbody);
     tableWrap.appendChild(table);
@@ -319,10 +377,8 @@ window.addEventListener('load', () => {
       var saveIcon = document.createElement('i'); saveIcon.className = "fa-solid fa-cloud-arrow-up"; saveBtn.appendChild(saveIcon);
       var addRowBtn = document.createElement('button'); addRowBtn.classList.add('table-btn'); addRowBtn.setAttribute("id", "addrow-btn");
       var rowIcon = document.createElement('i'); rowIcon.className = "fa-solid fa-plus"; addRowBtn.appendChild(rowIcon);
-      var addColBtn = document.createElement('button'); addColBtn.classList.add('table-btn'); addColBtn.setAttribute("id", "addcol-btn");
-      var colIcon = document.createElement('i'); colIcon.className = "fa-solid fa-plus"; addColBtn.appendChild(colIcon);
       var deletBtn = document.createElement('button'); deletBtn.classList.add('table-btn'); deletBtn.setAttribute("id", "delete-btn");
-      tableBtns.append(saveBtn, addRowBtn, addColBtn, deletBtn);
+      tableBtns.append(saveBtn, addRowBtn, deletBtn);
       tableWrap.appendChild(tableBtns);
     }
 
@@ -331,6 +387,20 @@ window.addEventListener('load', () => {
 
   document.addEventListener("click", function (e) {
     e.stopPropagation();
+
+    //Fold/Unfold table
+    var foldBtn = e.target.closest(".view-td");
+
+    if (foldBtn) {
+      var foldRow = foldBtn.parentElement.nextElementSibling;
+      if (foldBtn.children[0].classList.contains("fa-caret-down")) {
+        foldRow.className = "fold-open";
+        foldBtn.children[0].className = "fa-solid fa-caret-up";
+      } else {
+        foldRow.className = "fold";
+        foldBtn.children[0].className = "fa-solid fa-caret-down";
+      }
+    }
 
     //Save Table
     var saveBtn = e.target.closest("#save-btn");
@@ -345,28 +415,24 @@ window.addEventListener('load', () => {
     var addRowBtn = e.target.closest("#addrow-btn");
 
     if (addRowBtn) {
-      document.getElementById("delete-btn").classList.remove('disabled-btn');
-      var userTable = document.getElementById("user-table").children[1];
-      var lastRowClone = userTable.children[1].lastChild.cloneNode(true);
-      Array.from(lastRowClone.children).forEach((td) => { td.textContent = null; td.className = "editable"; td.setAttribute('placeholder', "Content..."); });
-      userTable.children[1].appendChild(lastRowClone);
-    }
-
-    //Add Column
-    var addColBtn = e.target.closest("#addcol-btn");
-
-    if (addColBtn) {
-      document.getElementById("delete-btn").classList.remove('disabled-btn');
-      var userTable = document.getElementById("user-table").children[1];
-      var headerClone = userTable.children[0].children[0].lastChild.cloneNode();
-      headerClone.textContent = null; headerClone.setAttribute('placeholder', "Title...");
-      userTable.children[0].children[0].appendChild(headerClone);
-
-      Array.from(userTable.children[1].children).forEach((tr) => {
-        var tdClone = tr.lastChild.cloneNode();
-        tdClone.textContent = null; tdClone.setAttribute('placeholder', "Content...");
-        tr.appendChild(tdClone);
+      addRowBtn.nextElementSibling.classList.remove('disabled-btn');
+      var userTable = addRowBtn.parentElement.parentElement;
+      var firstRowClone = userTable.children[1].children[1].firstChild.cloneNode(true);
+      Array.from(firstRowClone.children).forEach((td) => {
+        if (td !== firstRowClone.children[0]) {
+          td.textContent = null;
+          td.className = "editable";
+          td.setAttribute('placeholder', "Content...");
+        }
       });
+      userTable.children[1].children[1].appendChild(firstRowClone);
+      var foldRowClone = userTable.children[1].children[1].children[1].cloneNode(true);
+      Array.from(foldRowClone.children[0].children[0].children[0].children[1].children).forEach((tr) => {
+        Array.from(tr.children).forEach((td) => {
+          td.textContent = null;
+        });
+      });
+      userTable.children[1].children[1].appendChild(foldRowClone);
     }
 
     //Delete
@@ -387,7 +453,13 @@ window.addEventListener('load', () => {
     var trashBtn = e.target.closest(".delete-td");
 
     if (trashBtn) {
-      RemoveRowOrCol(trashBtn);
+      if (trashBtn.parentElement.classList.contains('view')) {
+        trashBtn.parentElement.nextElementSibling.remove();
+        trashBtn.parentElement.remove();
+      } else {
+        trashBtn.parentElement.remove();
+      }
+
     }
   });
 
@@ -424,58 +496,44 @@ window.addEventListener('load', () => {
   }
 
   function AddRemoveDeleteIcons(deleteBtn, isAdd) {
-    var userTable = document.getElementById("user-table").children[1];
-    var thead = userTable.children[0]; var tbody = userTable.children[1];
+    var userTable = deleteBtn.parentElement.parentElement;
+    var tbody = userTable.children[1].children[1];
     var saveBtn = document.getElementById('save-btn');
     var addRowBtn = document.getElementById('addrow-btn');
-    var addColBtn = document.getElementById('addcol-btn');
     deleteBtn.classList.remove('disabled-btn');
 
     if (isAdd === true) {
-      var headValid = true; var bodyValid = true;
+      var bodyValid = true;
 
       if (tbody.children.length > 1) {
         //Add icons after each row
+        var index = 0
         Array.from(tbody.children).forEach((tr) => {
-          if (tr !== tbody.children[0]) {
+          if (index % 2 === 0 && tr !== tbody.children[0]) {
             var deleteTd = document.createElement('td'); deleteTd.classList.add('delete-td');
             deleteTd.setAttribute("id", 'row'); tr.appendChild(deleteTd);
+          } else if (index % 2 !== 0) {
+            //Is a fold tr
+            var foldBody = tr.children[0].children[0].children[0].children[1];
+            Array.from(foldBody.children).forEach((foldTr) => {
+              if (foldTr != foldBody.children[0]) {
+                var deleteTd = document.createElement('td'); deleteTd.classList.add('delete-td');
+                deleteTd.setAttribute("id", 'row'); foldTr.appendChild(deleteTd);
+              }
+            });
           } else {
             var emptyTd = document.createElement('td'); emptyTd.classList.add('empty-td');
             tr.appendChild(emptyTd);
           }
+          index++;
         });
       } else { bodyValid = false; }
 
-      if (thead.children[0].children.length > 1) {
-        //Get current number of headers/columns
-        var headCount = thead.children[0].children.length;
-
-        //Add row of icons for the columns
-        var tr = document.createElement('tr'); tr.setAttribute("id", "delete-cols");
-        for (let index = 0; index <= headCount; index++) {
-          if (index === 0) {
-            var emptyTd = document.createElement('td'); emptyTd.classList.add('empty-td');
-            tr.appendChild(emptyTd);
-          } else if (index === headCount) {
-            if (bodyValid === true) {
-              var emptyTd = document.createElement('td'); emptyTd.classList.add('empty-td');
-              tr.appendChild(emptyTd);
-            }
-          } else {
-            var deleteTd = document.createElement('td'); deleteTd.classList.add('delete-td');
-            deleteTd.setAttribute("id", 'col'); tr.appendChild(deleteTd);
-          }
-        }
-        tbody.appendChild(tr);
-      } else { headValid = false; }
-
-      if (headValid === true || bodyValid === true) {
+      if (bodyValid === true) {
         setTimeout(() => {
           //Disable all other buttons
           saveBtn.classList.add('disabled-btn');
           addRowBtn.classList.add('disabled-btn');
-          addColBtn.classList.add('disabled-btn');
           deleteBtn.setAttribute("id", "done-btn");
         }, 1);
       }
@@ -483,47 +541,18 @@ window.addEventListener('load', () => {
       //Enable all other buttons
       saveBtn.classList.remove('disabled-btn');
       addRowBtn.classList.remove('disabled-btn');
-      addColBtn.classList.remove('disabled-btn');
       deleteBtn.setAttribute("id", "delete-btn");
 
       //Remove all trash icons and empty td's
       document.querySelectorAll('.delete-td').forEach(td => td.remove());
       document.querySelectorAll('.empty-td').forEach(td => td.remove());
-      if (document.getElementById("delete-cols")) {
-        tbody.lastChild.remove();
-      }
 
       //Check if delete btn needs to be disabled
-      if (tbody.children.length === 1 && tbody.children[0].children.length === 1 && thead.children[0].children.length === 1) {
+      if (tbody.children.length === 2 && tbody.children[1].children[0].children[0].children[0].children[1].children.length === 1) {
         deleteBtn.classList.add('disabled-btn');
       }
     }
 
-  }
-
-  function RemoveRowOrCol(trashBtn) {
-    var trashID = trashBtn.getAttribute("id");
-
-    if (trashID === "row") {
-      trashBtn.parentElement.remove();
-    } else {
-      var colNum = Array.from(trashBtn.parentElement.children).indexOf(trashBtn);
-
-      var userTable = document.getElementById("user-table").children[1];
-      var thead = userTable.children[0];
-      var tbody = userTable.children[1];
-
-      //Remove Header
-      thead.children[0].children[colNum].remove();
-
-      //Remove each cell from rows in the col
-      Array.from(tbody.children).forEach((tr) => {
-        tr.children[colNum].remove();
-      });
-
-      //Finish up by removing trashBtn
-      trashBtn.remove();
-    }
   }
   //#endregion TABLE FUNCTIONS
 });

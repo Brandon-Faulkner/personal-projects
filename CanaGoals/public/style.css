@@ -87,7 +87,7 @@ h1 {
 
 h2 {
     display: inline-block;
-    margin-left: 20px;
+    margin-left: 40px;
     color: var(--color-fg);
     font-size: 28px;
     text-transform: uppercase;
@@ -100,6 +100,12 @@ h2 {
     white-space: nowrap;
     width: auto;
     max-width: 95%;
+}
+
+h2[contenteditable="plaintext-only"]:empty:before {
+    content: attr(placeholder);
+    color: rgba(255,255,255,0.5);
+    font-style: italic;
 }
 
 .header-login-btn, 
@@ -679,7 +685,7 @@ form .btn input[type="submit"] {
     margin: auto;
     border-radius: 10px;
     border: none;
-    padding: 20px;
+    padding: 20px 20px 20px 0;
     width: 97.5%;
     white-space: nowrap;
     background-color: var(--color-bg);
@@ -722,6 +728,62 @@ form .btn input[type="submit"] {
     background: var(--table-even);
 }
 
+/*#region Table Folds*/
+.empty-th {
+    background: transparent !important;
+    box-shadow: none !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+}
+
+.view-td {
+    padding: 0;
+    background: transparent !important;
+    box-shadow: none !important;
+    text-align: center !important;
+    cursor: pointer;
+}
+
+.view-td:hover {
+    transform: scale(1.25);
+}
+
+.view-td:active {
+    transform: scale(0.95);
+}
+
+.fa-caret-down,
+.fa-caret-up {
+    padding-right: 0 !important;
+    color: var(--white);
+    filter: drop-shadow(0 0 3px var(--white));
+}
+
+.fold {
+    display: none;
+}
+
+.fold-open {
+    display: table-row;
+}
+
+.fold-main-td {
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 10px 0 !important;
+}
+
+.fold-div {
+    padding-left: 50px;
+}
+
+.fold-div>table {
+    border-spacing: 5px 5px;
+}
+
+/*#endregion Table Folds*/
+
+/*#region Table Actions*/
 #table-buttons {
     height: 60px;
     width: 100%;
@@ -865,6 +927,7 @@ td[contenteditable="plaintext-only"]:empty:before {
     color: rgba(0,0,0,0.5);
     font-style: italic;
 }
+/*#endregion Table Actions*/
 
 /*#endregion TABLE CONTAINER & TABLES*/
 
@@ -876,63 +939,11 @@ td[contenteditable="plaintext-only"]:empty:before {
 
     h2 {
         font-size: 22px;
-        margin-left: 10px;
+        margin-left: 20px;
     }
 
     .toast {
         left: 0;
-    }
-
-    .table-items {
-        margin: 0;
-        padding: 0;
-        border-spacing: 10px 20px;
-    }
-
-    .table-items thead,
-    .table-items tbody,
-    .table-items th {
-        display: block;
-    }
-
-    .table-items thead {
-        float: left;
-    }
-
-    .table-items tbody {
-        width: auto;
-        position: relative;
-        overflow-x: auto;
-    }
-
-    .table-items td,
-    .table-items th {
-        padding: 20px 0.625em 0.625em 0.625em;
-        height: 60px;
-        vertical-align: middle;
-        box-sizing: border-box;
-        overflow-x: hidden;
-        overflow-y: auto;
-        width: 120px;
-        font-size: 13px;
-        text-overflow: ellipsis;
-        margin-bottom: 5px;
-        white-space: break-spaces;
-        box-shadow: none;
-        filter: drop-shadow(0px 0px 6px rgba(0,0,0,0.35));
-    }
-
-    .table-items thead th {
-        text-align: left;
-    }
-
-    .table-items tbody tr {
-        display: table-cell;
-    }
-
-    .table-items tbody td {
-        display: block;
-        text-align: center;
     }
 }
 
