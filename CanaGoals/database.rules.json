@@ -1,8 +1,6 @@
 {
   "rules": {
-    "Tables": {
-      ".read": "auth != null && auth.token.firebase.sign_in_provider == 'password'",
-    	".write": "auth != null && auth.token.firebase.sign_in_provider == 'password'"
-		}  
+    ".read": "auth != null && auth.token.firebase.sign_in_provider == 'password'",
+    ".write": "auth != null && auth.token.firebase.sign_in_provider == 'password'" 
   }
 }

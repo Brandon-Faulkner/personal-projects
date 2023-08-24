@@ -35,7 +35,7 @@ window.addEventListener('load', () => {
 
   //#region VARIABLES
   const mainScreen = document.getElementById('main-page');
-  const tableContainer = document.getElementById("tables-container");
+  const semestersContainer = document.getElementById('semesters-container');
 
   const loginSignOutBtn = document.getElementById('header-login-btn');
   const loginScreen = document.getElementById('login-page');
@@ -108,9 +108,10 @@ window.addEventListener('load', () => {
     if (user === null) {
       // No one is signed in
       isFirstLoad = true;
-      tableContainer.replaceChildren();
+      semestersContainer.replaceChildren();
       loginSignOutBtn.className = "header-login-btn";
-      CreateTable("default-table", "Default Name", null, 3, 3, false);
+      var defaultLi = CreateHeading("Default Title", "Start Date", "End Date");
+      CreateTable(defaultLi, "default-table", "Default Name", null, 3, 3, false);
     } else if (user.isAnonymous === false) {
       // User is signed in
       ListenForUsersTables();
@@ -205,79 +206,92 @@ window.addEventListener('load', () => {
 
   //#region TABLE FUNCTIONS
   function ListenForUsersTables() {
-    onValue(ref(database, 'Tables/'), (snapshot) => {
-
-      if (isFirstLoad === true) {
-        tableContainer.replaceChildren();
-      } else {
-        Array.from(tableContainer.children).forEach((table) => {
-          if (table.getAttribute('id') !== auth.currentUser.uid + '-table') {
-            table.remove();
-          }
-        });
-      }
-
+    onValue(ref(database, 'Semesters/'), (snapshot) => {
       if (snapshot.exists()) {
-        // Clear the arrays first so no dups
-        usersTablesArr = [];
+        snapshot.forEach((semester) => {
 
-        //Get data for each table based on user
-        snapshot.forEach((uid) => {
-          headersArr = []; contentArr = []; bbArr = [];
-          const isThisUser = uid.key === auth.currentUser.uid;
-          const usersName = uid.child('Name').val();
-
-          uid.child('Headers').forEach((header) => {
-            const headerData = { user: usersName, header: header.val() };
-            headersArr.push(headerData);
-          });
-
-          var index = 0;
-          uid.child('Content').forEach((rows) => {
-            rows.forEach((row) => {
-              if (row.key !== "BB") {
-                const rowData = { user: usersName, rowNum: index, row: row.val() };
-                contentArr.push(rowData);
-              } else {
-                var bbRowIndex = 0; var bbIndex = 0;
-                row.forEach((bb) => {
-                  //Building blocks         
-                  bb.forEach((con) => {
-                    const bbData = { user: usersName, id: parseInt(rows.key), rowNum: bbRowIndex, bbNum: bbIndex, row: con.val() };
-                    bbArr.push(bbData);
-                    bbIndex++;
-                  });
-                  bbRowIndex++;
-                });
-              }
-            });
-            index++;
-          });
-
-          const tableData = { user: usersName, uid: uid.key, isMainUser: isThisUser, headers: headersArr, content: contentArr, buildingBlocks: bbArr, cols: headersArr.length, rows: index };
-          usersTablesArr.push(tableData);
-        });
-
-        if (isFirstLoad === true) {
-          //Create main user table first, then other users
-          const userTable = usersTablesArr.filter(u => u.isMainUser === true);
-          if (userTable.length > 0) {
-            CreateTable(userTable[0].uid + "-table", userTable[0].user, userTable[0], userTable[0].cols, userTable[0].rows, true);
+          if (isFirstLoad === true) {
+            semestersContainer.replaceChildren();
           } else {
-            //Create default user table since they dont have one yet
-            CreateTable(auth.currentUser.uid + "-table", null, null, 3, 3, true);
+            Array.from(semestersContainer.children).forEach((li) => {
+              Array.from(li.children).forEach((elem) => {
+                if (elem.getAttribute('id') !== auth.currentUser.uid + '-table') {
+                  elem.remove();
+                }
+              });
+            });
           }
-        }
 
-        //Other users tables
-        usersTablesArr.forEach((table) => {
-          if (table.isMainUser != true) {
-            CreateTable(table.uid + "-table", table.user, table, table.cols, table.rows, true);
+          //Create accordion headear for this semester -----
+          var semTitle = semester.key;
+          var endDate = semester.child("End").val();
+          var startDate = semester.child("Start").val();
+          var semLi = CreateHeading(semTitle, startDate, endDate);
+
+          // Clear the arrays first so no dups
+          usersTablesArr = [];
+
+          //Get data for each table based on user
+          semester.child("Tables").forEach((uid) => {
+            headersArr = []; contentArr = []; bbArr = [];
+            const isThisUser = uid.key === auth.currentUser.uid;
+            const usersName = uid.child('Name').val();
+
+            uid.child('Headers').forEach((header) => {
+              const headerData = { user: usersName, header: header.val() };
+              headersArr.push(headerData);
+            });
+
+            var index = 0;
+            uid.child('Content').forEach((rows) => {
+              rows.forEach((row) => {
+                if (row.key !== "BB") {
+                  const rowData = { user: usersName, rowNum: index, row: row.val() };
+                  contentArr.push(rowData);
+                } else {
+                  var bbRowIndex = 0; var bbIndex = 0;
+                  row.forEach((bb) => {
+                    //Building blocks         
+                    bb.forEach((con) => {
+                      const bbData = { user: usersName, id: parseInt(rows.key), rowNum: bbRowIndex, bbNum: bbIndex, row: con.val() };
+                      bbArr.push(bbData);
+                      bbIndex++;
+                    });
+                    bbRowIndex++;
+                  });
+                }
+              });
+              index++;
+            });
+
+            const tableData = { user: usersName, uid: uid.key, isMainUser: isThisUser, headers: headersArr, content: contentArr, buildingBlocks: bbArr, cols: headersArr.length, rows: index };
+            usersTablesArr.push(tableData);
+          });
+
+          if (isFirstLoad === true) {
+            //Create main user table first, then other users
+            const userTable = usersTablesArr.filter(u => u.isMainUser === true);
+            if (userTable.length > 0) {
+              CreateTable(semLi, userTable[0].uid + "-table", userTable[0].user, userTable[0], userTable[0].cols, userTable[0].rows, true);
+            } else {
+              console.log("here");
+              //Create default user table since they dont have one yet
+              CreateTable(semLi, auth.currentUser.uid + "-table", null, null, 3, 3, true);
+            }
           }
-        });
+
+          //Other users tables
+          usersTablesArr.forEach((table) => {
+            if (table.isMainUser != true) {
+              console.log("here");
+              CreateTable(semLi, table.uid + "-table", table.user, table, table.cols, table.rows, true);
+            }
+          });
+        })
       } else {
+        console.log("here");
         // No tables in DB, create default one for user
-        CreateTable(auth.currentUser.uid + "-table", null, null, 3, 3, true);
+        CreateTable(semLi, auth.currentUser.uid + "-table", null, null, 3, 3, true);
       }
 
       isFirstLoad = false;
@@ -286,7 +300,19 @@ window.addEventListener('load', () => {
     });
   }
 
-  function CreateTable(tableID, userName, tableArr, col, row, isUsersTable) {
+  function CreateHeading(semester, start, end) {
+    var semesterLi = document.createElement('li');
+    var checkbox = document.createElement('input');
+    checkbox.setAttribute('type', 'checkbox'); checkbox.setAttribute('checked', "true");
+    var iconElem = document.createElement('i'); iconElem.setAttribute('id', 'semester-i');
+    var semTitle = document.createElement('h2'); semTitle.textContent = semester + " " + start + " - " + end;
+    semTitle.setAttribute('id', 'semesters-h2');
+    semesterLi.appendChild(checkbox); semesterLi.appendChild(iconElem); semesterLi.appendChild(semTitle);
+    semestersContainer.appendChild(semesterLi);
+    return semesterLi;
+  }
+
+  function CreateTable(semLi, tableID, userName, tableArr, col, row, isUsersTable) {
     var tableWrap = document.createElement("div"); tableWrap.setAttribute("id", tableID); tableWrap.className = "table-wrapper";
     var h2 = document.createElement("h2"); h2.textContent = userName; h2.contentEditable = isUsersTable === true ? "plaintext-only" : false;
     isUsersTable === true ? h2.className = "editable" : null; isUsersTable === true ? h2.setAttribute('placeholder', "Enter Name...") : null; tableWrap.appendChild(h2);
@@ -371,7 +397,7 @@ window.addEventListener('load', () => {
       }
       tbody.appendChild(foldTr);
     }
-    
+
     table.appendChild(tbody);
     tableWrap.appendChild(table);
 
@@ -386,7 +412,7 @@ window.addEventListener('load', () => {
       tableWrap.appendChild(tableBtns);
     }
 
-    tableContainer.appendChild(tableWrap);
+    semLi.appendChild(tableWrap);
   }
 
   document.addEventListener("click", function (e) {
@@ -471,20 +497,39 @@ window.addEventListener('load', () => {
     var userName = userTable.children[0].textContent;
     var headers = userTable.children[1].children[0].children[0];
     var rows = userTable.children[1].children[1];
-    var headersArr = []; var rowsArr = []; var cellsArr = []; var bbArr = [];
+    var headersArr = []; var rowsArr = []; var cellsArr = [];
+    var bbRowArr = []; var bbCellArr = [];
 
     Array.from(headers.children).forEach((header) => {
       if (!header.classList.contains('empty-th')) {
         headersArr.push(header.textContent);
-      }   
+      }
     });
 
     Array.from(rows.children).forEach((row) => {
       cellsArr = [];
-      Array.from(row.children).forEach((cell) => {
-        cellsArr.push(cell.textContent);
-      });
-      rowsArr.push(cellsArr);
+      if (row.className === "view") {
+
+        //Get goal row values first
+        Array.from(row.children).forEach((cell) => {
+          if (cell.className !== 'view-td') {
+            cellsArr.push(cell.textContent);
+          }
+        });
+
+        //Get building block values next
+        bbRowArr = [];
+        var bbRows = row.nextElementSibling.children[0].children[0].children[0].children[1];
+        Array.from(bbRows.children).forEach((bbRow) => {
+          bbCellArr = [];
+          Array.from(bbRow.children).forEach((bbCell) => {
+            bbCellArr.push(bbCell.textContent);
+          });
+          bbRowArr.push(bbCellArr);
+        });
+
+        rowsArr.push({ 0: cellsArr[0], 1: cellsArr[1], 2: cellsArr[2], BB: bbRowArr });
+      }
     });
 
     set(ref(database, 'Tables/' + auth?.currentUser.uid), {
