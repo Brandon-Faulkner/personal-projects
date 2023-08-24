@@ -704,7 +704,7 @@ form .btn input[type="submit"] {
     text-transform: uppercase;
     text-align: center;
     padding: 8px;
-    min-width: 120px;
+    min-width: 220px;
     box-shadow: var(--box-shadow);
 }
 

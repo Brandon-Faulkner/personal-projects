@@ -110,7 +110,7 @@ window.addEventListener('load', () => {
       isFirstLoad = true;
       tableContainer.replaceChildren();
       loginSignOutBtn.className = "header-login-btn";
-      CreateTable("default-table", "Default Name", null, 3, false);
+      CreateTable("default-table", "Default Name", null, 3, 3, false);
     } else if (user.isAnonymous === false) {
       // User is signed in
       ListenForUsersTables();
@@ -211,7 +211,7 @@ window.addEventListener('load', () => {
         tableContainer.replaceChildren();
       } else {
         Array.from(tableContainer.children).forEach((table) => {
-          if (table.getAttribute('id') !== 'user-table') {
+          if (table.getAttribute('id') !== auth.currentUser.uid + '-table') {
             table.remove();
           }
         });
@@ -239,21 +239,22 @@ window.addEventListener('load', () => {
                 const rowData = { user: usersName, rowNum: index, row: row.val() };
                 contentArr.push(rowData);
               } else {
+                var bbRowIndex = 0; var bbIndex = 0;
                 row.forEach((bb) => {
-                  //Building blocks
-                  var bbIndex = 0;
+                  //Building blocks         
                   bb.forEach((con) => {
-                    const bbData = { user: usersName, rowNum: index, bbNum: bbIndex, row: con.val() };
+                    const bbData = { user: usersName, id: parseInt(rows.key), rowNum: bbRowIndex, bbNum: bbIndex, row: con.val() };
                     bbArr.push(bbData);
                     bbIndex++;
-                  });     
+                  });
+                  bbRowIndex++;
                 });
               }
             });
             index++;
           });
 
-          const tableData = { user: usersName, uid: uid.key, isMainUser: isThisUser, headers: headersArr, content: contentArr, buildingBlocks: bbArr, cols: headersArr.length };
+          const tableData = { user: usersName, uid: uid.key, isMainUser: isThisUser, headers: headersArr, content: contentArr, buildingBlocks: bbArr, cols: headersArr.length, rows: index };
           usersTablesArr.push(tableData);
         });
 
@@ -261,23 +262,22 @@ window.addEventListener('load', () => {
           //Create main user table first, then other users
           const userTable = usersTablesArr.filter(u => u.isMainUser === true);
           if (userTable.length > 0) {
-            console.log(userTable);
-            CreateTable(userTable[0].uid + "-table", userTable[0].user, userTable[0], userTable[0].cols, true);
+            CreateTable(userTable[0].uid + "-table", userTable[0].user, userTable[0], userTable[0].cols, userTable[0].rows, true);
           } else {
             //Create default user table since they dont have one yet
-            CreateTable(auth.currentUser.uid + "-table", null, null, 3, true);
+            CreateTable(auth.currentUser.uid + "-table", null, null, 3, 3, true);
           }
         }
 
         //Other users tables
         usersTablesArr.forEach((table) => {
           if (table.isMainUser != true) {
-            CreateTable(table.uid + "-table", table.user, table, table.cols, true);
+            CreateTable(table.uid + "-table", table.user, table, table.cols, table.rows, true);
           }
         });
       } else {
         // No tables in DB, create default one for user
-        CreateTable(auth.currentUser.uid + "-table", null, null, 3, true);
+        CreateTable(auth.currentUser.uid + "-table", null, null, 3, 3, true);
       }
 
       isFirstLoad = false;
@@ -286,7 +286,7 @@ window.addEventListener('load', () => {
     });
   }
 
-  function CreateTable(tableID, userName, tableArr, col, isUsersTable) {
+  function CreateTable(tableID, userName, tableArr, col, row, isUsersTable) {
     var tableWrap = document.createElement("div"); tableWrap.setAttribute("id", tableID); tableWrap.className = "table-wrapper";
     var h2 = document.createElement("h2"); h2.textContent = userName; h2.contentEditable = isUsersTable === true ? "plaintext-only" : false;
     isUsersTable === true ? h2.className = "editable" : null; isUsersTable === true ? h2.setAttribute('placeholder', "Enter Name...") : null; tableWrap.appendChild(h2);
@@ -294,26 +294,24 @@ window.addEventListener('load', () => {
 
     var thead = document.createElement("thead");
     var headTr = document.createElement("tr");
-    for (let i = 0; i <= col; i++) {
+    for (let i = 0; i < col; i++) {
       if (i === 0) {
         var thEmpty = document.createElement('th');
         thEmpty.classList.add('empty-th'); headTr.appendChild(thEmpty);
-      } else {
-        var th = document.createElement("th");
-        th.textContent = tableArr === null ? null : tableArr.headers[i - 1].header;
-        th.setAttribute('placeholder', "Title..."); headTr.appendChild(th);
       }
+      var th = document.createElement("th");
+      th.textContent = tableArr === null ? null : tableArr.headers[i].header;
+      th.setAttribute('placeholder', "Title..."); headTr.appendChild(th);
     }
     thead.appendChild(headTr); table.appendChild(thead);
 
     var tbody = document.createElement("tbody");
-    for (let i = 0; i < col; i++) {
+    for (let i = 0; i < row; i++) {
       var bodyTr = document.createElement("tr");
       bodyTr.className = "view";
 
       //Create View Row, aka the goal row
       var rowData = tableArr.content.filter(c => c.rowNum === i);
-
       if (rowData.length > 0) {
         for (let k = 0; k < rowData.length; k++) {
           if (k === 0) {
@@ -328,7 +326,6 @@ window.addEventListener('load', () => {
           td.contentEditable = isUsersTable === true ? "plaintext-only" : false;
           isUsersTable === true ? td.className = "editable" : null;
           isUsersTable === true ? td.setAttribute('placeholder', "Content...") : null; bodyTr.appendChild(td);
-
         }
       }
 
@@ -346,28 +343,35 @@ window.addEventListener('load', () => {
 
       //Fold cols
       var foldHTr = document.createElement('tr'); foldHead.appendChild(foldHTr);
-      for (let i = 0; i < col; i++) {
+      for (let l = 0; l < col; l++) {
         var th = document.createElement("th");
-        th.textContent = tableArr === null ? null : i === 0 ? "Building Blocks" : tableArr.headers[i].header;
+        th.textContent = tableArr === null ? null : l === 0 ? "Building Blocks" : tableArr.headers[l].header;
         th.setAttribute('placeholder', "Title..."); foldHTr.appendChild(th);
+      }
 
-        //Fold Rows
+      //Fold Rows
+      var rowData = tableArr.buildingBlocks.filter(b => b.id === i);
+      if (rowData.length > 0) {
         var foldBTr = document.createElement('tr'); foldBody.appendChild(foldBTr);
-        var rowData = tableArr.buildingBlocks;
-        if (rowData.length > 0) {
-          for (let j = 0; j < rowData.length; j++) {
-            if (rowData[j].rowNum === i && rowData[j].bbNum === j) {
-              var td = document.createElement("td");
-              td.textContent = tableArr === null ? null : "Testss";
-              td.contentEditable = isUsersTable === true ? "plaintext-only" : false;
-              isUsersTable === true ? td.className = "editable" : null;
-              isUsersTable === true ? td.setAttribute('placeholder', "Content...") : null; foldBTr.appendChild(td);
-            }
+        var counter = 0;
+        for (let j = 0; j < rowData.length; j++) {
+          if (counter === 3) {
+            var foldBTr = document.createElement('tr'); foldBody.appendChild(foldBTr);
+            counter = 0;
+          }
+          if (rowData[j].bbNum === j) {
+            var td = document.createElement("td");
+            td.textContent = tableArr === null ? null : rowData[j].row;
+            td.contentEditable = isUsersTable === true ? "plaintext-only" : false;
+            isUsersTable === true ? td.className = "editable" : null;
+            isUsersTable === true ? td.setAttribute('placeholder', "Content...") : null; foldBTr.appendChild(td);
+            counter++;
           }
         }
       }
       tbody.appendChild(foldTr);
     }
+    
     table.appendChild(tbody);
     tableWrap.appendChild(table);
 
@@ -467,10 +471,12 @@ window.addEventListener('load', () => {
     var userName = userTable.children[0].textContent;
     var headers = userTable.children[1].children[0].children[0];
     var rows = userTable.children[1].children[1];
-    var headersArr = []; var rowsArr = []; var cellsArr = [];
+    var headersArr = []; var rowsArr = []; var cellsArr = []; var bbArr = [];
 
     Array.from(headers.children).forEach((header) => {
-      headersArr.push(header.textContent);
+      if (!header.classList.contains('empty-th')) {
+        headersArr.push(header.textContent);
+      }   
     });
 
     Array.from(rows.children).forEach((row) => {
