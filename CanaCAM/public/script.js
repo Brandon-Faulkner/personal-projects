@@ -1139,7 +1139,7 @@ window.addEventListener('load', () => {
 
     var profCol1 = document.createElement('div'); profCol1.className = "profile-col";
     var profImg = document.createElement('img'); profImg.src = imgUrl; profImg.className = "profile-image"; profImg.setAttribute("data-imgName", imgName);
-    profImg.setAttribute('loading', "lazy"); profCol1.appendChild(profImg); profileHeader.appendChild(profCol1);
+    profImg.setAttribute('id', 'main-prof-img'); profImg.setAttribute('loading', "lazy"); profCol1.appendChild(profImg); profileHeader.appendChild(profCol1);
 
     var profCol2 = document.createElement('div'); profCol2.className = "profile-col-buttons";
     var profSignOut = document.createElement('button'); profSignOut.setAttribute('id', 'signout-button'); profSignOut.className = "signout-button";
@@ -1463,9 +1463,9 @@ window.addEventListener('load', () => {
         }
 
         if (imgValid instanceof File) {
-          var imgElem = document.querySelector(".profile-image");
+          var imgElem = document.getElementById('main-prof-img');
           var imgName = imgElem.getAttribute("data-imgName");
-
+          
           deleteObject(ref_st(storage, "Users/" + auth?.currentUser.uid + "/" + imgName)).then(() => {
             //Upload new image
             const metaData = { cacheControl: 'public,max-age=604800', };
@@ -1539,7 +1539,7 @@ window.addEventListener('load', () => {
   });
 
   function UpdateLocalProfInfo(nameValid, phoneValid, emailValid, imgValid) {
-    var profInfoElem = document.getElementById("profile-info").children[2];
+    var profInfoElem = document.getElementById("profile-info").children[isAdmin ? 2 : 1];
 
     if (nameValid === true) {
       profInfoElem.children[1].textContent = editInfoName.value.trim();
@@ -1554,7 +1554,7 @@ window.addEventListener('load', () => {
     }
 
     if (imgValid instanceof File) {
-      var imgElem = document.querySelector(".profile-image");
+      var imgElem = document.getElementById('main-prof-img');
       var fileReader = new FileReader();
       fileReader.onload = function (e) {
         imgElem.src = e.target.result
