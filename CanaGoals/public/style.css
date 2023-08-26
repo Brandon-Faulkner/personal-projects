@@ -108,6 +108,17 @@ h2[contenteditable="plaintext-only"]:empty:before {
     font-style: italic;
 }
 
+h2[contenteditable="plaintext-only"]:hover {
+    cursor: text;
+}
+
+#header-actions-container {
+    display: flex;
+    align-items: center;
+    position: absolute;
+    right: 15px;
+}
+
 .header-login-btn,
 .header-signout-btn {
     width: auto;
@@ -116,8 +127,6 @@ h2[contenteditable="plaintext-only"]:empty:before {
     color: var(--white);
     background: var(--green);
     border-radius: var(--border-radius);
-    position: absolute;
-    right: 15px;
     box-shadow: var(--box-shadow);
     outline: none;
     text-align: center;
@@ -162,19 +171,18 @@ h2[contenteditable="plaintext-only"]:empty:before {
 }
 
 #darkmodetoggle-container {
-    position: absolute;
-    right: 110px;
+    margin-right: 15px;
     box-shadow: var(--box-shadow);
     border-radius: 50px;
-    border: 1px solid var(--color-fg);
+    border: thin solid var(--scrollbar);
 }
 
-.checkbox {
+#theme-toggle {
     opacity: 0;
     position: absolute;
 }
 
-.checkbox-label {
+#theme-toggle-label {
     background-color: var(--color-bg);
     width: 40px;
     height: auto;
@@ -195,18 +203,18 @@ h2[contenteditable="plaintext-only"]:empty:before {
     color: #f39c12;
 }
 
-.checkbox-label .ball {
+#theme-toggle-label .ball {
     background-color: var(--color-fg);
-    width: 22px;
-    height: 22px;
+    width: 18px;
+    height: 18px;
     position: absolute;
-    left: 2px;
-    top: 2px;
+    left: 4px;
+    top: 4px;
     border-radius: 50%;
     transition: transform 0.2s linear;
 }
 
-.checkbox:checked+.checkbox-label .ball {
+#theme-toggle:checked+#theme-toggle-label .ball {
     transform: translateX(24px);
 }
 
@@ -565,6 +573,66 @@ form .btn input[type="submit"] {
 
 /*#endregion LOGIN SCREEN*/
 
+/*#region TOOLTIPS*/
+[data-tooltip] .tooltip {
+  right: 0;
+  bottom: 100%;
+  min-width: 200px;
+  position: absolute;
+  padding: 8px 5px;
+  font-size: 14px;
+  font-weight: bold;
+  white-space: break-spaces;
+  color: var(--color-fg);
+  border-radius: var(--border-radius);
+  background-color: var(--scrollbar);
+  box-shadow: var(--box-shadow);
+  pointer-events: none;
+  user-select: none;
+  opacity: 0;
+  transition: all 0s ease-out;
+  text-align: center;
+  font-family: 'Futura PT', sans-serif;
+  letter-spacing: 1px;
+}
+
+[data-tooltip="left"]:hover {
+    position: absolute;
+}
+
+[data-tooltip]:hover .tooltip {
+  opacity: 0.975;
+  transition: all 0.2s ease-in-out;
+  transition-delay: 1s;
+}
+
+#theme-toggle-label[data-tooltip] .tooltip {
+    top: 100%;
+    bottom: unset;
+    margin-top: 10px;
+}
+
+[data-tooltip="left"]:hover .tooltip {
+    left: 0;
+    right: unset;
+    margin-top: 10px;
+}
+
+[data-tooltip="right"]:hover .tooltip {
+    right: 0;
+    left: unset;
+    margin-bottom: 10px;
+}
+
+button[data-tooltip]:hover .tooltip {
+    transform: scale(0.95);
+}
+
+button[data-tooltip]:active .tooltip {
+    transform: scale(1.05);
+}
+/*#endregion TOOLTIPS*/
+
 /*#region NOTIFICATION TOAST*/
 .toast {
     position: absolute;
@@ -691,15 +759,15 @@ form .btn input[type="submit"] {
     opacity: 0;
 }
 
-#semester-i {
+.semester-i {
     position: absolute;
     transform: translate(-6px, 0);
     margin-top: 16px;
     right: 0;
 }
 
-#semester-i:before,
-#semester-i:after {
+.semester-i:before,
+.semester-i:after {
     content: "";
     position: absolute;
     background-color: var(--color-fg);
@@ -708,27 +776,27 @@ form .btn input[type="submit"] {
     transition: all 0.25s ease-in-out;
 }
 
-#semester-i:before {
+.semester-i:before {
     transform: translate(-2px, 0) rotate(45deg);
 }
 
-#semesters-container li input[type=checkbox]:checked~#semester-i:before {
+#semesters-container li input[type=checkbox]:checked~.semester-i:before {
     transform: translate(2px, 0) rotate(45deg);
 }
 
-#semester-i:after {
+.semester-i:after {
     transform: translate(2px, 0) rotate(-45deg);
 }
 
-#semesters-container li input[type=checkbox]:checked~#semester-i:after {
+#semesters-container li input[type=checkbox]:checked~.semester-i:after {
     transform: translate(-2px, 0) rotate(-45deg);
 }
 
-#semesters-container li input[type=checkbox]:checked~li {
-    max-height: 50px;
+#semesters-container li:has(input[type=checkbox]:checked) {
+    height: 50px;
 }
 
-#semesters-h2 {
+.semesters-h2 {
     line-height: 34px;
     font-weight: 500;
     letter-spacing: 1px;
@@ -740,18 +808,20 @@ form .btn input[type="submit"] {
     text-transform: uppercase;
 }
 
+.semesters-main-div {
+    opacity: 1;
+    transform: translate(0, 0);
+    transition: transform 0.25s ease-in-out;
+    height: 100%;
+    max-height: 90vh;
+    overflow: auto;
+}
+
 #semesters-container li input[type=checkbox]:checked~div {
     margin-top: 0;
     max-height: 0;
     opacity: 0;
     transform: translate(0, 50%);
-    ;
-}
-
-#semesters-container div {
-    opacity: 1;
-    transform: translate(0, 0);
-    transition: transform 0.25s ease-in-out;
 }
 
 #semesters-container li:nth-of-type(1) {
@@ -872,6 +942,11 @@ form .btn input[type="submit"] {
     box-shadow: var(--box-shadow);
 }
 
+th[contenteditable="plaintext-only"]:hover,
+td[contenteditable="plaintext-only"]:hover {
+    cursor: text;
+}
+
 /*#region Table Folds*/
 .empty-th {
     background: transparent !important;
@@ -888,11 +963,11 @@ form .btn input[type="submit"] {
     cursor: pointer;
 }
 
-.view-td:hover {
+.view-td>i:hover {
     transform: scale(1.25);
 }
 
-.view-td:active {
+.view-td>i:active {
     transform: scale(0.95);
 }
 
@@ -936,7 +1011,7 @@ form .btn input[type="submit"] {
 /*#endregion Table Folds*/
 
 /*#region Table Actions*/
-#table-buttons {
+.table-buttons {
     height: 60px;
     width: 100%;
     display: inline-flex;
@@ -973,53 +1048,64 @@ form .btn input[type="submit"] {
     transform: scale(0.95);
 }
 
-#save-btn {
+.save-btn {
     background: var(--green);
 }
 
-#save-btn::after {
+.save-btn::after {
     content: "Save";
     font-weight: 800;
     text-transform: uppercase;
 }
 
-#addrow-btn {
-    background: var(--table-gray);
+.addGoal-btn {
+    background: var(--table-blue);
 }
 
-#addrow-btn::after {
+.addGoal-btn::after {
     content: "Add Goal";
     font-weight: 800;
     text-transform: uppercase;
 }
 
-#delete-btn {
+.addBB-btn {
+    margin-right: 0;
+    background: var(--table-green);
+}
+
+.addBB-btn::after {
+    content: "Add Building Block";
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.delete-btn {
     background: var(--red);
 }
 
-#delete-btn::before {
+.delete-btn::before {
     content: "\f1f8";
     font-family: 'Font Awesome 6 Free';
     padding-right: 5px;
 }
 
-#delete-btn::after {
+.delete-btn::after {
     content: "Delete";
     font-weight: 800;
     text-transform: uppercase;
 }
 
-#done-btn {
+.done-btn {
     background: var(--green);
 }
 
-#done-btn::before {
+.done-btn::before {
     content: "\f00c";
     font-family: 'Font Awesome 6 Free';
     padding-right: 5px;
 }
 
-#done-btn::after {
+.done-btn::after {
     content: "Done";
     font-weight: 800;
     text-transform: uppercase;
@@ -1050,6 +1136,12 @@ form .btn input[type="submit"] {
 }
 
 .empty-td {
+    background: transparent !important;
+    box-shadow: none !important;
+    text-align: right !important;
+}
+
+.empty-addbb-td {
     background: transparent !important;
     box-shadow: none !important;
 }

@@ -29,13 +29,29 @@ window.addEventListener('load', () => {
     }).catch(swErr => console.log(`Service Worker Installation Error: ${swErr}}`));
   }
 
-  //Detect users prefered color scheme
-  const darkTheme = window.matchMedia("(prefers-color-scheme: dark)");
-  document.querySelector("html").setAttribute("data-theme", darkTheme.matches === true ? "dark" : "light");
-
   //#region VARIABLES
   const mainScreen = document.getElementById('main-page');
   const semestersContainer = document.getElementById('semesters-container');
+  const darkmodeToggle = document.getElementById('theme-toggle');
+
+  //Detect users prefered color scheme
+  const localTheme = localStorage.getItem("theme");
+  const darkTheme = window.matchMedia("(prefers-color-scheme: dark)");
+  const currTheme = GetThemeString(localTheme, darkTheme);
+  document.querySelector("html").setAttribute("data-theme", currTheme);
+  currTheme === "dark" ? darkmodeToggle.checked = false : darkmodeToggle.checked = true;
+
+  function GetThemeString(localTheme, darkTheme) {
+    if (localTheme !== null) return localTheme;
+    if (darkTheme.matches) return "dark";
+    return "light";
+  }
+
+  darkmodeToggle.addEventListener('change', function () {
+    const newTheme = darkmodeToggle.checked ? "light" : "dark";
+    localStorage.setItem("theme", newTheme);
+    document.querySelector("html").setAttribute("data-theme", newTheme);
+  });
 
   const loginSignOutBtn = document.getElementById('header-login-btn');
   const loginScreen = document.getElementById('login-page');
@@ -205,94 +221,121 @@ window.addEventListener('load', () => {
   //#endregion LOGIN FUNCTIONS
 
   //#region TABLE FUNCTIONS
+  var semesterTitlesArr = []; var semLi = null;
   function ListenForUsersTables() {
     onValue(ref(database, 'Semesters/'), (snapshot) => {
+      var tempSemArr = [];
+
       if (snapshot.exists()) {
+
+        if (isFirstLoad === true) {
+          semestersContainer.replaceChildren();
+        } else {
+          Array.from(semestersContainer.children).forEach((li) => {
+            Array.from(li.children[3].children).forEach((table) => {
+              if (table.getAttribute('id') !== auth.currentUser.uid + '-table') {
+                table.remove();
+              }
+            });
+          });
+        }
+
         snapshot.forEach((semester) => {
 
-          if (isFirstLoad === true) {
-            semestersContainer.replaceChildren();
-          } else {
-            Array.from(semestersContainer.children).forEach((li) => {
-              Array.from(li.children).forEach((elem) => {
-                if (elem.getAttribute('id') !== auth.currentUser.uid + '-table') {
-                  elem.remove();
-                }
-              });
-            });
-          }
+          tempSemArr.push(semester.key);
+          //Check if this semester is already in the arr
+          if (!semesterTitlesArr.includes(semester.key)) {
+            semesterTitlesArr.push(semester.key);
 
-          //Create accordion headear for this semester -----
-          var semTitle = semester.key;
-          var endDate = semester.child("End").val();
-          var startDate = semester.child("Start").val();
-          var semLi = CreateHeading(semTitle, startDate, endDate);
+            //Create accordion headear for this semester
+            var semTitle = semester.key;
+            var endDate = semester.child("End").val();
+            var startDate = semester.child("Start").val();
+            semLi = CreateHeading(semTitle, startDate, endDate);
+          } else {
+            semLi = semestersContainer.children[semesterTitlesArr.indexOf(semester.key)];
+          }
 
           // Clear the arrays first so no dups
           usersTablesArr = [];
 
-          //Get data for each table based on user
-          semester.child("Tables").forEach((uid) => {
-            headersArr = []; contentArr = []; bbArr = [];
-            const isThisUser = uid.key === auth.currentUser.uid;
-            const usersName = uid.child('Name').val();
+          //Make sure tables in this semester exist
+          const semTables = semester.child("Tables");
 
-            uid.child('Headers').forEach((header) => {
-              const headerData = { user: usersName, header: header.val() };
-              headersArr.push(headerData);
-            });
+          if (semTables.exists()) {
+            //Get data for each table based on user
+            semester.child("Tables").forEach((uid) => {
+              headersArr = []; contentArr = []; bbArr = [];
+              const isThisUser = uid.key === auth.currentUser.uid;
+              const usersName = uid.child('Name').val();
 
-            var index = 0;
-            uid.child('Content').forEach((rows) => {
-              rows.forEach((row) => {
-                if (row.key !== "BB") {
-                  const rowData = { user: usersName, rowNum: index, row: row.val() };
-                  contentArr.push(rowData);
-                } else {
-                  var bbRowIndex = 0; var bbIndex = 0;
-                  row.forEach((bb) => {
-                    //Building blocks         
-                    bb.forEach((con) => {
-                      const bbData = { user: usersName, id: parseInt(rows.key), rowNum: bbRowIndex, bbNum: bbIndex, row: con.val() };
-                      bbArr.push(bbData);
-                      bbIndex++;
-                    });
-                    bbRowIndex++;
-                  });
-                }
+              uid.child('Headers').forEach((header) => {
+                const headerData = { user: usersName, header: header.val() };
+                headersArr.push(headerData);
               });
-              index++;
+
+              var index = 0;
+              uid.child('Content').forEach((rows) => {
+                rows.forEach((row) => {
+                  if (row.key !== "BB") {
+                    const rowData = { user: usersName, rowNum: index, row: row.val() };
+                    contentArr.push(rowData);
+                  } else {
+                    var bbRowIndex = 0; var bbIndex = 0;
+                    row.forEach((bb) => {
+                      //Building blocks         
+                      bb.forEach((con) => {
+                        const bbData = { user: usersName, id: parseInt(rows.key), rowNum: bbRowIndex, bbNum: bbIndex, row: con.val() };
+                        bbArr.push(bbData);
+                        bbIndex++;
+                      });
+                      bbRowIndex++;
+                    });
+                  }
+                });
+                index++;
+              });
+
+              const tableData = { user: usersName, uid: uid.key, isMainUser: isThisUser, headers: headersArr, content: contentArr, buildingBlocks: bbArr, cols: headersArr.length, rows: index };
+              usersTablesArr.push(tableData);
             });
 
-            const tableData = { user: usersName, uid: uid.key, isMainUser: isThisUser, headers: headersArr, content: contentArr, buildingBlocks: bbArr, cols: headersArr.length, rows: index };
-            usersTablesArr.push(tableData);
-          });
-
-          if (isFirstLoad === true) {
-            //Create main user table first, then other users
-            const userTable = usersTablesArr.filter(u => u.isMainUser === true);
-            if (userTable.length > 0) {
-              CreateTable(semLi, userTable[0].uid + "-table", userTable[0].user, userTable[0], userTable[0].cols, userTable[0].rows, true);
-            } else {
-              console.log("here");
-              //Create default user table since they dont have one yet
-              CreateTable(semLi, auth.currentUser.uid + "-table", null, null, 3, 3, true);
+            if (isFirstLoad === true) {
+              //Create main user table first, then other users
+              const userTable = usersTablesArr.filter(u => u.isMainUser === true);
+              if (userTable.length > 0) {
+                CreateTable(semLi, userTable[0].uid + "-table", userTable[0].user, userTable[0], userTable[0].cols, userTable[0].rows, true);
+              } else {
+                //Create default user table since they dont have one yet
+                const defaultTableArr = []; defaultTableArr.push(CreateDefaultArr(headersArr));
+                CreateTable(semLi, defaultTableArr[0].uid + "-table", null, defaultTableArr[0], 3, 1, true);
+              }
             }
+
+            //Other users tables
+            usersTablesArr.forEach((table) => {
+              if (table.isMainUser != true) {
+                CreateTable(semLi, table.uid + "-table", table.user, table, table.cols, table.rows, true);
+              }
+            });
+          } else {
+            //Need to create empty table for user in this semester since there are no tables
+            semLi.children[3].replaceChildren();
+            const defaultTableArr = []; defaultTableArr.push(CreateDefaultArr(headersArr));
+            CreateTable(semLi, defaultTableArr[0].uid + "-table", null, defaultTableArr[0], 3, 1, true);
           }
-
-          //Other users tables
-          usersTablesArr.forEach((table) => {
-            if (table.isMainUser != true) {
-              console.log("here");
-              CreateTable(semLi, table.uid + "-table", table.user, table, table.cols, table.rows, true);
-            }
-          });
-        })
+        });
       } else {
-        console.log("here");
         // No tables in DB, create default one for user
         CreateTable(semLi, auth.currentUser.uid + "-table", null, null, 3, 3, true);
       }
+
+      //Remove deleted semesters
+      Array.from(semestersContainer.children).forEach((li) => {
+        if (!tempSemArr.includes(li.children[2].textContent.split(" : ")[0])) {
+          li.remove();
+        }
+      });
 
       isFirstLoad = false;
     }, error => {
@@ -302,12 +345,14 @@ window.addEventListener('load', () => {
 
   function CreateHeading(semester, start, end) {
     var semesterLi = document.createElement('li');
-    var checkbox = document.createElement('input');
+    var checkbox = document.createElement('input'); checkbox.setAttribute('name', 'Show/Hide Semester');
     checkbox.setAttribute('type', 'checkbox'); checkbox.setAttribute('checked', "true");
-    var iconElem = document.createElement('i'); iconElem.setAttribute('id', 'semester-i');
-    var semTitle = document.createElement('h2'); semTitle.textContent = semester + " " + start + " - " + end;
-    semTitle.setAttribute('id', 'semesters-h2');
-    semesterLi.appendChild(checkbox); semesterLi.appendChild(iconElem); semesterLi.appendChild(semTitle);
+    var iconElem = document.createElement('i'); iconElem.className = 'semester-i';
+    var semTitle = document.createElement('h2'); semTitle.textContent = semester + " : " + start + " - " + end;
+    semTitle.className = "semesters-h2";
+    var semTableDiv = document.createElement('div'); semTableDiv.className = "semesters-main-div";
+    semesterLi.appendChild(checkbox); semesterLi.appendChild(iconElem);
+    semesterLi.appendChild(semTitle); semesterLi.appendChild(semTableDiv);
     semestersContainer.appendChild(semesterLi);
     return semesterLi;
   }
@@ -343,8 +388,11 @@ window.addEventListener('load', () => {
           if (k === 0) {
             var tdDrop = document.createElement('td');
             tdDrop.classList.add('view-td');
+            tdDrop.setAttribute('data-tooltip', "left");  
             var arrow = document.createElement('i');
             arrow.className = "fa-solid fa-caret-down"; tdDrop.appendChild(arrow);
+            var span = document.createElement('span'); span.classList.add('tooltip');
+            span.textContent = "Show/Hide the Building Blocks for this Goal."; tdDrop.appendChild(span);
             bodyTr.appendChild(tdDrop);
           }
           var td = document.createElement("td");
@@ -395,6 +443,22 @@ window.addEventListener('load', () => {
           }
         }
       }
+
+      //Add empty row with add row btn to end of fold rows
+      var foldBTr = document.createElement('tr'); foldBody.appendChild(foldBTr);
+      for (let n = 0; n < col; n++) {
+        var td = document.createElement('td'); td.className = "empty-addbb-td";
+        if (n === col - 1) {
+          var btn = document.createElement('button'); btn.className = "table-btn addBB-btn";
+          var icon = document.createElement('i'); icon.className = "fa-solid fa-plus";
+          btn.setAttribute('data-tooltip', "right"); btn.appendChild(icon);
+          var span = document.createElement('span'); span.classList.add('tooltip');
+          span.textContent = "Adds a new row to Building Blocks"; btn.appendChild(span);
+          td.appendChild(btn);
+        }
+        foldBTr.appendChild(td);
+      }
+
       tbody.appendChild(foldTr);
     }
 
@@ -402,17 +466,36 @@ window.addEventListener('load', () => {
     tableWrap.appendChild(table);
 
     if (isUsersTable === true) {
-      var tableBtns = document.createElement('div'); tableBtns.setAttribute("id", "table-buttons");
-      var saveBtn = document.createElement('button'); saveBtn.classList.add('table-btn'); saveBtn.setAttribute("id", "save-btn");
+      var tableBtns = document.createElement('div'); tableBtns.classList.add("table-buttons");
+      var saveBtn = document.createElement('button'); saveBtn.classList.add('table-btn', 'save-btn'); 
+      saveBtn.setAttribute('data-tooltip', "right"); var savespan = document.createElement('span'); savespan.classList.add('tooltip');
+      savespan.textContent = "Saves all data from the table to the database."; saveBtn.appendChild(savespan);
       var saveIcon = document.createElement('i'); saveIcon.className = "fa-solid fa-cloud-arrow-up"; saveBtn.appendChild(saveIcon);
-      var addRowBtn = document.createElement('button'); addRowBtn.classList.add('table-btn'); addRowBtn.setAttribute("id", "addrow-btn");
-      var rowIcon = document.createElement('i'); rowIcon.className = "fa-solid fa-plus"; addRowBtn.appendChild(rowIcon);
-      var deletBtn = document.createElement('button'); deletBtn.classList.add('table-btn'); deletBtn.setAttribute("id", "delete-btn");
-      tableBtns.append(saveBtn, addRowBtn, deletBtn);
+      var addGoalBtn = document.createElement('button'); addGoalBtn.classList.add('table-btn', 'addGoal-btn');
+      addGoalBtn.setAttribute('data-tooltip', "right"); var goalspan = document.createElement('span'); goalspan.classList.add('tooltip');
+      goalspan.textContent = "Adds A New Row To Goals."; addGoalBtn.appendChild(goalspan);
+      var rowIcon = document.createElement('i'); rowIcon.className = "fa-solid fa-plus"; addGoalBtn.appendChild(rowIcon);
+      var deletBtn = document.createElement('button'); deletBtn.classList.add('table-btn', 'delete-btn');
+      deletBtn.setAttribute('data-tooltip', "right"); var delspan = document.createElement('span'); delspan.classList.add('tooltip');
+      delspan.textContent = "Starts the process of deleting rows. After pressing, you will see trash cans next to rows you can delete."; deletBtn.appendChild(delspan); 
+      tableBtns.append(saveBtn, addGoalBtn, deletBtn);
       tableWrap.appendChild(tableBtns);
     }
 
-    semLi.appendChild(tableWrap);
+    semLi.children[3].appendChild(tableWrap);
+  }
+
+  function CreateDefaultArr(headersArr) {
+    var defaultContentArr = []; var defaultBBArr = [];
+    for (let i = 0; i < 3; i++) {
+      var defaultContent = { user: null, rowNum: 0, row: null };
+      defaultContentArr.push(defaultContent);
+      var defaultBB = { user: null, id: 0, rowNum: 0, bbNum: i, row: null };
+      defaultBBArr.push(defaultBB);
+    }
+
+    var defaultData = { user: null, uid: auth?.currentUser.uid, isMainUser: true, headers: headersArr, content: defaultContentArr, buildingBlocks: defaultBBArr, cols: 3, rows: 1 };
+    return defaultData;
   }
 
   document.addEventListener("click", function (e) {
@@ -433,7 +516,7 @@ window.addEventListener('load', () => {
     }
 
     //Save Table
-    var saveBtn = e.target.closest("#save-btn");
+    var saveBtn = e.target.closest(".save-btn");
 
     if (saveBtn) {
       saveBtn.classList.add('button-onClick');
@@ -441,12 +524,12 @@ window.addEventListener('load', () => {
       SaveTableToDB(userTable, saveBtn);
     }
 
-    //Add Row
-    var addRowBtn = e.target.closest("#addrow-btn");
+    //Add Goal
+    var addGoalBtn = e.target.closest(".addGoal-btn");
 
-    if (addRowBtn) {
-      addRowBtn.nextElementSibling.classList.remove('disabled-btn');
-      var userTable = addRowBtn.parentElement.parentElement;
+    if (addGoalBtn) {
+      addGoalBtn.nextElementSibling.classList.remove('disabled-btn');
+      var userTable = addGoalBtn.parentElement.parentElement;
       var firstRowClone = userTable.children[1].children[1].firstChild.cloneNode(true);
       Array.from(firstRowClone.children).forEach((td) => {
         if (td !== firstRowClone.children[0]) {
@@ -465,15 +548,25 @@ window.addEventListener('load', () => {
       userTable.children[1].children[1].appendChild(foldRowClone);
     }
 
+    //Add Building Block
+    var addBBBtn = e.target.closest(".addBB-btn");
+
+    if (addBBBtn) {
+      var foldBody = addBBBtn.parentElement.parentElement.parentElement;
+      var bbClone = foldBody.firstChild.cloneNode(true);
+      Array.from(bbClone.children).forEach((td) => td.textContent = null);
+      foldBody.insertBefore(bbClone, foldBody.lastChild);
+    }
+
     //Delete
-    var deleteBtn = e.target.closest("#delete-btn");
+    var deleteBtn = e.target.closest(".delete-btn");
 
     if (deleteBtn) {
       AddRemoveDeleteIcons(deleteBtn, true);
     }
 
     //Done deleting
-    var doneBtn = e.target.closest("#done-btn");
+    var doneBtn = e.target.closest(".done-btn");
 
     if (doneBtn) {
       AddRemoveDeleteIcons(doneBtn, false);
@@ -532,16 +625,18 @@ window.addEventListener('load', () => {
       }
     });
 
-    set(ref(database, 'Tables/' + auth?.currentUser.uid), {
+    const usersID = userTable.getAttribute('id').split('-')[0];
+    const semester = userTable.parentElement.parentElement.children[2].textContent.split(" : ")[0];
+    set(ref(database, 'Semesters/' + semester + '/Tables/' + usersID), {
       Content: rowsArr,
       Headers: headersArr,
       Name: userName
     }).then(() => {
-      ShowNotifToast("Saved Table", "Any changes made to your table has been saved.", "var(--green)", true, 5);
+      ShowNotifToast("Saved Table", "Any changes made to this table has been saved.", "var(--green)", true, 5);
       saveBtn.classList.remove('button-onClick');
     }).catch((error) => {
       console.log(error.code + ": " + error.message);
-      ShowNotifToast("Error Saving Table", "There was an error saving your table. Please try again.", "var(--red)", true, 5);
+      ShowNotifToast("Error Saving Table", "There was an error saving this table. Please try again.", "var(--red)", true, 5);
       saveBtn.classList.remove('button-onClick');
     });
   }
@@ -549,27 +644,31 @@ window.addEventListener('load', () => {
   function AddRemoveDeleteIcons(deleteBtn, isAdd) {
     var userTable = deleteBtn.parentElement.parentElement;
     var tbody = userTable.children[1].children[1];
-    var saveBtn = document.getElementById('save-btn');
-    var addRowBtn = document.getElementById('addrow-btn');
+    var saveBtn = deleteBtn.parentElement.firstChild;
+    var addGoalBtn = saveBtn.nextElementSibling;
     deleteBtn.classList.remove('disabled-btn');
+    userTable.querySelectorAll('.addBB-btn').forEach(btn => btn.classList.add('disabled-btn'));
 
     if (isAdd === true) {
       var bodyValid = true;
 
       if (tbody.children.length > 1) {
         //Add icons after each row
-        var index = 0
+        var index = 0; var trashspan = document.createElement('span'); 
+        trashspan.classList.add('tooltip'); trashspan.textContent = "Delete this row from the table.";
         Array.from(tbody.children).forEach((tr) => {
-          if (index % 2 === 0 && tr !== tbody.children[0]) {
+          if (index % 2 === 0 && tr !== tbody.firstChild) {
             var deleteTd = document.createElement('td'); deleteTd.classList.add('delete-td');
-            deleteTd.setAttribute("id", 'row'); tr.appendChild(deleteTd);
+            deleteTd.setAttribute('data-tooltip', 'right'); deleteTd.appendChild(trashspan.cloneNode(true));
+            tr.appendChild(deleteTd);
           } else if (index % 2 !== 0) {
             //Is a fold tr
             var foldBody = tr.children[0].children[0].children[0].children[1];
             Array.from(foldBody.children).forEach((foldTr) => {
-              if (foldTr != foldBody.children[0]) {
+              if (foldTr !== foldBody.firstChild && foldTr !== foldBody.lastChild) {
                 var deleteTd = document.createElement('td'); deleteTd.classList.add('delete-td');
-                deleteTd.setAttribute("id", 'row'); foldTr.appendChild(deleteTd);
+                deleteTd.setAttribute('data-tooltip', 'right'); deleteTd.appendChild(trashspan.cloneNode(true));
+                foldTr.appendChild(deleteTd);
               }
             });
           } else {
@@ -584,15 +683,16 @@ window.addEventListener('load', () => {
         setTimeout(() => {
           //Disable all other buttons
           saveBtn.classList.add('disabled-btn');
-          addRowBtn.classList.add('disabled-btn');
-          deleteBtn.setAttribute("id", "done-btn");
+          addGoalBtn.classList.add('disabled-btn');
+          deleteBtn.className = "table-btn done-btn";
         }, 1);
       }
     } else {
       //Enable all other buttons
       saveBtn.classList.remove('disabled-btn');
-      addRowBtn.classList.remove('disabled-btn');
-      deleteBtn.setAttribute("id", "delete-btn");
+      addGoalBtn.classList.remove('disabled-btn');
+      deleteBtn.className = "table-btn delete-btn";
+      userTable.querySelectorAll('.addBB-btn').forEach(btn => btn.classList.remove('disabled-btn'));
 
       //Remove all trash icons and empty td's
       document.querySelectorAll('.delete-td').forEach(td => td.remove());

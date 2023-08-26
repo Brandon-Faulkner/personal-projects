@@ -74,21 +74,24 @@
       <div>
         <img src="Resources/Icons/android-chrome-96x96.png">
         <h1>Cana Goals</h1>
-        <button id="header-login-btn" class="header-login-btn"><i class="fa-solid fa-right-to-bracket"></i></button>
-        <div id="darkmodetoggle-container" style="display: none;">
-          <input type="checkbox" class="checkbox" id="checkbox">
-          <label for="checkbox" class="checkbox-label">
-            <i class="fas fa-moon"></i>
-            <i class="fas fa-sun"></i>
-            <span class="ball"></span>
-          </label>
+        <div id="header-actions-container">
+          <div id="darkmodetoggle-container">
+            <input type="checkbox" id="theme-toggle">
+            <label for="theme-toggle" id="theme-toggle-label" data-tooltip="right">
+              <i class="fas fa-moon"></i>
+              <i class="fas fa-sun"></i>
+              <span class="ball"></span>
+              <span class="tooltip">Switch between Dark and Light mode</span>
+            </label>
+          </div>
+          <button id="header-login-btn" class="header-login-btn">
+            <i class="fa-solid fa-right-to-bracket"></i>
+          </button>
         </div>
-        
       </div>
     </header>
     <div id="tables-container">
       <ul id="semesters-container">
-
       </ul>
     </div>
   </div>
