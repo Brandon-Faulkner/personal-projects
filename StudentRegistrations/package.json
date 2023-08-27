@@ -1,0 +1,11 @@
+{
+  "name": "studentregistrations",
+  "version": "1.0.0",
+  "description": "Used for Cana Student Ministry to register for events and sign up for forms",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Brandon Faulkner",
+  "license": "ISC"
+}
