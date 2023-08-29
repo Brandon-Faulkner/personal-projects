@@ -575,35 +575,35 @@ form .btn input[type="submit"] {
 
 /*#region TOOLTIPS*/
 [data-tooltip] .tooltip {
-  right: 0;
-  bottom: 100%;
-  min-width: 200px;
-  position: absolute;
-  padding: 8px 5px;
-  font-size: 14px;
-  font-weight: bold;
-  white-space: break-spaces;
-  color: var(--color-fg);
-  border-radius: var(--border-radius);
-  background-color: var(--scrollbar);
-  box-shadow: var(--box-shadow);
-  pointer-events: none;
-  user-select: none;
-  opacity: 0;
-  transition: all 0s ease-out;
-  text-align: center;
-  font-family: 'Futura PT', sans-serif;
-  letter-spacing: 1px;
+    right: 0;
+    bottom: 100%;
+    min-width: 200px;
+    position: absolute;
+    padding: 8px 5px;
+    font-size: 14px;
+    font-weight: bold;
+    white-space: break-spaces;
+    color: var(--color-fg);
+    border-radius: var(--border-radius);
+    background-color: var(--scrollbar);
+    box-shadow: var(--box-shadow);
+    pointer-events: none;
+    user-select: none;
+    opacity: 0;
+    transition: all 0s ease-out;
+    text-align: center;
+    font-family: 'Futura PT', sans-serif;
+    letter-spacing: 1px;
 }
 
 [data-tooltip="left"]:hover {
-    position: absolute;
+    position: relative;
 }
 
 [data-tooltip]:hover .tooltip {
-  opacity: 0.975;
-  transition: all 0.2s ease-in-out;
-  transition-delay: 1s;
+    opacity: 1;
+    transition: all 0.2s ease-in-out;
+    transition-delay: 1s;
 }
 
 #theme-toggle-label[data-tooltip] .tooltip {
@@ -624,6 +624,19 @@ form .btn input[type="submit"] {
     margin-bottom: 10px;
 }
 
+input[data-tooltip="right"]:hover~h2>span.tooltip {
+    right: 0;
+    left: 0;
+    top: 60px;
+    height: max-content;
+    opacity: 1;
+    transition: all 0.2s ease-in-out;
+    transition-delay: 1s;
+    z-index: 999;
+    max-width: max-content;
+    margin: auto;
+}
+
 button[data-tooltip]:hover .tooltip {
     transform: scale(0.95);
 }
@@ -631,6 +644,7 @@ button[data-tooltip]:hover .tooltip {
 button[data-tooltip]:active .tooltip {
     transform: scale(1.05);
 }
+
 /*#endregion TOOLTIPS*/
 
 /*#region NOTIFICATION TOAST*/
@@ -1008,6 +1022,22 @@ td[contenteditable="plaintext-only"]:hover {
     background: var(--table-odd);
 }
 
+.fold-div table {
+    width: 100%;
+}
+
+.comments-th {
+    background: var(--scrollbar) !important;
+}
+
+[data-author]:not(:empty)::before{
+    content: "\"";
+}
+
+[data-author]:not(:empty):after{
+    content: "\" - Made by " attr(data-author);
+}
+
 /*#endregion Table Folds*/
 
 /*#region Table Actions*/
@@ -1079,6 +1109,17 @@ td[contenteditable="plaintext-only"]:hover {
     text-transform: uppercase;
 }
 
+.addComment-btn {
+    margin-right: 0;
+    background: var(--scrollbar);
+}
+
+.addComment-btn::after {
+    content: "Add Comment";
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
 .delete-btn {
     background: var(--red);
 }
@@ -1141,9 +1182,11 @@ td[contenteditable="plaintext-only"]:hover {
     text-align: right !important;
 }
 
-.empty-addbb-td {
+.empty-addbb-td,
+.empty-addComment-td {
     background: transparent !important;
     box-shadow: none !important;
+    text-align: end !important;
 }
 
 .editable:focus {

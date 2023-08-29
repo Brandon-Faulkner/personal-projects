@@ -140,7 +140,7 @@ window.addEventListener('load', () => {
   var userTotalRSVP = 0; var userFullName = null; var userUnreadChats = [];
   //Locally keep track of admin status
   var isAdmin = false; var adminGroup = null; var adminHostName = null; var adminHostInfoArr = [];
-  var userNameArr = []; var hostWeeksArr = []; var rsvpdUsersArr = []; var adminNotifToken = null;
+  var userNameArr = []; var hostWeeksArr = []; var rsvpdUsersArr = []; var adminNotifToken = null; var adminCapacity = null;
   //Used to stop user from recieving messages on an authChange state
   var unsubscribe = null;
 
@@ -1929,7 +1929,7 @@ window.addEventListener('load', () => {
     var [timeH, timeM] = timeElem.value.split(":");
     var timeH2 = (timeH % 12 ? timeH % 12 : 12);
     const timeString = timeH2 + ":" + timeM + (timeH >= 12 ? ' PM' : ' AM');
-
+    
     const rawDateString = new Date(dateElem.value.replace(/-/g, "/") + " " + timeString);
     const dateVal = new Date(rawDateString);
     const dateString = (dateVal.getMonth() + 1) + "/" + ('0' + dateVal.getDate()).slice(-2) + "/" + ('0' + dateVal.getFullYear()).slice(-2);
@@ -1990,24 +1990,48 @@ window.addEventListener('load', () => {
   function ScheduleDays(daysContentArr) {
     const dayUpdates = {};
     const sorter = { 0: "Sunday", 1: "Monday", 2: "Tuesday", 3: "Wednesday", 4: "Thursday", 5: "Friday", 6: "Saturday" };
-
+    
     //Need to get the week attached to each day to schedule
     //Sun-Sat, 0-6. Our weeks will start on Mon, 1
     daysContentArr.forEach((day) => {
       if (day.classList.contains("added-day")) {
-        var splitDateTime = day.textContent.split(" at ");
+        var splitDateTime = day.textContent.split(" at "); 
         var date = new Date(splitDateTime[0]);
-        var dayOfWeek = sorter[date.getDay()];
-        var begin = date.getDate() - date.getDay() + 1; var end = begin + 6;
-        var endWeek = new Date(date.setDate(end));
-        var beginWeek = new Date(date.setDate(begin));
+        var dayOfWeek = sorter[date.getDay()]; 
+        var begin, end;
+        switch (dayOfWeek) {
+          case "Sunday":
+            begin = -6;end = 0;
+            break;
+          case "Monday":
+            begin = 0;end = 6;
+            break;
+          case "Tuesday":
+            begin = -1;end = 5;
+            break;
+          case "Wednesday":
+            begin = -2;end = 4;
+            break;
+          case "Thursday":
+            begin = -3;end = 3;
+            break;
+          case "Friday":
+            begin = -4;end = 2;
+            break;
+          case "Saturday":
+            begin = -5;end = 1;
+            break;
+        }
+        var tempEnd = new Date(date.getTime()); var tempBegin = new Date(date.getTime());
+        var endWeek = new Date(tempEnd.setDate(tempEnd.getDate() + end)); 
+        var beginWeek = new Date(tempBegin.setDate(tempBegin.getDate() + begin));
         const beginString = (beginWeek.getMonth() + 1) + "/" + ('0' + beginWeek.getDate()).slice(-2) + "/" + ('0' + beginWeek.getFullYear()).slice(-2);
         const endString = (endWeek.getMonth() + 1) + "/" + ('0' + endWeek.getDate()).slice(-2) + "/" + ('0' + endWeek.getFullYear()).slice(-2);
-        dayUpdates["Capacities/" + adminGroup + "/" + encodeURIComponent(beginString + '-' + endString) + "/" + dayOfWeek] = groupInfoArr.find(g => adminGroup === g.group).capacity;
+        dayUpdates["Capacities/" + adminGroup + "/" + encodeURIComponent(beginString + '-' + endString) + "/" + dayOfWeek] = adminCapacity;
         dayUpdates["Groups/" + adminGroup + "/Weeks/" + encodeURIComponent(beginString + '-' + endString) + "/" + dayOfWeek] = splitDateTime[1];
       }
     });
-
+    
     update(ref_db(database), dayUpdates).then(() => {
       //Change each class to scheduled-days
       daysContentArr.forEach((day) => {
@@ -2059,6 +2083,11 @@ window.addEventListener('load', () => {
             const capacity = childSnapshot.child("Capacity").val();
             const description = childSnapshot.child("Description").val();
             const image = childSnapshot.child("Image").val();
+
+            if (isAdmin === true && adminGroup !== null) {
+              //Always make sure adminCapacity is valid
+              adminCapacity = snapshot.child(adminGroup).child("Capacity").val();
+            }
 
             getDownloadURL(ref_st(storage, "Groups/" + image))
               .then((url) => {

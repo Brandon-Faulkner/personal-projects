@@ -114,20 +114,19 @@ window.addEventListener('load', () => {
     loginSignOutBtn.classList.remove('disabled-btn');
   });
 
-  var usersTablesArr = []; var headersArr = [];
-  var contentArr = []; var bbArr = []; var isFirstLoad = true;
+  var usersTablesArr = []; var headersArr = []; var contentArr = [];
+  var bbArr = []; var commentsArr = []; var isFirstLoad = true; var mainUsersName = null;
   //#endregion VARIABLES
 
   //#region LOGIN FUNCTIONS
   //Detect login status and setup tables
   onAuthStateChanged(auth, (user) => {
     if (user === null) {
-      // No one is signed in
+      // No one is signed in, prompt login
       isFirstLoad = true;
       semestersContainer.replaceChildren();
       loginSignOutBtn.className = "header-login-btn";
-      var defaultLi = CreateHeading("Default Title", "Start Date", "End Date");
-      CreateTable(defaultLi, "default-table", "Default Name", null, 3, 3, false);
+      loginSignOutBtn.click();
     } else if (user.isAnonymous === false) {
       // User is signed in
       ListenForUsersTables();
@@ -265,9 +264,12 @@ window.addEventListener('load', () => {
           if (semTables.exists()) {
             //Get data for each table based on user
             semester.child("Tables").forEach((uid) => {
-              headersArr = []; contentArr = []; bbArr = [];
+              headersArr = []; contentArr = []; 
+              bbArr = []; commentsArr = [];
               const isThisUser = uid.key === auth.currentUser.uid;
               const usersName = uid.child('Name').val();
+  
+              isThisUser === true ? mainUsersName = usersName : null;
 
               uid.child('Headers').forEach((header) => {
                 const headerData = { user: usersName, header: header.val() };
@@ -277,10 +279,10 @@ window.addEventListener('load', () => {
               var index = 0;
               uid.child('Content').forEach((rows) => {
                 rows.forEach((row) => {
-                  if (row.key !== "BB") {
+                  if (row.key !== "BB" && row.key != "Comments") {
                     const rowData = { user: usersName, rowNum: index, row: row.val() };
                     contentArr.push(rowData);
-                  } else {
+                  } else if (row.key === "BB"){
                     var bbRowIndex = 0; var bbIndex = 0;
                     row.forEach((bb) => {
                       //Building blocks         
@@ -291,12 +293,17 @@ window.addEventListener('load', () => {
                       });
                       bbRowIndex++;
                     });
+                  } else if (row.key === "Comments") {
+                    row.forEach((com) => {
+                      const comData = {rowNum: index, comment: com.val().split(" - Made by ")[0], author: com.val().split(" - Made by ")[1]};
+                      commentsArr.push(comData);
+                    });
                   }
                 });
                 index++;
               });
 
-              const tableData = { user: usersName, uid: uid.key, isMainUser: isThisUser, headers: headersArr, content: contentArr, buildingBlocks: bbArr, cols: headersArr.length, rows: index };
+              const tableData = { user: usersName, uid: uid.key, isMainUser: isThisUser, headers: headersArr, content: contentArr, buildingBlocks: bbArr, comments: commentsArr, cols: headersArr.length, rows: index };
               usersTablesArr.push(tableData);
             });
 
@@ -339,17 +346,23 @@ window.addEventListener('load', () => {
 
       isFirstLoad = false;
     }, error => {
-      console.log(error.code + ": " + error.message);
+      if (error.code === "PERMISSION_DENIED") {
+        //Refresh page which makes user login again
+        window.location.reload();
+      } else {
+        console.log(error.code + ": " + error.message);
+      }
     });
   }
 
   function CreateHeading(semester, start, end) {
     var semesterLi = document.createElement('li');
     var checkbox = document.createElement('input'); checkbox.setAttribute('name', 'Show/Hide Semester');
-    checkbox.setAttribute('type', 'checkbox'); checkbox.setAttribute('checked', "true");
+    checkbox.setAttribute('type', 'checkbox'); checkbox.setAttribute('checked', "true"); checkbox.setAttribute('data-tooltip', 'right');
     var iconElem = document.createElement('i'); iconElem.className = 'semester-i';
     var semTitle = document.createElement('h2'); semTitle.textContent = semester + " : " + start + " - " + end;
-    semTitle.className = "semesters-h2";
+    semTitle.className = "semesters-h2"; var span = document.createElement('span'); span.className = "tooltip";
+    span.textContent = "Show/Hide all the tables in this semester."; semTitle.appendChild(span); semTitle.setAttribute('data-tooltip', 'right');
     var semTableDiv = document.createElement('div'); semTableDiv.className = "semesters-main-div";
     semesterLi.appendChild(checkbox); semesterLi.appendChild(iconElem);
     semesterLi.appendChild(semTitle); semesterLi.appendChild(semTableDiv);
@@ -383,29 +396,39 @@ window.addEventListener('load', () => {
 
       //Create View Row, aka the goal row
       var rowData = tableArr.content.filter(c => c.rowNum === i);
+      var colCounter = 0;
       if (rowData.length > 0) {
         for (let k = 0; k < rowData.length; k++) {
           if (k === 0) {
             var tdDrop = document.createElement('td');
             tdDrop.classList.add('view-td');
-            tdDrop.setAttribute('data-tooltip', "left");  
+            tdDrop.setAttribute('data-tooltip', "left");
             var arrow = document.createElement('i');
             arrow.className = "fa-solid fa-caret-down"; tdDrop.appendChild(arrow);
             var span = document.createElement('span'); span.classList.add('tooltip');
-            span.textContent = "Show/Hide the Building Blocks for this Goal."; tdDrop.appendChild(span);
+            span.textContent = "Show/Hide the Building Blocks and Comments for this Goal."; tdDrop.appendChild(span);
             bodyTr.appendChild(tdDrop);
           }
           var td = document.createElement("td");
           td.textContent = tableArr === null ? null : rowData[k].row;
           td.contentEditable = isUsersTable === true ? "plaintext-only" : false;
           isUsersTable === true ? td.className = "editable" : null;
-          isUsersTable === true ? td.setAttribute('placeholder', "Content...") : null; bodyTr.appendChild(td);
+          if (colCounter === 0) {
+            isUsersTable === true ? td.setAttribute('placeholder', "Goal...") : null; 
+          } else if (colCounter === 1) {
+            isUsersTable === true ? td.setAttribute('placeholder', "Due Date...") : null; 
+          } else if (colCounter === 2) {
+            isUsersTable === true ? td.setAttribute('placeholder', "Progress...") : null; 
+          } else {
+            colCounter = 0;
+          }
+          bodyTr.appendChild(td); colCounter++;
         }
       }
 
       tbody.appendChild(bodyTr);
 
-      //Create Fold Row, aka building blocks row
+      //Create Fold Row, aka building blocks and comments
       var foldTr = document.createElement("tr"); foldTr.className = "fold";
       var foldTd = document.createElement('td'); foldTd.setAttribute('colspan', 4);
       foldTd.classList.add('fold-main-td'); foldTr.appendChild(foldTd);
@@ -438,8 +461,14 @@ window.addEventListener('load', () => {
             td.textContent = tableArr === null ? null : rowData[j].row;
             td.contentEditable = isUsersTable === true ? "plaintext-only" : false;
             isUsersTable === true ? td.className = "editable" : null;
-            isUsersTable === true ? td.setAttribute('placeholder', "Content...") : null; foldBTr.appendChild(td);
-            counter++;
+            if (counter === 0) {
+              isUsersTable === true ? td.setAttribute('placeholder', "Building Block...") : null; 
+            } else if (counter === 1) {
+              isUsersTable === true ? td.setAttribute('placeholder', "Due Date...") : null; 
+            } else if (counter === 2) {
+              isUsersTable === true ? td.setAttribute('placeholder', "Progress...") : null; 
+            }
+            foldBTr.appendChild(td); counter++;
           }
         }
       }
@@ -459,6 +488,39 @@ window.addEventListener('load', () => {
         foldBTr.appendChild(td);
       }
 
+      //Create comments table for fold row
+      var commentTable = document.createElement('table'); foldDiv.appendChild(commentTable);
+      var commentHead = document.createElement('thead'); commentTable.appendChild(commentHead);
+      var commentBody = document.createElement('tbody'); commentTable.appendChild(commentBody);
+
+      //Only one column needed for comments
+      var comHTr = document.createElement('tr'); commentHead.appendChild(comHTr);
+      var comTh = document.createElement('th'); comTh.textContent = "Comments"; 
+      comTh.className = "comments-th"; comHTr.appendChild(comTh);
+
+      //Comment Rows
+      var comData = tableArr.comments.filter(c => c.rowNum === i);
+      if (comData.length > 0) {
+        for (let k = 0; k < comData.length; k++) {
+          var comBTr = document.createElement('tr'); commentBody.appendChild(comBTr);
+          var comTd = document.createElement('td'); comTd.textContent = tableArr === null ? null : comData[k].comment;
+          comTd.contentEditable = isUsersTable === true ? "plaintext-only" : false;
+          isUsersTable === true ? comTd.className = "editable" : null;
+          isUsersTable === true ? comTd.setAttribute('placeholder', "Comment...") : null; 
+          comTd.setAttribute('data-author', comData[k].author); comBTr.appendChild(comTd);
+        }      
+      }
+
+      //Add empty row with add comment btn to end of comment rows
+      var comBTr = document.createElement('tr'); commentBody.appendChild(comBTr);
+      var comTd = document.createElement('td'); comTd.className = "empty-addComment-td";
+      var comBtn = document.createElement('button'); comBtn.className = "table-btn addComment-btn";
+      var comIcon = document.createElement('i'); comIcon.className = "fa-solid fa-plus";
+      comBtn.setAttribute('data-tooltip', 'right'); comBtn.appendChild(comIcon);
+      var comSpan = document.createElement('span'); comSpan.className = "tooltip";
+      comSpan.textContent = "Adds a new row to Comments"; comBtn.appendChild(comSpan); 
+      comTd.appendChild(comBtn); comBTr.appendChild(comTd);
+
       tbody.appendChild(foldTr);
     }
 
@@ -467,17 +529,17 @@ window.addEventListener('load', () => {
 
     if (isUsersTable === true) {
       var tableBtns = document.createElement('div'); tableBtns.classList.add("table-buttons");
-      var saveBtn = document.createElement('button'); saveBtn.classList.add('table-btn', 'save-btn'); 
+      var saveBtn = document.createElement('button'); saveBtn.classList.add('table-btn', 'save-btn');
       saveBtn.setAttribute('data-tooltip', "right"); var savespan = document.createElement('span'); savespan.classList.add('tooltip');
       savespan.textContent = "Saves all data from the table to the database."; saveBtn.appendChild(savespan);
       var saveIcon = document.createElement('i'); saveIcon.className = "fa-solid fa-cloud-arrow-up"; saveBtn.appendChild(saveIcon);
       var addGoalBtn = document.createElement('button'); addGoalBtn.classList.add('table-btn', 'addGoal-btn');
       addGoalBtn.setAttribute('data-tooltip', "right"); var goalspan = document.createElement('span'); goalspan.classList.add('tooltip');
-      goalspan.textContent = "Adds A New Row To Goals."; addGoalBtn.appendChild(goalspan);
+      goalspan.textContent = "Adds a new row to Goals."; addGoalBtn.appendChild(goalspan);
       var rowIcon = document.createElement('i'); rowIcon.className = "fa-solid fa-plus"; addGoalBtn.appendChild(rowIcon);
       var deletBtn = document.createElement('button'); deletBtn.classList.add('table-btn', 'delete-btn');
       deletBtn.setAttribute('data-tooltip', "right"); var delspan = document.createElement('span'); delspan.classList.add('tooltip');
-      delspan.textContent = "Starts the process of deleting rows. After pressing, you will see trash cans next to rows you can delete."; deletBtn.appendChild(delspan); 
+      delspan.textContent = "Starts the process of deleting rows. After pressing, you will see trash cans next to rows you can delete."; deletBtn.appendChild(delspan);
       tableBtns.append(saveBtn, addGoalBtn, deletBtn);
       tableWrap.appendChild(tableBtns);
     }
@@ -486,15 +548,17 @@ window.addEventListener('load', () => {
   }
 
   function CreateDefaultArr(headersArr) {
-    var defaultContentArr = []; var defaultBBArr = [];
+    var defaultContentArr = []; var defaultBBArr = []; var defaultCommentArr = [];
     for (let i = 0; i < 3; i++) {
       var defaultContent = { user: null, rowNum: 0, row: null };
       defaultContentArr.push(defaultContent);
       var defaultBB = { user: null, id: 0, rowNum: 0, bbNum: i, row: null };
       defaultBBArr.push(defaultBB);
+      var defaultCom = {rowNum: 0, comment: null, author: "Default"};
+      defaultCommentArr.push(defaultCom);
     }
-
-    var defaultData = { user: null, uid: auth?.currentUser.uid, isMainUser: true, headers: headersArr, content: defaultContentArr, buildingBlocks: defaultBBArr, cols: 3, rows: 1 };
+  
+    var defaultData = { user: null, uid: auth?.currentUser.uid, isMainUser: true, headers: headersArr, content: defaultContentArr, buildingBlocks: defaultBBArr, comments: defaultCommentArr, cols: 3, rows: 1 };
     return defaultData;
   }
 
@@ -558,6 +622,19 @@ window.addEventListener('load', () => {
       foldBody.insertBefore(bbClone, foldBody.lastChild);
     }
 
+    //Add Comment
+    var addCommentBtn = e.target.closest('.addComment-btn');
+
+    if (addCommentBtn) {
+      var commentBody = addCommentBtn.parentElement.parentElement.parentElement;
+      var comClone = commentBody.lastChild.cloneNode(true);
+      comClone.children[0].replaceChildren(); comClone.children[0].className = "editable";
+      comClone.children[0].contentEditable = "plaintext-only"; 
+      comClone.children[0].setAttribute('data-author', mainUsersName); 
+      comClone.children[0].setAttribute('placeholder', 'Comment...');
+      commentBody.insertBefore(comClone, commentBody.lastChild); 
+    }
+
     //Delete
     var deleteBtn = e.target.closest(".delete-btn");
 
@@ -591,7 +668,7 @@ window.addEventListener('load', () => {
     var headers = userTable.children[1].children[0].children[0];
     var rows = userTable.children[1].children[1];
     var headersArr = []; var rowsArr = []; var cellsArr = [];
-    var bbRowArr = []; var bbCellArr = [];
+    var bbRowArr = []; var bbCellArr = []; var commentArr = [];
 
     Array.from(headers.children).forEach((header) => {
       if (!header.classList.contains('empty-th')) {
@@ -615,13 +692,24 @@ window.addEventListener('load', () => {
         var bbRows = row.nextElementSibling.children[0].children[0].children[0].children[1];
         Array.from(bbRows.children).forEach((bbRow) => {
           bbCellArr = [];
-          Array.from(bbRow.children).forEach((bbCell) => {
-            bbCellArr.push(bbCell.textContent);
-          });
-          bbRowArr.push(bbCellArr);
+          if (bbRow !== bbRows.lastChild) {
+            Array.from(bbRow.children).forEach((bbCell) => {
+              bbCellArr.push(bbCell.textContent);
+            });
+            bbRowArr.push(bbCellArr);
+          }     
         });
 
-        rowsArr.push({ 0: cellsArr[0], 1: cellsArr[1], 2: cellsArr[2], BB: bbRowArr });
+        //Get comment values last
+        commentArr = [];
+        var commentRows = row.nextElementSibling.children[0].children[0].children[1].children[1];
+        Array.from(commentRows.children).forEach((comRow) => {
+          if (comRow !== commentRows.lastChild) {
+            commentArr.push(comRow.textContent + " - Made by " + comRow.firstChild.getAttribute('data-author'));
+          }
+        });
+
+        rowsArr.push({ 0: cellsArr[0], 1: cellsArr[1], 2: cellsArr[2], BB: bbRowArr, Comments: commentArr });
       }
     });
 
@@ -648,13 +736,14 @@ window.addEventListener('load', () => {
     var addGoalBtn = saveBtn.nextElementSibling;
     deleteBtn.classList.remove('disabled-btn');
     userTable.querySelectorAll('.addBB-btn').forEach(btn => btn.classList.add('disabled-btn'));
+    userTable.querySelectorAll('.addComment-btn').forEach(btn => btn.classList.add('disabled-btn'));
 
     if (isAdd === true) {
       var bodyValid = true;
 
       if (tbody.children.length > 1) {
         //Add icons after each row
-        var index = 0; var trashspan = document.createElement('span'); 
+        var index = 0; var trashspan = document.createElement('span');
         trashspan.classList.add('tooltip'); trashspan.textContent = "Delete this row from the table.";
         Array.from(tbody.children).forEach((tr) => {
           if (index % 2 === 0 && tr !== tbody.firstChild) {
@@ -662,13 +751,23 @@ window.addEventListener('load', () => {
             deleteTd.setAttribute('data-tooltip', 'right'); deleteTd.appendChild(trashspan.cloneNode(true));
             tr.appendChild(deleteTd);
           } else if (index % 2 !== 0) {
-            //Is a fold tr
+            //Is a building block
             var foldBody = tr.children[0].children[0].children[0].children[1];
             Array.from(foldBody.children).forEach((foldTr) => {
               if (foldTr !== foldBody.firstChild && foldTr !== foldBody.lastChild) {
                 var deleteTd = document.createElement('td'); deleteTd.classList.add('delete-td');
                 deleteTd.setAttribute('data-tooltip', 'right'); deleteTd.appendChild(trashspan.cloneNode(true));
                 foldTr.appendChild(deleteTd);
+              }
+            });
+
+            //Is a comment
+            var comBody = tr.children[0].children[0].children[1].children[1];
+            Array.from(comBody.children).forEach((comTr) => {
+              if (comTr !== comBody.lastChild) {
+                var deleteTd = document.createElement('td'); deleteTd.classList.add('delete-td');
+                deleteTd.setAttribute('data-tooltip', 'right'); deleteTd.appendChild(trashspan.cloneNode(true));
+                comTr.appendChild(deleteTd);
               }
             });
           } else {
@@ -693,6 +792,7 @@ window.addEventListener('load', () => {
       addGoalBtn.classList.remove('disabled-btn');
       deleteBtn.className = "table-btn delete-btn";
       userTable.querySelectorAll('.addBB-btn').forEach(btn => btn.classList.remove('disabled-btn'));
+      userTable.querySelectorAll('.addComment-btn').forEach(btn => btn.classList.remove('disabled-btn'));
 
       //Remove all trash icons and empty td's
       document.querySelectorAll('.delete-td').forEach(td => td.remove());
