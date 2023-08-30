@@ -22,6 +22,7 @@
     --table-odd: var(--off-white);
     --table-even: #f8f8f8;
     --scrollbar: var(--scrollbar-light);
+    --placeholder: rgba(0, 0, 0, 0.5);
 }
 
 [data-theme="dark"] {
@@ -30,6 +31,7 @@
     --table-odd: var(--table-gray);
     --table-even: var(--table-skyblue);
     --scrollbar: var(--scrollbar-dark);
+    --placeholder: rgba(255, 255, 255, 0.5);
 }
 
 body,
@@ -66,7 +68,7 @@ header {
 header>div {
     width: auto;
     height: 100%;
-    margin: 0 10px;
+    margin: 0;
     display: flex;
     align-items: center;
 }
@@ -104,7 +106,7 @@ h2 {
 
 h2[contenteditable="plaintext-only"]:empty:before {
     content: attr(placeholder);
-    color: rgba(255, 255, 255, 0.5);
+    color: var(--placeholder);
     font-style: italic;
 }
 
@@ -750,7 +752,7 @@ button[data-tooltip]:active .tooltip {
 #semesters-container {
     list-style: none;
     padding: 0;
-    margin: 0 20px;
+    margin: 0 5px;
     animation: flipdown 0.5s ease both;
 }
 
@@ -777,7 +779,7 @@ button[data-tooltip]:active .tooltip {
     position: absolute;
     transform: translate(-6px, 0);
     margin-top: 16px;
-    right: 0;
+    right: 10px;
 }
 
 .semester-i:before,
@@ -817,6 +819,8 @@ button[data-tooltip]:active .tooltip {
     display: block;
     color: var(--color-fg);
     margin: 0;
+    padding-left: 1%;
+    padding-right: 25px;
     cursor: pointer;
     text-align: left;
     text-transform: uppercase;
@@ -951,9 +955,10 @@ button[data-tooltip]:active .tooltip {
     border-radius: 5px;
     color: #000000;
     background: var(--table-even);
-    text-align: center;
+    text-align: left;
     padding: 8px;
     box-shadow: var(--box-shadow);
+    white-space: break-spaces;
 }
 
 th[contenteditable="plaintext-only"]:hover,
@@ -1030,17 +1035,53 @@ td[contenteditable="plaintext-only"]:hover {
     background: var(--scrollbar) !important;
 }
 
-[data-author]:not(:empty)::before{
+[data-author]:not(:empty)::before {
     content: "\"";
 }
 
-[data-author]:not(:empty):after{
+[data-author]:not(:empty):after {
     content: "\" - Made by " attr(data-author);
 }
 
 /*#endregion Table Folds*/
 
 /*#region Table Actions*/
+.table-date {
+    width: 100%;
+    border: none;
+    appearance: none;
+    outline: none;
+    background: transparent;
+    font-family: 'Futura PT', sans-serif;
+    font-weight: 500;
+    font-size: 18px;
+}
+
+.table-prog-td {
+    background: var(--scrollbar-hover) !important;
+    padding: 0 !important;
+    display: flex !important;
+}
+
+.table-prog {
+    height: 100%;
+    min-height: 40.5px;
+    width: 0%;
+    min-width: 35px;
+    background: var(--green);
+    border-radius: var(--border-radius);
+    word-wrap: normal;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: thin solid var(--dark);
+    transition: all 0.5s ease-out;
+}
+
+.table-prog::after {
+    content: "%";
+}
+
 .table-buttons {
     height: 60px;
     width: 100%;
@@ -1222,6 +1263,17 @@ td[contenteditable="plaintext-only"]:empty:before {
 
     .toast {
         left: 0;
+    }
+
+    [data-tooltip] .tooltip {
+        display: none;
+    }
+}
+
+@media (max-width: 370px) {
+    .table-btn {
+        min-width: 0;
+        font-size: calc(1vw + 5px);
     }
 }
 

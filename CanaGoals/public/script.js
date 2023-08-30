@@ -249,6 +249,7 @@ window.addEventListener('load', () => {
             //Create accordion headear for this semester
             var semTitle = semester.key;
             var endDate = semester.child("End").val();
+            tempEndDate = endDate;
             var startDate = semester.child("Start").val();
             semLi = CreateHeading(semTitle, startDate, endDate);
           } else {
@@ -264,11 +265,11 @@ window.addEventListener('load', () => {
           if (semTables.exists()) {
             //Get data for each table based on user
             semester.child("Tables").forEach((uid) => {
-              headersArr = []; contentArr = []; 
+              headersArr = []; contentArr = [];
               bbArr = []; commentsArr = [];
               const isThisUser = uid.key === auth.currentUser.uid;
               const usersName = uid.child('Name').val();
-  
+
               isThisUser === true ? mainUsersName = usersName : null;
 
               uid.child('Headers').forEach((header) => {
@@ -282,7 +283,7 @@ window.addEventListener('load', () => {
                   if (row.key !== "BB" && row.key != "Comments") {
                     const rowData = { user: usersName, rowNum: index, row: row.val() };
                     contentArr.push(rowData);
-                  } else if (row.key === "BB"){
+                  } else if (row.key === "BB") {
                     var bbRowIndex = 0; var bbIndex = 0;
                     row.forEach((bb) => {
                       //Building blocks         
@@ -295,7 +296,7 @@ window.addEventListener('load', () => {
                     });
                   } else if (row.key === "Comments") {
                     row.forEach((com) => {
-                      const comData = {rowNum: index, comment: com.val().split(" - Made by ")[0], author: com.val().split(" - Made by ")[1]};
+                      const comData = { rowNum: index, comment: com.val().split(" - Made by ")[0], author: com.val().split(" - Made by ")[1] };
                       commentsArr.push(comData);
                     });
                   }
@@ -370,6 +371,7 @@ window.addEventListener('load', () => {
     return semesterLi;
   }
 
+  var tempEndDate = null;
   function CreateTable(semLi, tableID, userName, tableArr, col, row, isUsersTable) {
     var tableWrap = document.createElement("div"); tableWrap.setAttribute("id", tableID); tableWrap.className = "table-wrapper";
     var h2 = document.createElement("h2"); h2.textContent = userName; h2.contentEditable = isUsersTable === true ? "plaintext-only" : false;
@@ -410,15 +412,33 @@ window.addEventListener('load', () => {
             bodyTr.appendChild(tdDrop);
           }
           var td = document.createElement("td");
-          td.textContent = tableArr === null ? null : rowData[k].row;
-          td.contentEditable = isUsersTable === true ? "plaintext-only" : false;
-          isUsersTable === true ? td.className = "editable" : null;
           if (colCounter === 0) {
-            isUsersTable === true ? td.setAttribute('placeholder', "Goal...") : null; 
+            td.textContent = tableArr === null ? null : rowData[k].row;
+            td.contentEditable = isUsersTable === true ? "plaintext-only" : false;
+            isUsersTable === true ? td.className = "editable" : null;
+            isUsersTable === true ? td.setAttribute('placeholder', "Goal...") : null;
           } else if (colCounter === 1) {
-            isUsersTable === true ? td.setAttribute('placeholder', "Due Date...") : null; 
+            isUsersTable === true ? td.className = "editable" : null;
+            var dateInput = document.createElement('input'); dateInput.setAttribute('type', 'date');
+            dateInput.className = "table-date"; dateInput.value = tableArr === null ? null : rowData[k].row;
+            if (tableArr !== null) {
+              const dateRegex = new RegExp(/^(\d{4})(\/|-)(\d{1,2})(\/|-)(\d{1,2})$/gm, 'gm');
+              if (rowData[k].row !== null && dateRegex.test(rowData[k].row)) {
+                dateInput.value = rowData[k].row;
+              } else {
+                //Get default end date
+                var endDate = new Date(tempEndDate);
+                dateInput.value = endDate.getFullYear() + "-" + ('0' + (endDate.getMonth() + 1)).slice(-2) + "-" + ('0' + endDate.getDate()).slice(-2);
+              }
+            }
+            td.appendChild(dateInput);
           } else if (colCounter === 2) {
-            isUsersTable === true ? td.setAttribute('placeholder', "Progress...") : null; 
+            isUsersTable === true ? td.className = "editable table-prog-td" : null;
+            var progDiv = document.createElement('div'); progDiv.className = "table-prog";
+            progDiv.textContent = tableArr === null ? 0 : rowData[k].row;
+            progDiv.contentEditable = isUsersTable === true ? "plaintext-only" : false;
+            progDiv.style = tableArr === null ? "width:0%" : "width:" + rowData[k].row + '%';
+            td.appendChild(progDiv);
           } else {
             colCounter = 0;
           }
@@ -458,15 +478,23 @@ window.addEventListener('load', () => {
           }
           if (rowData[j].bbNum === j) {
             var td = document.createElement("td");
-            td.textContent = tableArr === null ? null : rowData[j].row;
-            td.contentEditable = isUsersTable === true ? "plaintext-only" : false;
-            isUsersTable === true ? td.className = "editable" : null;
             if (counter === 0) {
-              isUsersTable === true ? td.setAttribute('placeholder', "Building Block...") : null; 
+              td.textContent = tableArr === null ? null : rowData[j].row;
+              td.contentEditable = isUsersTable === true ? "plaintext-only" : false;
+              isUsersTable === true ? td.className = "editable" : null;
+              isUsersTable === true ? td.setAttribute('placeholder', "Building Block...") : null;
             } else if (counter === 1) {
-              isUsersTable === true ? td.setAttribute('placeholder', "Due Date...") : null; 
+              isUsersTable === true ? td.className = "editable" : null;
+              var dateInput = document.createElement('input'); dateInput.setAttribute('type', 'date');
+              dateInput.className = "table-date"; dateInput.value = tableArr === null ? null : rowData[j].row;
+              td.appendChild(dateInput);
             } else if (counter === 2) {
-              isUsersTable === true ? td.setAttribute('placeholder', "Progress...") : null; 
+              isUsersTable === true ? td.className = "editable table-prog-td" : null;
+              var progDiv = document.createElement('div'); progDiv.className = "table-prog";
+              progDiv.textContent = tableArr === null ? 0 : rowData[j].row;
+              progDiv.contentEditable = isUsersTable === true ? "plaintext-only" : false;
+              progDiv.style = tableArr === null ? "width:0%" : "width:" + rowData[j].row + '%';
+              td.appendChild(progDiv);
             }
             foldBTr.appendChild(td); counter++;
           }
@@ -495,7 +523,7 @@ window.addEventListener('load', () => {
 
       //Only one column needed for comments
       var comHTr = document.createElement('tr'); commentHead.appendChild(comHTr);
-      var comTh = document.createElement('th'); comTh.textContent = "Comments"; 
+      var comTh = document.createElement('th'); comTh.textContent = "Comments";
       comTh.className = "comments-th"; comHTr.appendChild(comTh);
 
       //Comment Rows
@@ -506,9 +534,9 @@ window.addEventListener('load', () => {
           var comTd = document.createElement('td'); comTd.textContent = tableArr === null ? null : comData[k].comment;
           comTd.contentEditable = isUsersTable === true ? "plaintext-only" : false;
           isUsersTable === true ? comTd.className = "editable" : null;
-          isUsersTable === true ? comTd.setAttribute('placeholder', "Comment...") : null; 
+          isUsersTable === true ? comTd.setAttribute('placeholder', "Comment...") : null;
           comTd.setAttribute('data-author', comData[k].author); comBTr.appendChild(comTd);
-        }      
+        }
       }
 
       //Add empty row with add comment btn to end of comment rows
@@ -518,7 +546,7 @@ window.addEventListener('load', () => {
       var comIcon = document.createElement('i'); comIcon.className = "fa-solid fa-plus";
       comBtn.setAttribute('data-tooltip', 'right'); comBtn.appendChild(comIcon);
       var comSpan = document.createElement('span'); comSpan.className = "tooltip";
-      comSpan.textContent = "Adds a new row to Comments"; comBtn.appendChild(comSpan); 
+      comSpan.textContent = "Adds a new row to Comments"; comBtn.appendChild(comSpan);
       comTd.appendChild(comBtn); comBTr.appendChild(comTd);
 
       tbody.appendChild(foldTr);
@@ -554,13 +582,56 @@ window.addEventListener('load', () => {
       defaultContentArr.push(defaultContent);
       var defaultBB = { user: null, id: 0, rowNum: 0, bbNum: i, row: null };
       defaultBBArr.push(defaultBB);
-      var defaultCom = {rowNum: 0, comment: null, author: "Default"};
+      var defaultCom = { rowNum: 0, comment: null, author: "Default" };
       defaultCommentArr.push(defaultCom);
     }
-  
+
     var defaultData = { user: null, uid: auth?.currentUser.uid, isMainUser: true, headers: headersArr, content: defaultContentArr, buildingBlocks: defaultBBArr, comments: defaultCommentArr, cols: 3, rows: 1 };
     return defaultData;
   }
+
+  const isNumericInput = (event) => {
+    const key = event.keyCode;
+    return ((key >= 48 && key <= 57) || // Allow number line
+      (key >= 96 && key <= 105) // Allow number pad
+    );
+  };
+
+  const isModifierKey = (event) => {
+    const key = event.keyCode;
+    return (key === 35 || key === 36) || // Allow Home, End
+      (key === 8 || key === 9 || key === 46) || // Allow Backspace, Tab, Delete
+      (key > 36 && key < 41) || // Allow left, up, right, down
+      (
+        // Allow Ctrl/Command + A,C,V,X,Z
+        (event.ctrlKey === true || event.metaKey === true) &&
+        (key === 65 || key === 67 || key === 86 || key === 88 || key === 90)
+      )
+  };
+
+  document.addEventListener('keydown', function (e) {
+    if (e.target.className === "table-prog") {
+      //Input must be of a valid number format or a modifier key
+      e.target.textContent = e.target.textContent.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/gi, '');
+      if (!isNumericInput(e) && !isModifierKey(e) && e.target.textContent.length >= 3) {
+        e.preventDefault();
+      }
+    }
+  });
+
+  var timeout;
+  document.addEventListener('keyup', function (e) {
+    if (e.target.className === "table-prog") {
+      e.target.textContent = e.target.textContent.replace(/[`~!@#$%^&*()_|+\-=?;:'",.<>\{\}\[\]\\\/]/gi, '');
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        if (parseInt(e.target.textContent) && parseInt(e.target.textContent) > 100) { e.target.textContent = 100; }
+        if (e.target.textContent.length === 0) { e.target.textContent = 0; }
+        if (e.target.textContent.length > 1) { e.target.textContent = parseInt(e.target.textContent); }
+        e.target.style = "width:" + e.target.textContent + '%';
+      }, 1000);    
+    }
+  });
 
   document.addEventListener("click", function (e) {
     e.stopPropagation();
@@ -595,20 +666,47 @@ window.addEventListener('load', () => {
       addGoalBtn.nextElementSibling.classList.remove('disabled-btn');
       var userTable = addGoalBtn.parentElement.parentElement;
       var firstRowClone = userTable.children[1].children[1].firstChild.cloneNode(true);
+      var colCounter = 0;
       Array.from(firstRowClone.children).forEach((td) => {
         if (td !== firstRowClone.children[0]) {
-          td.textContent = null;
-          td.className = "editable";
-          td.setAttribute('placeholder', "Content...");
+          if (colCounter === 0) {
+            td.textContent = null;
+          } else if (colCounter === 2) {
+            td.children[0].textContent = 0;
+            td.children[0].style = "width:0%";
+          } else if (colCounter > 2) {
+            colCounter = 0;
+          }
+          colCounter++;
         }
       });
       userTable.children[1].children[1].appendChild(firstRowClone);
       var foldRowClone = userTable.children[1].children[1].children[1].cloneNode(true);
       Array.from(foldRowClone.children[0].children[0].children[0].children[1].children).forEach((tr) => {
-        Array.from(tr.children).forEach((td) => {
-          td.textContent = null;
-        });
+        if (tr !== foldRowClone.children[0].children[0].children[0].children[1].lastChild) {
+          if (tr !== foldRowClone.children[0].children[0].children[0].children[1].firstChild) {
+            tr.remove();
+          } else {
+            var colCounter = 0;
+            Array.from(tr.children).forEach((td) => {
+              if (colCounter === 0) {
+                td.textContent = null;
+              } else if (colCounter === 2) {
+                td.children[0].textContent = 0;
+                td.children[0].style = "width:0%";
+              } else if (colCounter > 2) {
+                colCounter = 0;
+              }
+              colCounter++;
+            });
+          }
+        }
       });
+      Array.from(foldRowClone.children[0].children[0].children[1].children[1].children).forEach((tr) => {
+        if (tr !== foldRowClone.children[0].children[0].children[1].children[1].lastChild) {
+          tr.remove();
+        }
+      })
       userTable.children[1].children[1].appendChild(foldRowClone);
     }
 
@@ -618,7 +716,20 @@ window.addEventListener('load', () => {
     if (addBBBtn) {
       var foldBody = addBBBtn.parentElement.parentElement.parentElement;
       var bbClone = foldBody.firstChild.cloneNode(true);
-      Array.from(bbClone.children).forEach((td) => td.textContent = null);
+      var colCounter = 0;
+      Array.from(bbClone.children).forEach((td) => {
+        if (colCounter === 0) {
+          td.textContent = null;
+        } else if (colCounter === 1) {
+          td.children[0].value = null;
+        } else if (colCounter === 2) {
+          td.children[0].textContent = 0;
+          td.children[0].style = "width:0%";
+        } else {
+          colCounter = 0;
+        }
+        colCounter++;
+      });
       foldBody.insertBefore(bbClone, foldBody.lastChild);
     }
 
@@ -629,10 +740,11 @@ window.addEventListener('load', () => {
       var commentBody = addCommentBtn.parentElement.parentElement.parentElement;
       var comClone = commentBody.lastChild.cloneNode(true);
       comClone.children[0].replaceChildren(); comClone.children[0].className = "editable";
-      comClone.children[0].contentEditable = "plaintext-only"; 
-      comClone.children[0].setAttribute('data-author', mainUsersName); 
+      comClone.children[0].contentEditable = "plaintext-only";
+      comClone.children[0].setAttribute('data-author', mainUsersName);
       comClone.children[0].setAttribute('placeholder', 'Comment...');
-      commentBody.insertBefore(comClone, commentBody.lastChild); 
+      comClone.children[0].textContent = null;
+      commentBody.insertBefore(comClone, commentBody.lastChild);
     }
 
     //Delete
@@ -681,9 +793,17 @@ window.addEventListener('load', () => {
       if (row.className === "view") {
 
         //Get goal row values first
+        var colCounter = 0;
         Array.from(row.children).forEach((cell) => {
           if (cell.className !== 'view-td') {
-            cellsArr.push(cell.textContent);
+            if (colCounter === 0) {
+              cellsArr.push(cell.textContent);
+            } else if (colCounter === 1) {
+              cellsArr.push(cell.children[0].value);
+            } else if (colCounter === 2) {
+              cellsArr.push(cell.children[0].textContent);
+            }
+            colCounter++;
           }
         });
 
@@ -693,11 +813,19 @@ window.addEventListener('load', () => {
         Array.from(bbRows.children).forEach((bbRow) => {
           bbCellArr = [];
           if (bbRow !== bbRows.lastChild) {
+            var colCounter = 0;
             Array.from(bbRow.children).forEach((bbCell) => {
-              bbCellArr.push(bbCell.textContent);
+              if (colCounter === 0) {
+                bbCellArr.push(bbCell.textContent);
+              } else if (colCounter === 1) {
+                bbCellArr.push(bbCell.children[0].value);
+              } else if (colCounter === 2) {
+                bbCellArr.push(bbCell.children[0].textContent);
+              }
+              colCounter++;
             });
             bbRowArr.push(bbCellArr);
-          }     
+          }
         });
 
         //Get comment values last
