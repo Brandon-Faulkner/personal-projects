@@ -62,6 +62,20 @@ window.addEventListener('load', () => {
   const loginButton = document.getElementById('login-button');
   const loginPeek = loginPassword.parentElement.children[1];
 
+  const languageScreen = document.getElementById('goal-language-page');
+  const languageBtn = document.getElementById('header-language-btn');
+  const languageCloseBtn = document.getElementById('language-close-btn');
+
+  languageBtn.addEventListener('click', function () {
+    languageScreen.classList.add('show');
+    mainScreen.classList.add('disable-click');
+  });
+
+  languageCloseBtn.addEventListener('click', function () {
+    languageScreen.classList.remove('show');
+    mainScreen.classList.remove('disable-click');
+  });
+
   const toastElem = document.querySelector('.toast');
   const toastMessage = document.querySelector('.toast-message');
   const toastProgress = document.querySelector('.toast-progress');
@@ -232,7 +246,7 @@ window.addEventListener('load', () => {
         } else {
           Array.from(semestersContainer.children).forEach((li) => {
             Array.from(li.children[3].children).forEach((table) => {
-              if (table.getAttribute('id') !== auth.currentUser.uid + '-table') {
+              if (table.getAttribute('id') !== auth.currentUser.uid + '-table' && table.getAttribute('id') !== "goal-focus") {
                 table.remove();
               }
             });
@@ -251,9 +265,12 @@ window.addEventListener('load', () => {
             var endDate = semester.child("End").val();
             tempEndDate = endDate;
             var startDate = semester.child("Start").val();
-            semLi = CreateHeading(semTitle, startDate, endDate);
+            var goalFocus = semester.child("Focus").val();
+            semLi = CreateHeading(semTitle, startDate, endDate, goalFocus);
           } else {
             semLi = semestersContainer.children[semesterTitlesArr.indexOf(semester.key)];
+            //Make sure to update goal focus for this semester
+            semLi.children[3].children[0].children[1].textContent = semester.child("Focus").val();
           }
 
           // Clear the arrays first so no dups
@@ -345,6 +362,23 @@ window.addEventListener('load', () => {
         }
       });
 
+      //Add buttons to add a semester if user is kevin or brandon
+      if (auth?.currentUser.email === "kevin@canachurch.com" || auth?.currentUser.email === "brandon@canachurch.com") {
+        if (document.querySelector(".semester-buttons") === null) {
+          var semeterBtns = document.createElement('div'); semeterBtns.classList.add("semester-buttons");
+          var saveBtn = document.createElement('button'); saveBtn.classList.add('table-btn', 'save-btn');
+          saveBtn.setAttribute('data-tooltip', "right"); var savespan = document.createElement('span'); savespan.classList.add('tooltip');
+          savespan.textContent = "Saves the creation of a new semester."; saveBtn.appendChild(savespan);
+          var saveIcon = document.createElement('i'); saveIcon.className = "fa-solid fa-cloud-arrow-up"; saveBtn.appendChild(saveIcon);
+          var addSemBtn = document.createElement('button'); addSemBtn.classList.add('table-btn', 'addSemester-btn');
+          addSemBtn.setAttribute('data-tooltip', "right"); var goalspan = document.createElement('span'); goalspan.classList.add('tooltip');
+          goalspan.textContent = "Adds a new template to create a semester."; addSemBtn.appendChild(goalspan);
+          var rowIcon = document.createElement('i'); rowIcon.className = "fa-solid fa-plus"; addSemBtn.appendChild(rowIcon);
+          semeterBtns.append(saveBtn, addSemBtn);
+          semestersContainer.parentElement.appendChild(semeterBtns);
+        }
+      }
+
       isFirstLoad = false;
     }, error => {
       if (error.code === "PERMISSION_DENIED") {
@@ -356,7 +390,7 @@ window.addEventListener('load', () => {
     });
   }
 
-  function CreateHeading(semester, start, end) {
+  function CreateHeading(semester, start, end, goalFocus) {
     var semesterLi = document.createElement('li');
     var checkbox = document.createElement('input'); checkbox.setAttribute('name', 'Show/Hide Semester');
     checkbox.setAttribute('type', 'checkbox'); checkbox.setAttribute('checked', "true"); checkbox.setAttribute('data-tooltip', 'right');
@@ -367,6 +401,21 @@ window.addEventListener('load', () => {
     var semTableDiv = document.createElement('div'); semTableDiv.className = "semesters-main-div";
     semesterLi.appendChild(checkbox); semesterLi.appendChild(iconElem);
     semesterLi.appendChild(semTitle); semesterLi.appendChild(semTableDiv);
+
+    //Add first thing to main div - goal focus
+    var focusDiv = document.createElement('div'); focusDiv.className = "table-wrapper"; focusDiv.setAttribute('id', 'goal-focus');
+    var focusH2 = document.createElement('h2'); focusH2.textContent = "Goal Focus"; focusDiv.appendChild(focusH2);
+    var focusP = document.createElement('p'); focusP.className = "goal-focus-p";
+    focusP.textContent = goalFocus; focusDiv.appendChild(focusP);
+
+    if (auth !== null && (auth.currentUser.email === "brandon@canachurch.com" || auth.currentUser.email === "kevin@canachurch.com")) {
+      focusP.contentEditable = "plaintext-only"; focusP.setAttribute('placeholder', 'Enter Goal Focus...');
+      var saveDiv = document.createElement('div'); saveDiv.className = "table-buttons"; focusDiv.appendChild(saveDiv);
+      var saveBtn = document.createElement('button'); saveBtn.className = "table-btn save-btn"; saveDiv.appendChild(saveBtn);
+      var saveIcon = document.createElement('i'); saveIcon.className = "fa-solid fa-cloud-arrow-up"; saveBtn.appendChild(saveIcon);
+    }
+
+    semTableDiv.appendChild(focusDiv);
     semestersContainer.appendChild(semesterLi);
     return semesterLi;
   }
@@ -435,9 +484,14 @@ window.addEventListener('load', () => {
           } else if (colCounter === 2) {
             isUsersTable === true ? td.className = "editable table-prog-td" : null;
             var progDiv = document.createElement('div'); progDiv.className = "table-prog";
-            progDiv.textContent = tableArr === null ? 0 : rowData[k].row;
             progDiv.contentEditable = isUsersTable === true ? "plaintext-only" : false;
-            progDiv.style = tableArr === null ? "width:0%" : "width:" + rowData[k].row + '%';
+            if (tableArr === null || (tableArr !== null && !parseInt(rowData[k].row))) {
+              progDiv.style = "width:0%";
+              progDiv.textContent = 0;
+            } else {
+              progDiv.style = "width:" + rowData[k].row + '%';
+              progDiv.textContent = rowData[k].row;
+            }
             td.appendChild(progDiv);
           } else {
             colCounter = 0;
@@ -580,10 +634,8 @@ window.addEventListener('load', () => {
     for (let i = 0; i < 3; i++) {
       var defaultContent = { user: null, rowNum: 0, row: null };
       defaultContentArr.push(defaultContent);
-      var defaultBB = { user: null, id: 0, rowNum: 0, bbNum: i, row: null };
+      var defaultBB = { user: null, id: 0, rowNum: 0, bbNum: i, row: i === 2 ? 0 : null };
       defaultBBArr.push(defaultBB);
-      var defaultCom = { rowNum: 0, comment: null, author: "Default" };
-      defaultCommentArr.push(defaultCom);
     }
 
     var defaultData = { user: null, uid: auth?.currentUser.uid, isMainUser: true, headers: headersArr, content: defaultContentArr, buildingBlocks: defaultBBArr, comments: defaultCommentArr, cols: 3, rows: 1 };
@@ -629,7 +681,11 @@ window.addEventListener('load', () => {
         if (e.target.textContent.length === 0) { e.target.textContent = 0; }
         if (e.target.textContent.length > 1) { e.target.textContent = parseInt(e.target.textContent); }
         e.target.style = "width:" + e.target.textContent + '%';
-      }, 1000);    
+      }, 1000);
+    } else if (e.target.getAttribute('placeholder') === "Enter Name...") {
+      var targetTable = e.target.parentElement;
+      var userTable = document.getElementById(auth?.currentUser.uid + "-table");
+      targetTable === userTable ? mainUsersName = e.target.textContent : null;
     }
   });
 
@@ -650,13 +706,70 @@ window.addEventListener('load', () => {
       }
     }
 
-    //Save Table
+    //Save Table/Goal Focus/Semester
     var saveBtn = e.target.closest(".save-btn");
 
     if (saveBtn) {
       saveBtn.classList.add('button-onClick');
       var userTable = saveBtn.parentElement.parentElement;
-      SaveTableToDB(userTable, saveBtn);
+      if (userTable.getAttribute('id') === "goal-focus") {
+        const semester = userTable.parentElement.parentElement.children[2].textContent.split(" : ")[0];
+        const goalFocus = userTable.children[1].textContent;
+        const focusUpdate = {};
+        focusUpdate['Semesters/' + semester + '/Focus'] = goalFocus;
+        update(ref(database), focusUpdate).then(() => {
+          ShowNotifToast("Saved Goal Focus", "The goal focus for the specified semester has been saved.", "var(--green)", true, 5);
+          saveBtn.classList.remove('button-onClick');
+        }).catch((error) => {
+          console.log(error.code + ": " + error.message);
+          ShowNotifToast("Error Saving Goal Focus", "There was an error saving the goal focus for the specified semester. Please try again.", "var(--red)", true, 5);
+          saveBtn.classList.remove('button-onClick');
+        });
+      } else if (saveBtn.parentElement.classList.contains('semester-buttons')) {
+        var semInputDiv = document.getElementById("semester-input");
+
+        if (semInputDiv) {
+          const semester = semInputDiv.children[0].textContent;
+          const start = semInputDiv.children[1].textContent;
+          const end = semInputDiv.children[2].textContent;
+
+          if (semester.length > 1 && start.length > 1 && end.length > 1) {
+            set(ref(database, 'Semesters/' + semester), {
+              End: end,
+              Start: start
+            }).then(() => {
+              ShowNotifToast("Saved Semester", "The semester you created has just been saved.", "var(--green)", true, 5);
+              saveBtn.classList.remove('button-onClick');
+              semInputDiv.remove();
+            }).catch((error) => {
+              console.log(error.code + ": " + error.message);
+              ShowNotifToast("Error Saving Semester", "There was an error creating this semester. Please try again.", "var(--red)", true, 5);
+              saveBtn.classList.remove('button-onClick');
+            });
+          } else {
+            saveBtn.classList.remove('button-onClick');
+          }
+        } else {
+          saveBtn.classList.remove('button-onClick');
+        }
+      } else {
+        SaveTableToDB(userTable, saveBtn);
+      }
+    }
+
+    //Add Semester
+    var addSemesterBtn = e.target.closest(".addSemester-btn");
+
+    if (addSemesterBtn) {
+      if (!document.getElementById("semester-input")) {
+        var semInputDiv = document.createElement('div'); semInputDiv.setAttribute('id', 'semester-input');
+        var template = document.createElement('h2'); template.contentEditable = "plaintext-only"; template.className = "semester-input";
+        var semH21 = template.cloneNode(true); semH21.setAttribute('placeholder', 'Semester...');
+        var semH22 = template.cloneNode(true); semH22.setAttribute('placeholder', 'Start...');
+        var semH23 = template.cloneNode(true); semH23.setAttribute('placeholder', 'End...');
+        semInputDiv.append(semH21, semH22, semH23);
+        semestersContainer.parentElement.insertBefore(semInputDiv, semestersContainer.parentElement.lastChild);
+      }
     }
 
     //Add Goal

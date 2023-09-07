@@ -104,13 +104,26 @@ h2 {
     max-width: 95%;
 }
 
-h2[contenteditable="plaintext-only"]:empty:before {
+h3 {
+    text-align: center;
+    margin: auto;
+    padding: 5px;
+}
+
+p {
+    margin: auto;
+    padding: 5px;
+}
+
+h2[contenteditable="plaintext-only"]:empty:before,
+p[contenteditable="plaintext-only"]:empty:before {
     content: attr(placeholder);
     color: var(--placeholder);
     font-style: italic;
 }
 
-h2[contenteditable="plaintext-only"]:hover {
+h2[contenteditable="plaintext-only"]:hover,
+p[contenteditable="plaintext-only"]:hover {
     cursor: text;
 }
 
@@ -122,7 +135,8 @@ h2[contenteditable="plaintext-only"]:hover {
 }
 
 .header-login-btn,
-.header-signout-btn {
+.header-signout-btn,
+#header-language-btn {
     width: auto;
     min-width: 80px;
     height: 35px;
@@ -144,14 +158,26 @@ h2[contenteditable="plaintext-only"]:hover {
     background: var(--red);
 }
 
+#header-language-btn {
+    margin-right: 15px;
+    background: var(--table-blue);
+}
+
+.fa-earth-americas,
+.fa-right-to-bracket {
+    padding-right: 0 !important;
+}
+
 .header-login-btn:hover,
-.header-signout-btn:hover {
+.header-signout-btn:hover,
+#header-language-btn:hover {
     color: var(--dark);
     transform: scale(1.05);
 }
 
 .header-login-btn:active,
-.header-signout-btn:active {
+.header-signout-btn:active,
+#header-language-btn:active {
     color: var(--dark);
     transform: scale(0.95);
 }
@@ -164,6 +190,12 @@ h2[contenteditable="plaintext-only"]:hover {
 
 .header-signout-btn::after {
     content: "Sign Out";
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+#header-language-btn::after {
+    content: "Goal Language";
     font-weight: 800;
     text-transform: uppercase;
 }
@@ -362,6 +394,10 @@ h2[contenteditable="plaintext-only"]:hover {
     bottom: 0;
     left: 0;
     right: 0;
+}
+
+#language-wrapper {
+    padding: 60px 10px 0 10px;
 }
 
 .login-close-button {
@@ -614,6 +650,19 @@ form .btn input[type="submit"] {
     margin-top: 10px;
 }
 
+#header-language-btn[data-tooltip] .tooltip {
+    top: 100%;
+    bottom: unset;
+    margin-top: -10px;
+    min-width: 500px;
+    text-align: left;
+    white-space: normal;
+}
+
+#header-language-btn[data-tooltip]:hover .tooltip {
+    right: -150px;
+}
+
 [data-tooltip="left"]:hover .tooltip {
     left: 0;
     right: unset;
@@ -824,6 +873,16 @@ button[data-tooltip]:active .tooltip {
     cursor: pointer;
     text-align: left;
     text-transform: uppercase;
+}
+
+.goal-focus-p {
+    margin: auto;
+    width: auto;
+    white-space: normal;
+    color: var(--color-fg);
+    padding: 0 45px 20px 45px;
+    font-family: 'Futura PT', 'sans-serif';
+    font-weight: 500;
 }
 
 .semesters-main-div {
@@ -1082,13 +1141,22 @@ td[contenteditable="plaintext-only"]:hover {
     content: "%";
 }
 
-.table-buttons {
+.table-buttons,
+.semester-buttons {
     height: 60px;
     width: 100%;
     display: inline-flex;
     justify-content: flex-end;
     align-items: center;
     margin-bottom: 10px;
+}
+
+.semester-buttons {
+    animation-name: content;
+    animation-direction: normal;
+    animation-duration: 1s;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: 1;
 }
 
 .table-btn {
@@ -1137,6 +1205,20 @@ td[contenteditable="plaintext-only"]:hover {
     content: "Add Goal";
     font-weight: 800;
     text-transform: uppercase;
+}
+
+.addSemester-btn {
+    background: var(--table-gray);
+}
+
+.addSemester-btn::after {
+    content: "Add Semester";
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+h2.semester-input {
+    margin: 10px 20px 0 1% !important;
 }
 
 .addBB-btn {
@@ -1251,7 +1333,14 @@ td[contenteditable="plaintext-only"]:empty:before {
 /*#endregion TABLE CONTAINER & TABLES*/
 
 /*#region MOBILE RESPONSIVENESS*/
+@media (max-width: 1000px) {
+    [data-tooltip] .tooltip {
+        display: none;
+    }
+}
+
 @media (max-width: 767px) {
+
     .login-wrapper {
         transform: scale(0.9);
     }
@@ -1261,16 +1350,37 @@ td[contenteditable="plaintext-only"]:empty:before {
         margin-left: 20px;
     }
 
+    .goal-focus-p {
+        padding: 0 25px 20px 25px;
+    }
+
     .toast {
         left: 0;
     }
+}
 
-    [data-tooltip] .tooltip {
-        display: none;
+@media (max-width: 550px) {
+
+    .header-login-btn,
+    .header-signout-btn,
+    #header-language-btn {
+        min-width: 45px;
+        font-size: 14px;
+    }
+
+    .header-login-btn::after,
+    .header-signout-btn::after,
+    #header-language-btn::after {
+        content: none;
     }
 }
 
 @media (max-width: 370px) {
+
+    h1 {
+        display: none;
+    }
+
     .table-btn {
         min-width: 0;
         font-size: calc(1vw + 5px);
