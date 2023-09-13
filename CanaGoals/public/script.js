@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js";
-import { getDatabase, ref, onValue, set, remove, update, get, increment } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, EmailAuthProvider, linkWithCredential, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
+import { getDatabase, ref, onValue, set, update } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-database.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -254,7 +254,6 @@ window.addEventListener('load', () => {
         }
 
         snapshot.forEach((semester) => {
-
           tempSemArr.push(semester.key);
           //Check if this semester is already in the arr
           if (!semesterTitlesArr.includes(semester.key)) {
@@ -267,8 +266,9 @@ window.addEventListener('load', () => {
             var startDate = semester.child("Start").val();
             var goalFocus = semester.child("Focus").val();
             semLi = CreateHeading(semTitle, startDate, endDate, goalFocus);
-          } else {
+          } else {   
             semLi = semestersContainer.children[semesterTitlesArr.indexOf(semester.key)];
+            console.log(semLi);
             //Make sure to update goal focus for this semester
             semLi.children[3].children[0].children[1].textContent = semester.child("Focus").val();
           }
@@ -345,7 +345,11 @@ window.addEventListener('load', () => {
             });
           } else {
             //Need to create empty table for user in this semester since there are no tables
-            semLi.children[3].replaceChildren();
+            Array.from(semLi.children[3].children).forEach((table) => {
+              if (table.getAttribute('id') !== "goal-focus") {
+                table.remove();
+              }
+            });
             const defaultTableArr = []; defaultTableArr.push(CreateDefaultArr(headersArr));
             CreateTable(semLi, defaultTableArr[0].uid + "-table", null, defaultTableArr[0], 3, 1, true);
           }
@@ -357,8 +361,11 @@ window.addEventListener('load', () => {
 
       //Remove deleted semesters
       Array.from(semestersContainer.children).forEach((li) => {
-        if (!tempSemArr.includes(li.children[2].textContent.split(" : ")[0])) {
+        var semName = li.children[2].textContent.split(" : ")[0];
+        if (!tempSemArr.includes(semName)) {
           li.remove();
+          tempSemArr.splice(tempSemArr.indexOf(semName), 1);
+          semesterTitlesArr.splice(semesterTitlesArr.indexOf(semName), 1);
         }
       });
 
@@ -767,7 +774,9 @@ window.addEventListener('load', () => {
         var semH21 = template.cloneNode(true); semH21.setAttribute('placeholder', 'Semester...');
         var semH22 = template.cloneNode(true); semH22.setAttribute('placeholder', 'Start...');
         var semH23 = template.cloneNode(true); semH23.setAttribute('placeholder', 'End...');
-        semInputDiv.append(semH21, semH22, semH23);
+        var trashCan = document.createElement("div"); trashCan.className = "delete-td"; trashCan.setAttribute('data-tooltip', 'right');
+        var trashSpan = document.createElement('span'); trashSpan.className = "tooltip"; trashSpan.textContent = "Cancel making this semester.";
+        trashCan.appendChild(trashSpan); semInputDiv.append(semH21, semH22, semH23, trashCan);
         semestersContainer.parentElement.insertBefore(semInputDiv, semestersContainer.parentElement.lastChild);
       }
     }
