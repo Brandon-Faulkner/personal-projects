@@ -266,9 +266,8 @@ window.addEventListener('load', () => {
             var startDate = semester.child("Start").val();
             var goalFocus = semester.child("Focus").val();
             semLi = CreateHeading(semTitle, startDate, endDate, goalFocus);
-          } else {   
+          } else {
             semLi = semestersContainer.children[semesterTitlesArr.indexOf(semester.key)];
-            console.log(semLi);
             //Make sure to update goal focus for this semester
             semLi.children[3].children[0].children[1].textContent = semester.child("Focus").val();
           }
@@ -713,7 +712,7 @@ window.addEventListener('load', () => {
       }
     }
 
-    //Save Table/Goal Focus/Semester
+    //Save Goal Focus/Semester/Table
     var saveBtn = e.target.closest(".save-btn");
 
     if (saveBtn) {
@@ -965,18 +964,26 @@ window.addEventListener('load', () => {
 
     const usersID = userTable.getAttribute('id').split('-')[0];
     const semester = userTable.parentElement.parentElement.children[2].textContent.split(" : ")[0];
-    set(ref(database, 'Semesters/' + semester + '/Tables/' + usersID), {
-      Content: rowsArr,
-      Headers: headersArr,
-      Name: userName
-    }).then(() => {
-      ShowNotifToast("Saved Table", "Any changes made to this table has been saved.", "var(--green)", true, 5);
+
+    //MIGHT FIX JOELS ISSUE - Make sure semester is not null and not 'Table(s)'
+    if (semester !== null && semester !== "Tables" && semester !== "Table" && semester.length > 0) {
+      set(ref(database, 'Semesters/' + semester + '/Tables/' + usersID), {
+        Content: rowsArr,
+        Headers: headersArr,
+        Name: userName
+      }).then(() => {
+        ShowNotifToast("Saved Table", "Any changes made to this table has been saved.", "var(--green)", true, 5);
+        saveBtn.classList.remove('button-onClick');
+      }).catch((error) => {
+        console.log(error.code + ": " + error.message);
+        ShowNotifToast("Error Saving Table", "There was an error saving this table. Please try again.", "var(--red)", true, 5);
+        saveBtn.classList.remove('button-onClick');
+      });
+    } else {
+      ShowNotifToast("Error Saving Table", "There was an error saving this table. Please check your internet connection.", "var(--green)", true, 5);
       saveBtn.classList.remove('button-onClick');
-    }).catch((error) => {
-      console.log(error.code + ": " + error.message);
-      ShowNotifToast("Error Saving Table", "There was an error saving this table. Please try again.", "var(--red)", true, 5);
-      saveBtn.classList.remove('button-onClick');
-    });
+    }
+
   }
 
   function AddRemoveDeleteIcons(deleteBtn, isAdd) {
