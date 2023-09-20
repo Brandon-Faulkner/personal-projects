@@ -9,6 +9,6 @@
   "author": "Brandon Faulkner",
   "license": "ISC",
   "dependencies": {
-    "firebase": "^10.1.0"
+    "firebase": "^10.4.0"
   }
 }
