@@ -2,23 +2,5 @@
   "projects": {
     "default": "cana-launchpad"
   },
-  "targets": {
-    "cana-launchpad": {
-      "hosting": {
-        "user": [
-          "launchpad-user"
-        ],
-        "options": [
-          "launchpad-options"
-        ],
-        "leaderboard": [
-          "launchpad-leaderboard"
-        ],
-        "questions": [
-          "launchpad-questions"
-        ]
-      }
-    }
-  },
   "etags": {}
 }

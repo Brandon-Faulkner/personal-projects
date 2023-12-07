@@ -1,9 +1,23 @@
+/*#region MAIN STYLES*/
+:root {
+  --color-bg: #242424;
+  --color-darkbox: #242424;
+  --color-lightbox: #292929;
+  --color-fg: #fff;
+  --color-green: #00aa63;
+  --color-red: #f04545;
+  --box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
+
+  --accent-color: var(--color-green);
+  --accent-color-press: var(--color-green-highlight);
+}
+
 body {
-  background-color: rgb(45, 45, 45);
+  background-color: var(--color-bg);
   font-family: 'Open Sans';
-  height: 97.75vh;
-  margin: 10px;
-  overflow: hidden;
+  inset: 0;
+  position: fixed;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .main {
@@ -11,21 +25,17 @@ body {
   height: 100%;
   grid-template-columns: 100%;
   grid-template-rows: 15% 15% 70%;
-  position: fixed;
-  top: 10px;
-  left: 10px;
-  right: 10px;
-  overflow: hidden;
 }
 
 .grid-dark-box {
-  background-color: rgba(50, 50, 50, 1);
+  background-color: var(--color-darkbox);
   border-radius: 5px;
   width: 100%;
   height: 90%;
   display: grid;
   grid-template-columns: 100%;
   grid-template-rows: 40% 60%;
+  box-shadow: var(--box-shadow);
 }
 
 .grid-titles {
@@ -66,18 +76,19 @@ body {
   border-radius: 5px;
   width: 100%;
   height: 100%;
-  background-color: rgba(50, 50, 50, 1);
+  background-color: var(--color-darkbox);
   display: grid;
   grid-template-columns: 100%;
   grid-template-rows: 15% 20% 15% 15% 15% 20%;
+  box-shadow: var(--box-shadow);
 }
 
 .button {
   font-size: calc(8px + 2vw);
   color: rgb(255, 255, 255);
   border-radius: 6px;
-  background-image: linear-gradient(135deg, rgb(0, 131, 255) 0%, rgb(60, 218, 248) 100%);
-  box-shadow: rgb(60, 218, 248) 0px 0px 5px 2px;
+  background: var(--accent-color);
+  box-shadow: var(--box-shadow);
   border: 0;
   display: block;
   width: 75%;
@@ -98,16 +109,16 @@ body {
 }
 
 .button:hover {
-  background: #00ACFF;
+  transform: scale(1.05);
 }
 
 .button:active {
-  background: #00DBFF;
+  transform: scale(.95);
 }
 
-.blue-line {
+.line {
   display: inline-flex;
-  background: linear-gradient(180deg, rgba(60, 218, 248, 1) 35%, rgba(0, 131, 255, 1) 100%);
+  background: var(--accent-color);
   border-radius: 5px;
   width: .5vw;
   height: 75%;
@@ -116,7 +127,7 @@ body {
 
 .light-box {
   display: flex;
-  background-color: rgba(60, 60, 60, 0.75);
+  background-color: var(--color-lightbox);
   border-radius: 5px;
   width: 98.5%;
   height: auto;
@@ -128,8 +139,8 @@ body {
 .name-box {
   font-size: calc(16px + 2vw);
   display: flex;
-  color: #fff;
-  background-color: rgba(60, 60, 60, 0.75);
+  color: var(--color-fg);
+  background-color: var(--color-lightbox);
   border-radius: 5px;
 }
 
@@ -137,8 +148,8 @@ body {
   font-size: calc(8px + 2vw);
   text-align: center;
   display: flex;
-  color: #fff;
-  background-color: rgba(60, 60, 60, 0.75);
+  color: var(--color-fg);
+  background-color: var(--color-lightbox);
   border-radius: 5px;
 }
 
@@ -148,10 +159,9 @@ body {
   pointer-events: all;
   width: 95%;
   height: 75%;
-  border-style: solid;
-  border-width: 5px;
-  border-radius: 15px;
-  border-color: #00bfff;
+  background-color: var(--color-lightbox);
+  border-radius: 5px;
+  box-shadow: var(--box-shadow);
 }
 
 .border-box.fade {
@@ -162,7 +172,7 @@ body {
 .titles {
   display: inline-flex;
   align-items: center;
-  color: #fff;
+  color: var(--color-fg);
   font-style: italic;
 }
 
@@ -186,10 +196,11 @@ h3 {
 p {
   font-size: calc(1vh + 2vw);
   margin-left: 5px;
-  color: #fff;
+  color: var(--color-fg);
 }
+/*#endregion MAIN STYLES*/
 
-/* ------- Main Box Toggles -------*/
+/*#region TOGGLES*/
 .toggle {
   margin: auto;
   width: 90%;
@@ -215,13 +226,13 @@ p {
   box-sizing: border-box;
   position: relative;
   display: inline-block;
-  border: solid 1px #DDD;
-  background-color: rgba(255, 255, 255, 1);
+  background-color: var(--color-bg);
+  color: rgba(255, 255, 255, .25);
   font-size: calc(14px + 1vw);
   line-height: 140%;
   font-weight: 600;
   text-align: center;
-  box-shadow: 0 0 0 rgba(255, 255, 255, 0);
+  box-shadow: var(--box-shadow);
   transition: border-color 0.15s ease-out, color 0.25s ease-out, background-color 0.15s ease-out, box-shadow 0.15s ease-out;
 }
 
@@ -236,37 +247,37 @@ p {
 }
 
 .toggle input:hover+label {
-  border-color: #213140;
+  transform: scale(1.05);
+}
+
+.toggle input:active+label {
+  transform: scale(.95);
 }
 
 .toggle input:checked+label:first-of-type {
-  background-color: #00aa63;
-  color: #FFF;
-  box-shadow: 0 0 10px rgba(102, 179, 251, 0.5);
-  border-color: #4B9DEA;
+  background-color: var(--color-green);
+  color: var(--color-fg);
 }
 
 .toggle input:checked+label:last-of-type {
-  background-color: #f04545;
-  color: #FFF;
-  box-shadow: 0 0 10px rgba(102, 179, 251, 0.5);
-  border-color: #4B9DEA;
+  background-color: var(--color-red);
+  color: var(--color-fg);
 }
 
 @media (max-width: 9999px) {
   .toggle input+label {
-      padding: 0.75rem 0.25rem;
-      flex: 0 0 30%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 5vh;
+    padding: 0.75rem 0.25rem;
+    flex: 0 0 30%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 5vh;
   }
 }
 
+/*#endregion TOGGLES*/
 
-/* ----------------------------- */
-/*SPLASH SCREEN OVERLAY DESIGN*/
+/*#region SPLASH SCREENS & OVERLAYS*/
 #splash-screen-overlay {
   display: flex;
   align-items: center;
@@ -290,8 +301,8 @@ p {
 }
 
 #not-time-text-box {
-  background-color: rgba(255,255,255,.05);
-  color: #fff;
+  background-color: rgba(255, 255, 255, .05);
+  color: var(--color-fg);
   height: 92.5%;
   width: 95%;
   margin: auto;
@@ -325,14 +336,14 @@ p {
   justify-content: flex-start;
   align-items: center;
   padding-left: 2%;
-  color: #fff;
+  color: var(--color-fg);
 }
 
 .overlay-buttons.submit {
   background: #00aa63;
   border-radius: 5px;
   border: 3px solid #00aa63;
-  color: #fff;
+  color: var(--color-fg);
   margin-right: 2.5%;
   cursor: pointer;
   font-family: 'Open Sans';
@@ -346,11 +357,11 @@ p {
 }
 
 .overlay-buttons.submit:hover {
-  background-color: transparent;   
+  background-color: transparent;
   transform: scale(1.05);
 }
 
-.overlay-buttons.submit:active {   
+.overlay-buttons.submit:active {
   transform: scale(0.9);
 }
 
@@ -358,7 +369,7 @@ p {
   background: #f04545;
   border-radius: 5px;
   border: 3px solid #f04545;
-  color: #fff;
+  color: var(--color-fg);
   margin-right: 2.5%;
   cursor: pointer;
   font-family: 'Open Sans';
@@ -411,8 +422,8 @@ p {
   width: 95%;
   margin: auto;
   border-radius: 10px;
-  resize: none;   
-  font-size: calc(1rem + 1vw); 
+  resize: none;
+  font-size: calc(1rem + 1vw);
 }
 
 /**********************/
@@ -436,8 +447,8 @@ p {
 }
 
 #option-text-box {
-  background-color: rgba(255,255,255,.05);
-  color: #fff;
+  background-color: rgba(255, 255, 255, .05);
+  color: var(--color-fg);
   height: 92.5%;
   width: 95%;
   margin: auto;
@@ -466,8 +477,8 @@ p {
 }
 
 #amount-text-box {
-  background-color: rgba(255,255,255,.05);
-  color: #fff;
+  background-color: rgba(255, 255, 255, .05);
+  color: var(--color-fg);
   height: 92.5%;
   width: 95%;
   margin: auto;
@@ -496,8 +507,8 @@ p {
 }
 
 #success-text-box {
-  background-color: rgba(255,255,255,.05);
-  color: #fff;
+  background-color: rgba(255, 255, 255, .05);
+  color: var(--color-fg);
   height: 92.5%;
   width: 95%;
   margin: auto;
@@ -526,8 +537,8 @@ p {
 }
 
 #database-text-box {
-  background-color: rgba(255,255,255,.05);
-  color: #fff;
+  background-color: rgba(255, 255, 255, .05);
+  color: var(--color-fg);
   height: 92.5%;
   width: 95%;
   margin: auto;
@@ -535,142 +546,14 @@ p {
   resize: none;
 }
 
-/*********************/
-
 /*LOADING ANIMATION*/
 @keyframes rotate-loading {
   0% {
     transform: rotate(0deg);
-    -ms-transform: rotate(0deg);
-    -webkit-transform: rotate(0deg);
-    -o-transform: rotate(0deg);
-    -moz-transform: rotate(0deg);
   }
-  100% {
-    transform: rotate(360deg);
-    -ms-transform: rotate(360deg);
-    -webkit-transform: rotate(360deg);
-    -o-transform: rotate(360deg);
-    -moz-transform: rotate(360deg);
-  }
-}
 
-@-moz-keyframes rotate-loading {
-  0% {
-    transform: rotate(0deg);
-    -ms-transform: rotate(0deg);
-    -webkit-transform: rotate(0deg);
-    -o-transform: rotate(0deg);
-    -moz-transform: rotate(0deg);
-  }
   100% {
     transform: rotate(360deg);
-    -ms-transform: rotate(360deg);
-    -webkit-transform: rotate(360deg);
-    -o-transform: rotate(360deg);
-    -moz-transform: rotate(360deg);
-  }
-}
-
-@-webkit-keyframes rotate-loading {
-  0% {
-    transform: rotate(0deg);
-    -ms-transform: rotate(0deg);
-    -webkit-transform: rotate(0deg);
-    -o-transform: rotate(0deg);
-    -moz-transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-    -ms-transform: rotate(360deg);
-    -webkit-transform: rotate(360deg);
-    -o-transform: rotate(360deg);
-    -moz-transform: rotate(360deg);
-  }
-}
-
-@-o-keyframes rotate-loading {
-  0% {
-    transform: rotate(0deg);
-    -ms-transform: rotate(0deg);
-    -webkit-transform: rotate(0deg);
-    -o-transform: rotate(0deg);
-    -moz-transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-    -ms-transform: rotate(360deg);
-    -webkit-transform: rotate(360deg);
-    -o-transform: rotate(360deg);
-    -moz-transform: rotate(360deg);
-  }
-}
-
-@keyframes rotate-loading {
-  0% {
-    transform: rotate(0deg);
-    -ms-transform: rotate(0deg);
-    -webkit-transform: rotate(0deg);
-    -o-transform: rotate(0deg);
-    -moz-transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-    -ms-transform: rotate(360deg);
-    -webkit-transform: rotate(360deg);
-    -o-transform: rotate(360deg);
-    -moz-transform: rotate(360deg);
-  }
-}
-
-@-moz-keyframes rotate-loading {
-  0% {
-    transform: rotate(0deg);
-    -ms-transform: rotate(0deg);
-    -webkit-transform: rotate(0deg);
-    -o-transform: rotate(0deg);
-    -moz-transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-    -ms-transform: rotate(360deg);
-    -webkit-transform: rotate(360deg);
-    -o-transform: rotate(360deg);
-    -moz-transform: rotate(360deg);
-  }
-}
-
-@-webkit-keyframes rotate-loading {
-  0% {
-    transform: rotate(0deg);
-    -ms-transform: rotate(0deg);
-    -webkit-transform: rotate(0deg);
-    -o-transform: rotate(0deg);
-    -moz-transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-    -ms-transform: rotate(360deg);
-    -webkit-transform: rotate(360deg);
-    -o-transform: rotate(360deg);
-    -moz-transform: rotate(360deg);
-  }
-}
-
-@-o-keyframes rotate-loading {
-  0% {
-    transform: rotate(0deg);
-    -ms-transform: rotate(0deg);
-    -webkit-transform: rotate(0deg);
-    -o-transform: rotate(0deg);
-    -moz-transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-    -ms-transform: rotate(360deg);
-    -webkit-transform: rotate(360deg);
-    -o-transform: rotate(360deg);
-    -moz-transform: rotate(360deg);
   }
 }
 
@@ -678,57 +561,15 @@ p {
   0% {
     opacity: 0;
   }
-  20% {
-    opacity: 0;
-  }
-  50% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
-}
 
-@-moz-keyframes loading-text-opacity {
-  0% {
-    opacity: 0;
-  }
   20% {
     opacity: 0;
   }
-  50% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
-}
 
-@-webkit-keyframes loading-text-opacity {
-  0% {
-    opacity: 0;
-  }
-  20% {
-    opacity: 0;
-  }
   50% {
     opacity: 1;
   }
-  100% {
-    opacity: 0;
-  }
-}
 
-@-o-keyframes loading-text-opacity {
-  0% {
-    opacity: 0;
-  }
-  20% {
-    opacity: 0;
-  }
-  50% {
-    opacity: 1;
-  }
   100% {
     opacity: 0;
   }
@@ -752,23 +593,14 @@ p {
 
 .loading {
   border: 2px solid transparent;
-  border-color: transparent #fff transparent #fff;
-  -moz-animation: rotate-loading 1.5s linear 0s infinite normal;
-  -moz-transform-origin: 50% 50%;
-  -o-animation: rotate-loading 1.5s linear 0s infinite normal;
-  -o-transform-origin: 50% 50%;
-  -webkit-animation: rotate-loading 1.5s linear 0s infinite normal;
-  -webkit-transform-origin: 50% 50%;
+  border-color: transparent var(--color-fg) transparent var(--color-fg);
   animation: rotate-loading 1.5s linear 0s infinite normal;
   transform-origin: 50% 50%;
 }
 
 #loading-text {
-  -moz-animation: loading-text-opacity 2s linear 0s infinite normal;
-  -o-animation: loading-text-opacity 2s linear 0s infinite normal;
-  -webkit-animation: loading-text-opacity 2s linear 0s infinite normal;
   animation: loading-text-opacity 2s linear 0s infinite normal;
-  color: #ffffff;
+  color: var(--color-fg);
   font-size: calc(10px + 1vw);
   font-weight: bold;
   opacity: 0;
@@ -781,4 +613,5 @@ p {
   justify-content: center;
   align-items: center;
 }
-/*********************/
+
+/*#endregion SPLASH SCREENS & OVERLAYS*/

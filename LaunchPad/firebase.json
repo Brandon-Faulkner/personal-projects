@@ -2,22 +2,41 @@
   "database": {
     "rules": "database.rules.json"
   },
-  "hosting": [
-    {
-      "target": "leaderboard",
-      "public": "public/leaderboard"
-    },
-    {
-      "target": "options",
-      "public": "public/options"
-    },
-    {
-      "target": "questions",
-      "public": "public/questions"
-    },
-    {
-      "target": "user",
-      "public": "public/user"
-    }
-  ]
+  "hosting": {
+    "public": "public",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "redirects":[
+      {
+        "source": "/",
+        "destination": "/user",
+        "type": 301
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "/options",
+        "destination": "/options",
+        "type": 301
+      },
+      {
+        "source": "/questions",
+        "destination": "/questions",
+        "type": 301
+      },
+      {
+        "source": "/leaderboard",
+        "destination": "/leaderboard",
+        "type": 301
+      },
+      {
+        "source": "/user",
+        "destination": "/user",
+        "type": 301
+      }
+    ]
+  }
 }
