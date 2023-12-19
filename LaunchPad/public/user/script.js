@@ -1,3 +1,4 @@
+//#region Firebase Initalization
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-app.js";
 import { getDatabase, ref, onValue, child, push, set } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-database.js";
@@ -18,373 +19,302 @@ const app = initializeApp(firebaseConfig);
 // Initialize Realtime Database
 const database = getDatabase(app);
 
-//Enable loading screen until Firebase is connected
-//Then determine if User App is Usable now or not
 const connectedRef = ref(database, ".info/connected");
-const loadingContainer = document.getElementById("loading-container");
 const isUsableRef = ref(database, 'UserApp/isUsable');
-const splashScreenOverlay = document.getElementById("splash-screen-overlay");
-const notTimeBox = document.getElementById("not-time-box");
-
-onValue(connectedRef, (snapshot) => {
-
-  if (snapshot.val() === true) {
-
-    onValue(isUsableRef, (snapshot) => {
-      const usable = snapshot.val();
-
-      if (String(usable) === "true") {
-        setTimeout(function () {
-          $(splashScreenOverlay).fadeOut(500);
-          $(notTimeBox).fadeOut(500);
-          if (!loadingContainer.classList.contains('fade')) {
-            loadingContainer.classList.toggle('fade');
-          }
-        }, 2000);
-      }
-      else {
-        $(splashScreenOverlay).fadeIn(500);
-        $(notTimeBox).fadeIn(500);
-        if (!loadingContainer.classList.contains('fade')) {
-          loadingContainer.classList.toggle('fade');
-        }
-      }
-    });
-  }
-});
-
-//Determine the Current Project Owner
 const projectOwnerRef = ref(database, 'UserApp/CurrentProject');
-const projectOwnerName = document.getElementById("project-owner-name");
-onValue(projectOwnerRef, (snapshot) => {
-  const project = snapshot.val();
-  projectOwnerName.textContent = project;
-
-  //Reset amount to null and board choices to no
-  var amount = document.getElementById("currency-field");
-  var prayerRadio = document.getElementById("prayerNo");
-  var donorRadio = document.getElementById("donorNo");
-  var teamRadio = document.getElementById("teamNo");
-
-  amount.value = "";
-  prayerRadio.checked = true;
-  donorRadio.checked = true;
-  teamRadio.checked = true;
-});
-
-//Determine the Current Sponsor
 const sponsorNameRef = ref(database, 'UserApp/CurrentSponsor');
-const sponsorName = document.getElementById("sponor-name");
-onValue(sponsorNameRef, (snapshot) => {
-  const sponsor = snapshot.val();
-  sponsorName.textContent = sponsor;
-});
-
-//Determine if the Boards are on or not
 const prayerBoardRef = ref(database, 'UserApp/isPrayerBoardOn');
 const donorBoardRef = ref(database, 'UserApp/isDonorBoardOn');
 const teamBoardRef = ref(database, 'UserApp/isTeamBoardOn');
+//#endregion Firebase Initialization
 
-const prayerBoard = document.getElementById("prayer");
-const donorBoard = document.getElementById("donor");
-const teamBoard = document.getElementById("team");
-
-//Prayer Board
-onValue(prayerBoardRef, (snapshot) => {
-  const prayer = snapshot.val();
-
-  if (String(prayer) === "true") {
-    if (prayerBoard.classList.contains('fade')) {
-      prayerBoard.classList.toggle('fade');
-    }
-  }
-  else if (String(prayer) === "false") {
-    if (!prayerBoard.classList.contains('fade')) {
-      prayerBoard.classList.toggle('fade');
-    }
-  }
-});
-
-//Donor Board
-onValue(donorBoardRef, (snapshot) => {
-  const donor = snapshot.val();
-  const enableDisableAmount = document.getElementById("currency-field");
-
-  if (String(donor) === "true") {
-    enableDisableAmount.disabled = false;
-
-    if (donorBoard.classList.contains('fade')) {
-      donorBoard.classList.toggle('fade');
-    }
-  }
-  else if (String(donor) === "false") {
-    enableDisableAmount.disabled = true;
-
-    if (!donorBoard.classList.contains('fade')) {
-      donorBoard.classList.toggle('fade');
-    }
-  }
-});
-
-//Team Board
-onValue(teamBoardRef, (snapshot) => {
-  const team = snapshot.val();
-
-  if (String(team) === "true") {
-    if (teamBoard.classList.contains('fade')) {
-      teamBoard.classList.toggle('fade');
-    }
-  }
-  else if (String(team) === "false") {
-    if (!teamBoard.classList.contains('fade')) {
-      teamBoard.classList.toggle('fade');
-    }
-  }
-});
-/**********************************************************************************/
-
-//AMOUNT FORMAT CODE ****************
-$("input[data-type='currency']").on({
-  keyup: function () {
-    formatCurrency($(this));
-  },
-  blur: function () {
-    formatCurrency($(this), "blur");
-  }
-});
-
-function formatNumber(n) {
-  // format number 1000000 to 1,234,567
-  return n.replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-}
-
-function formatCurrency(input, blur) {
-  // appends $ to value, validates decimal side
-  // and puts cursor back in right position.
-
-  // get input value
-  var input_val = input.val();
-
-  // don't validate empty input
-  if (input_val === "") { return; }
-
-  // original length
-  var original_len = input_val.length;
-
-  // initial caret position 
-  var caret_pos = input.prop("selectionStart");
-
-  // check for decimal
-  if (input_val.indexOf(".") >= 0) {
-
-    // get position of first decimal
-    // this prevents multiple decimals from
-    // being entered
-    var decimal_pos = input_val.indexOf(".");
-
-    // split number by decimal point
-    var left_side = input_val.substring(0, decimal_pos);
-    var right_side = input_val.substring(decimal_pos);
-
-    // add commas to left side of number
-    left_side = formatNumber(left_side);
-
-    // validate right side
-    right_side = formatNumber(right_side);
-
-    // On blur make sure 2 numbers after decimal
-    if (blur === "blur") {
-      right_side += "00";
-    }
-
-    // Limit decimal to only 2 digits
-    right_side = right_side.substring(0, 2);
-
-    // join number by .
-    input_val = "$" + left_side + "." + right_side;
-
-  } else {
-    // no decimal entered
-    // add commas to number
-    // remove all non-digits
-    input_val = formatNumber(input_val);
-    input_val = "$" + input_val;
-
-    // final formatting
-    if (blur === "blur") {
-      //input_val += ".00";
-    }
-  }
-
-  // send updated string to input
-  input.val(input_val);
-
-  // put caret back in the right position
-  var updated_len = input_val.length;
-  caret_pos = updated_len - original_len + caret_pos;
-  input[0].setSelectionRange(caret_pos, caret_pos);
-}
-/**********************************************************************************/
-
-//ALL OVERLAY FUNCTIONS**************
+//#region Main Functions
 window.addEventListener('load', (event) => {
-  var mainOverlay = document.getElementById("main-overlay");
+  //#region Variables
+  //Overlay Elems
+  const loadingAnim = document.getElementById("loader");
+  const loadingOverlay = document.getElementById("loading-overlay");
+  const notTimeBox = document.getElementById("not-time-box");
+  const mainOverlay = document.getElementById("main-overlay");
+  const overlayMainBox = document.getElementById("overlay-mainbox");
+  const overlayTitle = document.getElementById("overlay-title");
+  const overlayTextBox = document.getElementById("overlay-textbox");
+  const btnOverlayCancel = document.getElementById("btnOverlayCancel");
+  const btnOverlaySubmit = document.getElementById("btnOverlaySubmit");
 
-  //QUESTION OVERLAY
-  var questionsBox = document.getElementById("questions-box");
-  var btnQuestion = document.getElementById("btnQuestion");
-  var btnQuestionCancel = document.getElementById("btnQuestionCancel");
-  var btnQuestionSubmit = document.getElementById("btnQuestionSubmit");
-  var enteredQuestion = document.getElementById("question-text-box");
+  //Overlay Messages - Option Not Selected, Amount Is Empty, Submission Successful, Database Error
+  const submitOptionText = "It looks like you didn't select from one of the available options to be apart of for this project. Before you submit, please make sure to select any option(s)."
+  const submitAmountText = "Please enter your donation amount to update the leaderboard. We'll contact you after LaunchPad to finalize your donation. Press submit after entering the amount."
+  const submitSuccessText = "Your name and options for the project are submitted successfully and should show on the Leaderboard! If you chose to be a Donor/Pledger, no payment today; we'll reach out post LaunchPad for the contribution."
+  const submitErrorText = "Oops! Something went wrong with your submission. Please submit again or reload the page and submit."
 
-  btnQuestion.addEventListener('click', function () {
-    mainOverlay.classList.toggle('fade');
-    questionsBox.classList.toggle('fade');
-  });
+  //Main page Elems
+  const projectOwnerName = document.getElementById("project-owner-name");
+  const sponsorName = document.getElementById("sponor-name");
+  const prayerBoard = document.getElementById("prayer");
+  const donorBoard = document.getElementById("donor");
+  const teamBoard = document.getElementById("team");
 
-  btnQuestionCancel.addEventListener('click', function () {
-    mainOverlay.classList.toggle('fade');
-    questionsBox.classList.toggle('fade');
+  const btnQuestion = document.getElementById("btnQuestion");
+  const usersName = document.getElementById("usersName");
+  const btnSubmit = document.getElementById("btnSubmit");
 
-    enteredQuestion.value = "";
-  });
+  const inputCurrency = document.getElementById("currency-field");
+  inputCurrency.addEventListener("keyup", function () { FormatCurrency(inputCurrency) });
+  inputCurrency.addEventListener("blur", function () { FormatCurrency(inputCurrency, "blur") });
+  //#endregion Variables
 
-  btnQuestionSubmit.addEventListener('click', function () {
-    mainOverlay.classList.toggle('fade');
-    questionsBox.classList.toggle('fade');
-
-    if (enteredQuestion.value != "" && enteredQuestion.value != " ") {
-      //Submit the question to the DB under UserApp/Questions
-      push(child(ref(database), 'UserApp/Questions'), enteredQuestion.value);
+  //#region Firebase Listeners
+  onValue(connectedRef, (snapshot) => {
+    if (snapshot.val() === true) {
+      onValue(isUsableRef, (snapshot) => {
+        if (String(snapshot.val()) === "true") {
+          setTimeout(function () {
+            FadeElems(loadingOverlay, false);
+            FadeElems(notTimeBox, false);
+            FadeElems(loadingAnim, false);
+          }, 1000);
+        }
+        else {
+          FadeElems(loadingOverlay, true);
+          FadeElems(notTimeBox, true);
+          FadeElems(loadingAnim, true);
+        }
+      });
     }
-
-    enteredQuestion.value = "";
   });
 
-  //FADE IN SUBMIT BTN WHEN NAME IS ENTERED
-  var name = document.getElementById("name");
-  var btnSubmit = document.getElementById("btnSubmit");
+  //Determine the Current Project Owner
+  onValue(projectOwnerRef, (snapshot) => {
+    const project = snapshot.val();
+    projectOwnerName.textContent = project;
 
-  name.addEventListener('input', function () {
+    inputCurrency.value = "";
+    document.getElementById("prayerNo").checked = true;
+    document.getElementById("donorNo").checked = true;
+    document.getElementById("teamNo").checked = true;
+  });
+
+  //Determine the Current Sponsor
+  onValue(sponsorNameRef, (snapshot) => {
+    const sponsor = snapshot.val();
+    sponsorName.textContent = sponsor;
+  });
+
+  //Prayer Board
+  onValue(prayerBoardRef, (snapshot) => {
+    const prayer = snapshot.val();
+
+    if (String(prayer) === "true") {
+      FadeElems(prayerBoard, true);
+    }
+    else if (String(prayer) === "false") {
+      FadeElems(prayerBoard, false);
+    }
+  });
+
+  //Donor Board
+  onValue(donorBoardRef, (snapshot) => {
+    const donor = snapshot.val();
+
+    if (String(donor) === "true") {
+      inputCurrency.disabled = false;
+      FadeElems(donorBoard, true);
+    }
+    else if (String(donor) === "false") {
+      inputCurrency.disabled = true;
+      FadeElems(donorBoard, false);
+    }
+  });
+
+  //Team Board
+  onValue(teamBoardRef, (snapshot) => {
+    const team = snapshot.val();
+
+    if (String(team) === "true") {
+      FadeElems(teamBoard, true);
+    }
+    else if (String(team) === "false") {
+      FadeElems(teamBoard, false);
+    }
+  });
+  //#endregion Firebase Listeners
+
+  //#region Event Listeners
+  usersName.addEventListener('input', function () {
     this.value = this.value.replace(/[0123456789,./\\/-=+/';"\]\[{}/()!@#$%^&*`~_<>?:|/]/g, "");
-    if (name.value.trim().length >= 1) {
-      if (!btnSubmit.classList.contains('fade')) {
-        btnSubmit.classList.toggle('fade');
-      }
+    if (usersName.value.trim().length >= 1) {
+      FadeElems(btnSubmit, true)
     }
     else {
-      if (btnSubmit.classList.contains('fade')) {
-        btnSubmit.classList.toggle('fade');
-      }
+      FadeElems(btnSubmit, false);
     }
   });
 
-  //SUBMIT ERROR/SUCCESS OVERLAYS*******************
-  var submitOptionBox = document.getElementById("submit-option-box");
-  var submitAmountBox = document.getElementById("submit-amount-box");
-  var submitSuccessBox = document.getElementById("submit-success-box");
-  var databaseErrorBox = document.getElementById("database-error-box");
+  btnQuestion.addEventListener('click', function () {
+    FadeElems(mainOverlay, true);
+    UpdatePopup("question", "What's on your mind?", "true", "");
+  });
 
-  var btnOptionOk = document.getElementById("btnOptionOk");
-  var btnAmountOk = document.getElementById("btnAmountOk");
-  var btnSuccessOk = document.getElementById("btnSuccessOk");
-  var btnDatabaseOk = document.getElementById("btnDatabaseOk");
+  btnOverlayCancel.addEventListener('click', function () {
+    FadeElems(mainOverlay, false);
+    UpdatePopup("popup", "Title", "false", "");
+  });
+
+  btnOverlaySubmit.addEventListener('click', function () {
+    FadeElems(mainOverlay, false);
+
+    if (overlayMainBox.getAttribute("data-type") == "question") {
+      if (overlayTextBox.textContent != "" && overlayTextBox.textContent != " ") {
+        //Submit the question to the DB under UserApp/Questions
+        push(child(ref(database), 'UserApp/Questions'), overlayTextBox.textContent);
+      }
+    }
+  
+    UpdatePopup("popup", "Title", "false", "");
+  });
 
   btnSubmit.addEventListener('click', function () {
-    var userName = document.getElementById("name").value.trim();
-    var userAmount = document.getElementById("currency-field").value;
+    var donorPath = projectOwnerName.textContent + "/Board:Donors/Names";
+    var prayerPath = projectOwnerName.textContent + "/Board:PrayerPartners/Names";
+    var teamPath = projectOwnerName.textContent + "/Board:TeamMembers/Names";
 
-    var projectOwnerValue = document.getElementById("project-owner-name").textContent;
-    var donorPath = projectOwnerValue + "/Board:Donors/Names";
-    var prayerPath = projectOwnerValue + "/Board:PrayerPartners/Names";
-    var teamPath = projectOwnerValue + "/Board:TeamMembers/Names";
-
-    var prayerRadio = $("input[type=radio][name=prayerRadio]:checked").val();
-    var donorRadio = $("input[type=radio][name=donorRadio]:checked").val();
-    var teamRadio = $("input[type=radio][name=teamRadio]:checked").val();
+    var prayerValue = document.querySelector('input[name="prayerRadio"]:checked').value;
+    var donorValue = document.querySelector('input[name="donorRadio"]:checked').value;
+    var teamValue = document.querySelector('input[name="teamRadio"]:checked').value;
 
     try {
+      FadeElems(mainOverlay, true);
+
       //Determine which submit overlay to show
-      if (prayerRadio == "no" && donorRadio == "no" && teamRadio == "no") {
-        mainOverlay.classList.toggle('fade');
-        submitOptionBox.classList.toggle('fade');
+      if (prayerValue == "no" && donorValue == "no" && teamValue == "no") {
+        UpdatePopup("popup", "Option Not Selected", "false", submitOptionText);
       }
       else {
-        if (donorRadio == "yes") {
-          mainOverlay.classList.toggle('fade');
-
-          var editedAmount = String(userAmount).replace(/[$,]/g, "");
+        if (donorValue == "yes") {
+          var editedAmount = String(inputCurrency.value).replace(/[$,]/g, "");
 
           if (editedAmount > 0) {
-            submitSuccessBox.classList.toggle('fade');
-
             //Submit to donor location in DB        
             var donorKey = push(child(ref(database), 'Projects/' + donorPath)).key;
             set(child(ref(database), 'Projects/' + donorPath + "/" + donorKey), {
-              Name: userName,
+              Name: usersName.value.trim(),
               Pledge: Number(editedAmount)
             });
-            
+
             //Submit to prayer location in DB if yes
-            if (prayerRadio == "yes") {
-              push(child(ref(database), 'Projects/' + prayerPath), userName);
+            if (prayerValue == "yes") {
+              push(child(ref(database), 'Projects/' + prayerPath), usersName.value.trim());
             }
 
             //Submit to team location in DB if yes
-            if (teamRadio == "yes") {
-              push(child(ref(database), 'Projects/' + teamPath), userName);
+            if (teamValue == "yes") {
+              push(child(ref(database), 'Projects/' + teamPath), usersName.value.trim());
             }
+
+            UpdatePopup("popup", "Submission Successful", "false", submitSuccessText);
           }
           else {
-            submitAmountBox.classList.toggle('fade');
+            UpdatePopup("popup", "Amount Is Empty", "false", submitAmountText);
           }
         }
         else {
-          mainOverlay.classList.toggle('fade');
-          submitSuccessBox.classList.toggle('fade');
-
           //Submit to prayer location in DB if yes
-          if (prayerRadio == "yes") {
-            push(child(ref(database), 'Projects/' + prayerPath), userName);
+          if (prayerValue == "yes") {
+            push(child(ref(database), 'Projects/' + prayerPath), usersName.value.trim());
           }
 
           //Submit to team location in DB if yes
-          if (teamRadio == "yes") {
-            push(child(ref(database), 'Projects/' + teamPath), userName);
+          if (teamValue == "yes") {
+            push(child(ref(database), 'Projects/' + teamPath), usersName.value.trim());
           }
+
+          UpdatePopup("popup", "Submission Successful", "false", submitSuccessText);
         }
       }
     } catch (error) {
-      if (!mainOverlay.classList.contains('fade')) {
-        mainOverlay.classList.toggle('fade');
-      }
-
-      if (!databaseErrorBox.classList.contains('fade')) {
-        databaseErrorBox.classList.toggle('fade');
-      }
+      UpdatePopup("popup", "Error With Submission", "false", submitErrorText);
+      console.log(error);
     }
   });
+  //#endregion Event Listeners
+  
+  //#region Helper Functions
+  function FormatNumber(n) {
+    // 1000000 to 1,234,567
+    return n.replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+  
+  function FormatCurrency(input, blur) {
+    var inputValue = input.value;
+  
+    // Don't validate empty input
+    if (!inputValue.trim()) {
+      return;
+    }
+  
+    const originalLength = inputValue.length;
+    const caretPosition = input.selectionStart;
+  
+    // Check for decimal
+    if (inputValue.indexOf(".") >= 0) {
+      const decimalPosition = inputValue.indexOf(".");
+      const leftSide = FormatNumber(inputValue.substring(0, decimalPosition));
+      let rightSide = FormatNumber(inputValue.substring(decimalPosition));
+  
+      leftSide && (inputValue = "$" + leftSide);
+      rightSide = rightSide || "00";
+  
+      // On blur make sure 2 numbers after decimal
+      if (blur === "blur") {
+        rightSide += "00";
+      }
+  
+      // Limit decimal to only 2 digits
+      rightSide = rightSide.substring(0, 2);
+      inputValue += "." + rightSide;
+  
+    } else {
+      // No decimal entered
+      inputValue = "$" + FormatNumber(inputValue);
+    }
+  
+    // Send updated string to input
+    input.value = inputValue;
+  
+    // Put caret back in the right position
+    const updatedLength = inputValue.length;
+    const updatedCaretPosition = updatedLength - originalLength + caretPosition;
+    input.setSelectionRange(updatedCaretPosition, updatedCaretPosition);
+  }
+  
+  function FadeElems(elem, show) {
+    if (show == true) {
+      elem.classList.remove("fadeOut");
+      elem.classList.add("fadeIn");
+    } else {
+      elem.classList.remove("fadeIn");
+      elem.classList.add("fadeOut");
+    }
+  }
+  
+  function UpdatePopup(type, title, editable, content) {
+      overlayMainBox.setAttribute("data-type", type);
+      overlayTitle.textContent = title;
+      overlayTextBox.textContent = content;
 
-  //Option overlay ok button
-  btnOptionOk.addEventListener('click', function () {
-    mainOverlay.classList.toggle("fade");
-    submitOptionBox.classList.toggle("fade");
-  });
+      if (editable == "true") {
+        overlayTextBox.removeAttribute("disabled");
+      } else {
+        overlayTextBox.setAttribute("disabled", "true");
+      }
 
-  //Amount overlay ok button
-  btnAmountOk.addEventListener('click', function () {
-    mainOverlay.classList.toggle('fade');
-    submitAmountBox.classList.toggle('fade');
-  });
-
-  //Success overlay ok button
-  btnSuccessOk.addEventListener('click', function () {
-    mainOverlay.classList.toggle('fade');
-    submitSuccessBox.classList.toggle('fade');
-  });
-
-  btnDatabaseOk.addEventListener('click', function () {
-    mainOverlay.classList.toggle('fade');
-    databaseErrorBox.classList.toggle('fade');
-  })
+      if (type == "question") {
+        btnOverlayCancel.style = "";
+      } else {
+        btnOverlayCancel.style.display = "none";
+      }
+  }
+  //#endregion Helper Functions
 });
+//#endregion Main Functions

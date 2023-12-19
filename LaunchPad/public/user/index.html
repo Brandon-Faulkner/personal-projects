@@ -3,7 +3,8 @@
 
 <head>
     <title>Launchpad User</title>
-    <link href='https://fonts.googleapis.com/css?family=Open Sans' rel='stylesheet'>
+    <link href="https://fonts.cdnfonts.com/css/futura-pt" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
     <link rel="stylesheet" href="style.css">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 </head>
@@ -41,7 +42,7 @@
                 </div>
             </div>
             <div class="grid-name-amount">
-                <input type="text" id="name" class="name-box" placeholder="First & Last Name..." maxlength="32"
+                <input type="text" id="usersName" class="name-box" placeholder="First & Last Name..." maxlength="32"
                     pattern="[^a-zA-Z]+">
                 <input type="text" name="currency-field" id="currency-field" class="amount-box" maxlength="10"
                     pattern="^\$\d{1,3}(,\d{3})*(\.\d+)?$" value="" data-type="currency" placeholder="$0">
@@ -74,70 +75,27 @@
                 </div>
             </div>
             <div id="btnHolder" class="grid-btn-holder">
-                <button id="btnQuestion" type="button" class="button">HAVE A QUESTION?</button>
-                <button id="btnSubmit" type="button" class="button">SUBMIT CHOICES</button>
+                <button id="btnQuestion" type="button" class="button">Questions?</button>
+                <button id="btnSubmit" type="button" class="button fadeOut">Submit</button>
             </div>
         </div>
-        <div id="main-overlay">
-            <div id="questions-box">
-                <h1 id="overlay-title">What Is On Your Mind?</h1>
-                <textarea id="question-text-box" placeholder="Let us know any questions you have..."></textarea>
+        <div id="main-overlay" class="fadeOut">
+            <div id="overlay-mainbox">
+                <h1 id="overlay-title">Title Here</h1>
+                <textarea id="overlay-textbox" placeholder="Let us know your question..."></textarea>
                 <div id="overlay-buttons-holder">
-                    <button id="btnQuestionCancel" class="overlay-buttons cancel" type="button">CANCEL</button>
-                    <button id="btnQuestionSubmit" class="overlay-buttons submit" type="button">SUBMIT</button>
-                </div>
-            </div>
-            <div id="submit-option-box">
-                <h1 id="overlay-title">Option Not Selected</h1>
-                <div id="option-text-box">
-                    <h3>It looks like you didn't select from one of the available options to be apart of for this
-                        project. Before you submit, please make sure to select any option(s).</h3>
-                </div>
-                <div id="overlay-buttons-holder">
-                    <button id="btnOptionOk" class="overlay-buttons submit" type="button">GOT IT</button>
-                </div>
-            </div>
-            <div id="submit-amount-box">
-                <h1 id="overlay-title">Amount Is Empty</h1>
-                <div id="amount-text-box">
-                    <h3>It looks like you have selected to be a Donor/Pledger but you have not entered in the amount you
-                        plan to give or the amount is still at $0. The amount you enter is only used to update the
-                        leaderboard. We will be contacting you after LaunchPad to complete your donation. Please enter
-                        the amount you plan to give then press submit again.</h3>
-                </div>
-                <div id="overlay-buttons-holder">
-                    <button id="btnAmountOk" class="overlay-buttons submit" type="button">GOT IT</button>
-                </div>
-            </div>
-            <div id="submit-success-box">
-                <h1 id="overlay-title">Submission Successful</h1>
-                <div id="success-text-box">
-                    <h3>You have successfully submitted your name with your selected options on the current project!
-                        Check out the leaderboard and see if you can spot your name! If you selected to be a
-                        Donor/Pledger, you will not be giving today, but we will contact you after LaunchPad to do so!
-                    </h3>
-                </div>
-                <div id="overlay-buttons-holder">
-                    <button id="btnSuccessOk" class="overlay-buttons submit" type="button">GOT IT</button>
-                </div>
-            </div>
-            <div id="database-error-box">
-                <h1 id="overlay-title">Database Error</h1>
-                <div id="database-text-box">
-                    <h3>It seems that there was an issue connecting to the database. First, make sure you didn't lose
-                        internet connection then try reloading the page or submitting your data again. If it still gives
-                        you this error, try closing your browser and relaunching this page.
-                    </h3>
-                </div>
-                <div id="overlay-buttons-holder">
-                    <button id="btnDatabaseOk" class="overlay-buttons submit" type="button">GOT IT</button>
+                    <button id="btnOverlayCancel" class="overlay-buttons cancel" type="button">CANCEL</button>
+                    <button id="btnOverlaySubmit" class="overlay-buttons submit" type="button">GOT IT</button>
                 </div>
             </div>
         </div>
-        <div id="splash-screen-overlay">
-            <div id="loading-container" class="loading-container">
-                <div class="loading"></div>
-                <div id="loading-text">loading</div>
+        <div id="loading-overlay">
+            <div id="loader">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
             </div>
             <div id="not-time-box">
                 <h1 id="overlay-title">Not Time For LaunchPad Yet!</h1>
@@ -151,7 +109,6 @@
         </div>
     </div>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <script type="module" src="script.js"></script>
 </body>
 
