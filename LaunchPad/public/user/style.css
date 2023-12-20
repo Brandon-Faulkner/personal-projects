@@ -186,12 +186,24 @@ input, textarea {
 }
 
 .amount-box {
-  font-size: calc(8px + 2vw);
+  font-size: calc(16px + 1vw);
   text-align: center;
   display: flex;
   color: var(--color-fg);
   background-color: var(--color-lightbox);
   border-radius: 5px;
+}
+
+.amount-box:disabled,
+.amount-box[disabled] {
+  background: transparent;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.amount-box:disabled::placeholder,
+.amount-box[disabled]::placeholder {
+  color: var(--color-lightwhite);
 }
 
 .border-box {
@@ -207,6 +219,7 @@ input, textarea {
   align-items: center;
   color: var(--color-fg);
   font-style: italic;
+  cursor: default;
 }
 
 h1 {
@@ -376,56 +389,27 @@ p {
   align-items: center;
   padding-left: 2.5%;
   color: var(--color-fg);
+  cursor: default;
 }
 
-.overlay-buttons.submit {
+.overlay-cancel {
+  background: var(--color-red);
+  margin: 0 3.5% 0 0;
+  width: calc(50px + 10vw);
+  height: 60%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.overlay-submit {
   background: var(--color-green);
-  border-radius: 5px;
-  border: 3px solid var(--color-green);
-  color: var(--color-fg);
-  margin-right: 2.5%;
-  cursor: pointer;
-  font-size: calc(1vh + 1vw);
-  transition-duration: .4s;
+  margin: 0 3.5% 0 0;
   width: calc(50px + 10vw);
   height: 60%;
   display: flex;
   justify-content: center;
   align-items: center;
-}
-
-.overlay-buttons.submit:hover {
-  background-color: transparent;
-  transform: scale(1.05);
-}
-
-.overlay-buttons.submit:active {
-  transform: scale(0.9);
-}
-
-.overlay-buttons.cancel {
-  background: var(--color-red); 
-  border-radius: 5px;
-  border: 3px solid var(--color-red);
-  color: var(--color-fg);
-  margin-right: 2.5%;
-  cursor: pointer;
-  font-size: calc(1vh + 1vw);
-  transition-duration: .4s;
-  width: calc(50px + 10vw);
-  height: 60%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.overlay-buttons.cancel:hover {
-  background-color: transparent;
-  transform: scale(1.05);
-}
-
-.overlay-buttons.cancel:active {
-  transform: scale(0.9);
 }
 
 #overlay-buttons-holder {
@@ -459,8 +443,9 @@ p {
   margin: auto;
   border-radius: 10px;
   resize: none;
-  font-size: calc(10px + 1vw);
-  padding-left: 5px;
+  font-size: calc(14px + 1vw);
+  padding: 10px;
+  box-sizing: border-box;
 }
 
 /*LOADING ANIMATION*/

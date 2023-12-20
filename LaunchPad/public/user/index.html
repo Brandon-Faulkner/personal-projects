@@ -19,7 +19,7 @@
                 </div>
             </div>
             <div class="light-box">
-                <p id="project-owner-name">Project Owner Name</p>
+                <p id="project-owner-name" style="cursor: default;">Project Owner Name</p>
             </div>
         </div>
         <div id="sponsor" class="grid-dark-box">
@@ -30,7 +30,7 @@
                 </div>
             </div>
             <div class="light-box">
-                <p id="sponor-name">Sponsor Name</p>
+                <p id="sponsor-name" style="cursor: default;">Sponsor Name</p>
             </div>
         </div>
         <div id="contributions" class="grid-main-box">
@@ -42,10 +42,8 @@
                 </div>
             </div>
             <div class="grid-name-amount">
-                <input type="text" id="usersName" class="name-box" placeholder="First & Last Name..." maxlength="32"
-                    pattern="[^a-zA-Z]+">
-                <input type="text" name="currency-field" id="currency-field" class="amount-box" maxlength="10"
-                    pattern="^\$\d{1,3}(,\d{3})*(\.\d+)?$" value="" data-type="currency" placeholder="$0">
+                <input type="text" id="usersName" class="name-box" placeholder="First & Last Name..." maxlength="32">
+                <input type="text" id="currency-field" class="amount-box" placeholder="$0" maxlength="10" >
             </div>
             <div id="prayer" class="border-box grid-radios">
                 <h1 class="titles" style="align-items: center;justify-content: center;margin: auto;">Prayer Partner</h1>
@@ -84,8 +82,8 @@
                 <h1 id="overlay-title">Title Here</h1>
                 <textarea id="overlay-textbox" placeholder="Let us know your question..."></textarea>
                 <div id="overlay-buttons-holder">
-                    <button id="btnOverlayCancel" class="overlay-buttons cancel" type="button">CANCEL</button>
-                    <button id="btnOverlaySubmit" class="overlay-buttons submit" type="button">GOT IT</button>
+                    <button id="btnOverlayCancel" class="button overlay-cancel" type="button">Cancel</button>
+                    <button id="btnOverlaySubmit" class="button overlay-submit" type="button">Got It</button>
                 </div>
             </div>
         </div>

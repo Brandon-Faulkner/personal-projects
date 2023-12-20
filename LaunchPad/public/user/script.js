@@ -42,15 +42,15 @@ window.addEventListener('load', (event) => {
   const btnOverlayCancel = document.getElementById("btnOverlayCancel");
   const btnOverlaySubmit = document.getElementById("btnOverlaySubmit");
 
-  //Overlay Messages - Option Not Selected, Amount Is Empty, Submission Successful, Database Error
-  const submitOptionText = "It looks like you didn't select from one of the available options to be apart of for this project. Before you submit, please make sure to select any option(s)."
+  //Overlay Messages - Option Not Selected, Amount Is Empty, Submission Successful, Error With Submission
+  const submitOptionText = "It looks like you didn't select from one of the available options to be part of for this project. Before you submit, please make sure to select any option(s)."
   const submitAmountText = "Please enter your donation amount to update the leaderboard. We'll contact you after LaunchPad to finalize your donation. Press submit after entering the amount."
   const submitSuccessText = "Your name and options for the project are submitted successfully and should show on the Leaderboard! If you chose to be a Donor/Pledger, no payment today; we'll reach out post LaunchPad for the contribution."
   const submitErrorText = "Oops! Something went wrong with your submission. Please submit again or reload the page and submit."
 
   //Main page Elems
   const projectOwnerName = document.getElementById("project-owner-name");
-  const sponsorName = document.getElementById("sponor-name");
+  const sponsorName = document.getElementById("sponsor-name");
   const prayerBoard = document.getElementById("prayer");
   const donorBoard = document.getElementById("donor");
   const teamBoard = document.getElementById("team");
@@ -60,8 +60,7 @@ window.addEventListener('load', (event) => {
   const btnSubmit = document.getElementById("btnSubmit");
 
   const inputCurrency = document.getElementById("currency-field");
-  inputCurrency.addEventListener("keyup", function () { FormatCurrency(inputCurrency) });
-  inputCurrency.addEventListener("blur", function () { FormatCurrency(inputCurrency, "blur") });
+  inputCurrency.addEventListener("keyup", function () { CheckForNumber(inputCurrency) });
   //#endregion Variables
 
   //#region Firebase Listeners
@@ -170,7 +169,7 @@ window.addEventListener('load', (event) => {
         push(child(ref(database), 'UserApp/Questions'), overlayTextBox.textContent);
       }
     }
-  
+
     UpdatePopup("popup", "Title", "false", "");
   });
 
@@ -238,56 +237,35 @@ window.addEventListener('load', (event) => {
     }
   });
   //#endregion Event Listeners
-  
+
   //#region Helper Functions
-  function FormatNumber(n) {
-    // 1000000 to 1,234,567
-    return n.replace(/\D/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-  }
-  
-  function FormatCurrency(input, blur) {
-    var inputValue = input.value;
-  
-    // Don't validate empty input
-    if (!inputValue.trim()) {
+  var goodValue = null;
+  function CheckForNumber(input) {
+    const inputValue = input.value.replace(/\$|,/g, "");
+
+    if (inputValue == "0" || inputValue == "") {
+      goodValue = "";
+      input.value = goodValue;
       return;
     }
-  
-    const originalLength = inputValue.length;
-    const caretPosition = input.selectionStart;
-  
-    // Check for decimal
-    if (inputValue.indexOf(".") >= 0) {
-      const decimalPosition = inputValue.indexOf(".");
-      const leftSide = FormatNumber(inputValue.substring(0, decimalPosition));
-      let rightSide = FormatNumber(inputValue.substring(decimalPosition));
-  
-      leftSide && (inputValue = "$" + leftSide);
-      rightSide = rightSide || "00";
-  
-      // On blur make sure 2 numbers after decimal
-      if (blur === "blur") {
-        rightSide += "00";
-      }
-  
-      // Limit decimal to only 2 digits
-      rightSide = rightSide.substring(0, 2);
-      inputValue += "." + rightSide;
-  
+
+    if (inputValue.match(/^[0-9]+$/) || inputValue.length == 0) {
+      goodValue = inputValue;
+      FormatCurrency(inputValue);
     } else {
-      // No decimal entered
-      inputValue = "$" + FormatNumber(inputValue);
+      input.value = goodValue;
     }
-  
-    // Send updated string to input
-    input.value = inputValue;
-  
-    // Put caret back in the right position
-    const updatedLength = inputValue.length;
-    const updatedCaretPosition = updatedLength - originalLength + caretPosition;
-    input.setSelectionRange(updatedCaretPosition, updatedCaretPosition);
   }
-  
+
+  function FormatCurrency(inputValue) {
+    inputCurrency.value = new Intl.NumberFormat(undefined, {
+      style: 'currency',
+      currency: 'USD',
+      maximumFractionDigits: 0,
+      minimumFractionDigits: 0,
+    }).format(inputValue);
+  }
+
   function FadeElems(elem, show) {
     if (show == true) {
       elem.classList.remove("fadeOut");
@@ -297,23 +275,25 @@ window.addEventListener('load', (event) => {
       elem.classList.add("fadeOut");
     }
   }
-  
+
   function UpdatePopup(type, title, editable, content) {
-      overlayMainBox.setAttribute("data-type", type);
-      overlayTitle.textContent = title;
-      overlayTextBox.textContent = content;
+    overlayMainBox.setAttribute("data-type", type);
+    overlayTitle.textContent = title;
+    overlayTextBox.value = content;
 
-      if (editable == "true") {
-        overlayTextBox.removeAttribute("disabled");
-      } else {
-        overlayTextBox.setAttribute("disabled", "true");
-      }
+    if (editable == "true") {
+      overlayTextBox.removeAttribute("disabled");
+    } else {
+      overlayTextBox.setAttribute("disabled", "true");
+    }
 
-      if (type == "question") {
-        btnOverlayCancel.style = "";
-      } else {
-        btnOverlayCancel.style.display = "none";
-      }
+    if (type == "question") {
+      btnOverlayCancel.style = "";
+      btnOverlaySubmit.textContent = "Submit";
+    } else {
+      btnOverlayCancel.style.display = "none";
+      btnOverlaySubmit.textContent = "Got It";
+    }
   }
   //#endregion Helper Functions
 });
