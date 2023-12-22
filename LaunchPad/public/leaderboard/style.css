@@ -1,18 +1,13 @@
 :root {
     --color-bg: #242424;
     --color-alt: #2d2d2d;
-    --color-overlay: rgba(45, 45, 45, .98);
     --color-darkbox: #242424;
     --color-lightbox: #292929;
     --color-fg: #fff;
-    --color-lightwhite: rgba(255,255,255,.05);
+    --color-lightwhite: rgba(255, 255, 255, .05);
     --color-green: #00aa63;
-    --color-red: #f04545;
-    --box-shadow: 0 3px 6px rgba(0,0,0,0.16), 0 3px 6px rgba(0,0,0,0.23);
-  
-    --accent-color: var(--color-green);
-    --accent-color-press: var(--color-green-highlight);
-  }
+    --box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+}
 
 body {
     background-color: var(--color-bg);
@@ -22,35 +17,23 @@ body {
     color: var(--color-fg);
 }
 
-#main {
-    display: grid;
-    grid-template-columns: 100%;
-    grid-template-rows: 20% 68% 8%;
-    grid-gap: 2%;
-    position: fixed;
-    inset: 10px;
+h1 {
+    font-size: calc(1vh + 2vw);
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
 }
 
-#grid-owner-sponser{
-    display: grid;
-    grid-template-columns: 49.5% 49.5%;
-    grid-template-rows: 100%;
-    grid-gap: 1%;
+h2 {
+    font-size: calc(1.25vh + 1.5vw);
+    font-weight: 400;
 }
 
-#grid-boards {
-    display: grid;
-    grid-template-columns: 33.33% 33.33% 33.33%;
-    grid-template-rows: 100%;
-}
-
-#grid-board-totals {
-    background-color: var(--color-alt);
-    border-radius: 5px;
-    display: grid;
-    grid-template-columns: 33.33% 33.33% 33.33%;
-    grid-template-rows: 100%;
-    box-shadow: var(--box-shadow);
+p {
+    font-size: calc(1vh + 2vw);
+    margin-left: 2%;
+    font-weight: 400;
 }
 
 .grid-dark-box {
@@ -62,30 +45,51 @@ body {
     box-shadow: var(--box-shadow);
 }
 
+.grid-titles {
+    display: grid;
+    grid-template-columns: 5% 94.5%;
+    grid-template-rows: 100%;
+    width: 98.75%;
+    height: 100%;
+    margin: auto;
+}
+
+.line {
+    display: inline-flex;
+    background: var(--color-green);
+    border-radius: 5px;
+    max-width: 15px;
+    width: 50%;
+    height: 75%;
+    margin: auto;
+}
+
+.titles {
+    justify-content: flex-start;
+    padding-left: 1%;
+}
+
+.light-box {
+    display: flex;
+    background-color: var(--color-lightwhite);
+    border-radius: 5px;
+    width: 95%;
+    height: auto;
+    max-height: 6vh;
+    align-items: center;
+    margin: auto;
+    box-shadow: var(--box-shadow);
+}
+
 .grid-board-box {
-    opacity: 1;
-    transition: opacity .35s;
+    opacity: 0;
+    transition: opacity .2s;
     background-color: var(--color-darkbox);
     border-radius: 5px;
     width: 100%;
     display: grid;
     grid-template-columns: 100%;
-    grid-template-rows: 18% 16.4% 16.4% 16.4% 16.4% 16.4%;
-}
-
-.grid-board-box.fade {
-    opacity: 0;
-}
-
-#donor-title, #prayer-title, #team-title {
-    margin: 5px 10px 0 10px;
-    background-color: transparent;
-    border-color: var(--accent-color);
-    border-style: solid;
-    border-width: 4px;
-    border-radius: 10px;
-    height: 80%;
-    box-shadow: var(--box-shadow);
+    grid-template-rows: 18% repeat(5, 16.4%);
 }
 
 .names {
@@ -94,60 +98,85 @@ body {
     height: 90%;
     margin: 0 10px 0 10px;
     display: flex;
+    text-align: center;
     justify-content: center;
     align-items: center;
     box-shadow: var(--box-shadow);
 }
 
-.line {
-    display: inline-flex;
-    background: var(--accent-color);
-    border-radius: 5px;
-    width: .5vw;
-    height: 75%;
-    margin: auto;
-}
-
-.light-box {
-    display: flex;
-    background-color: var(--color-lightwhite);
-    border-radius: 5px;
-    width: 98.5%;
-    height: auto;
-    max-height: 6vh;
-    align-items: center;
-    margin: auto;
-    box-shadow: var(--box-shadow);
-}
-
-.grid-titles {
+#main {
     display: grid;
-    grid-template-columns: 2.5% 97.5%;
+    grid-template-columns: 100%;
+    grid-template-rows: 20% 68% 8%;
+    grid-gap: 2%;
+    position: fixed;
+    inset: 10px;
+}
+
+#grid-owner-sponser {
+    display: grid;
+    grid-template-columns: 49.5% 49.5%;
     grid-template-rows: 100%;
-    width: 98.75%;
-    height: 100%;
-    margin: auto;
+    grid-gap: 1%;
 }
 
-.titles {
-    display: inline-flex;
-    align-items: center;
-    font-style: italic;
+#grid-boards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(33.33%, auto));
+    grid-template-rows: 100%;
 }
 
-h1 {
-    font-size: calc(1vh + 2vw);
-    font-style: italic;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
+#donor-title, #prayer-title, #team-title {
+    margin: 5px 10px 0 10px;
+    background-color: transparent;
+    border-color: var(--color-green);
+    border-style: solid;
+    border-width: 4px;
+    border-radius: 10px;
+    height: 80%;
+    box-shadow: var(--box-shadow);
 }
 
-h2 {
-    font-size: calc(1.25vh + 1.5vw);
+#grid-board-totals {
+    background-color: var(--color-alt);
+    border-radius: 5px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(33.33%, auto));
+    grid-template-rows: 100%;
+    box-shadow: var(--box-shadow);
 }
 
-p {
-    font-size: calc(1vh + 2vw);
-    margin-left: 5px;
+#donor-total, #prayer-total, #team-total {
+    padding: 0 5px;
+    font-weight: 400;
+    opacity: 0;
+    transition: opacity .2s;
+}
+
+.fadeIn {
+    animation: fadeIn .2s linear forwards;
+}
+
+.fadeOut {
+    animation: fadeOut .2s linear forwards;
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+    }
+
+    100% {
+        opacity: 0;
+    }
 }
