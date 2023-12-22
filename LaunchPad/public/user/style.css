@@ -134,7 +134,7 @@ input:focus, textarea:focus {
 }
 
 .button {
-  font-size: calc(12px + 1vw);
+  font-size: clamp(14px, 3vw, 24px);
   color: rgb(255, 255, 255);
   border-radius: 6px;
   background: var(--color-green);
@@ -181,7 +181,7 @@ input:focus, textarea:focus {
 }
 
 .name-box {
-  font-size: calc(16px + 1vw);
+  font-size: clamp(16px, 4vw, 38px);
   display: flex;
   color: var(--color-fg);
   background-color: var(--color-lightbox);
@@ -190,7 +190,7 @@ input:focus, textarea:focus {
 }
 
 .amount-box {
-  font-size: calc(16px + 1vw);
+  font-size: clamp(16px, 4vw, 38px);
   text-align: center;
   display: flex;
   color: var(--color-fg);
@@ -227,15 +227,15 @@ input:focus, textarea:focus {
 }
 
 h1 {
-  font-size: calc(12px + 1vw);
+  font-size: clamp(16px, 3vw, 28px);
 }
 
 h2 {
-  font-size: calc(10px + 1vw);
+  font-size: clamp(14px, 2.5vw, 26px);
 }
 
 h3 {
-  font-size: calc(8.5px + 1.5vw);
+  font-size: clamp(14px, 3vw, 32px);
   padding: 10px;
   overflow: auto;
   height: 95%;
@@ -243,18 +243,8 @@ h3 {
   font-weight: normal;
 }
 
-h3[contenteditable="true"]:empty::before {
-  content: attr(placeholder);
-  color: var(--color-lightwhite);
-  font-style: italic;
-}
-
-h3[contenteditable="true"]:hover {
-  cursor: text;
-}
-
 p {
-  font-size: calc(12px + 1vw);
+  font-size: clamp(16px, 4vw, 38px);
   margin-left: 5px;
   color: var(--color-fg);
 }
@@ -288,7 +278,7 @@ p {
   display: inline-block;
   background-color: var(--color-bg);
   color: rgba(255, 255, 255, .25);
-  font-size: calc(14px + 1vw);
+  font-size: clamp(14px, 3vw, 24px);
   line-height: 140%;
   font-weight: 600;
   text-align: center;
@@ -447,7 +437,7 @@ p {
   margin: auto;
   border-radius: 10px;
   resize: none;
-  font-size: calc(14px + 1vw);
+  font-size: clamp(14px, 3vw, 26px);
   padding: 10px;
   box-sizing: border-box;
 }
