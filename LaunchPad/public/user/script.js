@@ -1,10 +1,9 @@
 //#region Firebase Initalization
 // Import the functions you need from the SDKs you need
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-app.js";
-import { getDatabase, ref, onValue, child, push, set } from "https://www.gstatic.com/firebasejs/9.9.2/firebase-database.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, onValue, child, push, set } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyCkhBqKXXHQcgk9QYS7TTCY9I1kjx_bowk",
   authDomain: "cana-launchpad.firebaseapp.com",
@@ -16,8 +15,8 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-// Initialize Realtime Database
 const database = getDatabase(app);
+const auth = getAuth(app);
 
 const connectedRef = ref(database, ".info/connected");
 const isUsableRef = ref(database, 'UserApp/isUsable');
@@ -30,6 +29,15 @@ const teamBoardRef = ref(database, 'UserApp/isTeamBoardOn');
 
 //#region Main Functions
 window.addEventListener('load', (event) => {
+  //Ensure that the browser supports the service worker API then register it
+  var registration = null;
+  if (navigator.serviceWorker) {
+    navigator.serviceWorker.register('../service-worker.js').then(reg => {
+      registration = reg;
+      console.log('Service Worker Registered');
+    }).catch(swErr => console.log(`Service Worker Installation Error: ${swErr}}`));
+  }
+
   //#region Variables
   //Overlay Elems
   const loadingAnim = document.getElementById("loader");
@@ -64,8 +72,9 @@ window.addEventListener('load', (event) => {
   //#endregion Variables
 
   //#region Firebase Listeners
-  onValue(connectedRef, (snapshot) => {
-    if (snapshot.val() === true) {
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      //Signed in Anonymously
       onValue(isUsableRef, (snapshot) => {
         if (String(snapshot.val()) === "true") {
           setTimeout(function () {
@@ -80,6 +89,18 @@ window.addEventListener('load', (event) => {
           FadeElems(loadingAnim, true);
         }
       });
+    } else {
+      //Signed out
+      FadeElems(loadingOverlay, true);
+      FadeElems(notTimeBox, false);
+      FadeElems(loadingAnim, true);
+      signInAnonymously(auth)
+        .then(() => {
+          console.log("Signed in Anonymously");
+        })
+        .catch((error) => {
+          console.log(error.code + ": " + error.message);
+        });
     }
   });
 
@@ -164,9 +185,9 @@ window.addEventListener('load', (event) => {
     FadeElems(mainOverlay, false);
 
     if (overlayMainBox.getAttribute("data-type") == "question") {
-      if (overlayTextBox.textContent != "" && overlayTextBox.textContent != " ") {
+      if (overlayTextBox.value != "" && overlayTextBox.value != " ") {
         //Submit the question to the DB under UserApp/Questions
-        push(child(ref(database), 'UserApp/Questions'), overlayTextBox.textContent);
+        push(child(ref(database), 'UserApp/Questions'), overlayTextBox.value);
       }
     }
 
