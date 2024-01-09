@@ -2020,7 +2020,7 @@ form .btn input[type="submit"] {
   padding: 0;
   cursor: pointer;
   fill: var(--white);
-  z-index: 1;
+  z-index: 999;
 }
 
 #editinfo-close-btn {

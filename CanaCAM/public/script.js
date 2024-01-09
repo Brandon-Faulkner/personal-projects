@@ -1465,7 +1465,7 @@ window.addEventListener('load', () => {
         if (imgValid instanceof File) {
           var imgElem = document.getElementById('main-prof-img');
           var imgName = imgElem.getAttribute("data-imgName");
-          
+
           deleteObject(ref_st(storage, "Users/" + auth?.currentUser.uid + "/" + imgName)).then(() => {
             //Upload new image
             const metaData = { cacheControl: 'public,max-age=604800', };
@@ -1929,7 +1929,7 @@ window.addEventListener('load', () => {
     var [timeH, timeM] = timeElem.value.split(":");
     var timeH2 = (timeH % 12 ? timeH % 12 : 12);
     const timeString = timeH2 + ":" + timeM + (timeH >= 12 ? ' PM' : ' AM');
-    
+
     const rawDateString = new Date(dateElem.value.replace(/-/g, "/") + " " + timeString);
     const dateVal = new Date(rawDateString);
     const dateString = (dateVal.getMonth() + 1) + "/" + ('0' + dateVal.getDate()).slice(-2) + "/" + ('0' + dateVal.getFullYear()).slice(-2);
@@ -1990,40 +1990,40 @@ window.addEventListener('load', () => {
   function ScheduleDays(daysContentArr) {
     const dayUpdates = {};
     const sorter = { 0: "Sunday", 1: "Monday", 2: "Tuesday", 3: "Wednesday", 4: "Thursday", 5: "Friday", 6: "Saturday" };
-    
+
     //Need to get the week attached to each day to schedule
     //Sun-Sat, 0-6. Our weeks will start on Mon, 1
     daysContentArr.forEach((day) => {
       if (day.classList.contains("added-day")) {
-        var splitDateTime = day.textContent.split(" at "); 
+        var splitDateTime = day.textContent.split(" at ");
         var date = new Date(splitDateTime[0]);
-        var dayOfWeek = sorter[date.getDay()]; 
+        var dayOfWeek = sorter[date.getDay()];
         var begin, end;
         switch (dayOfWeek) {
           case "Sunday":
-            begin = -6;end = 0;
+            begin = -6; end = 0;
             break;
           case "Monday":
-            begin = 0;end = 6;
+            begin = 0; end = 6;
             break;
           case "Tuesday":
-            begin = -1;end = 5;
+            begin = -1; end = 5;
             break;
           case "Wednesday":
-            begin = -2;end = 4;
+            begin = -2; end = 4;
             break;
           case "Thursday":
-            begin = -3;end = 3;
+            begin = -3; end = 3;
             break;
           case "Friday":
-            begin = -4;end = 2;
+            begin = -4; end = 2;
             break;
           case "Saturday":
-            begin = -5;end = 1;
+            begin = -5; end = 1;
             break;
         }
         var tempEnd = new Date(date.getTime()); var tempBegin = new Date(date.getTime());
-        var endWeek = new Date(tempEnd.setDate(tempEnd.getDate() + end)); 
+        var endWeek = new Date(tempEnd.setDate(tempEnd.getDate() + end));
         var beginWeek = new Date(tempBegin.setDate(tempBegin.getDate() + begin));
         const beginString = (beginWeek.getMonth() + 1) + "/" + ('0' + beginWeek.getDate()).slice(-2) + "/" + ('0' + beginWeek.getFullYear()).slice(-2);
         const endString = (endWeek.getMonth() + 1) + "/" + ('0' + endWeek.getDate()).slice(-2) + "/" + ('0' + endWeek.getFullYear()).slice(-2);
@@ -2031,7 +2031,7 @@ window.addEventListener('load', () => {
         dayUpdates["Groups/" + adminGroup + "/Weeks/" + encodeURIComponent(beginString + '-' + endString) + "/" + dayOfWeek] = splitDateTime[1];
       }
     });
-    
+
     update(ref_db(database), dayUpdates).then(() => {
       //Change each class to scheduled-days
       daysContentArr.forEach((day) => {
@@ -2099,6 +2099,7 @@ window.addEventListener('load', () => {
               })
               .catch((error) => {
                 console.log(error.code + ": " + error.message);
+                console.log(error);
               });
           }, {
             onlyOnce: true
@@ -2183,40 +2184,42 @@ window.addEventListener('load', () => {
 
     filteredByCurrGroup.forEach((week) => {
       var tableElem = document.getElementById(week.week + "-planning");
-      var tableElemArr = Array.from(tableElem.children);
+      if (tableElem != null) {
+        var tableElemArr = Array.from(tableElem.children);
 
-      tableElemArr.forEach((row) => {
-        var rowDate = row.children[0].textContent.split('/')[0];
-        if (row.classList.contains('table-row') && rowDate === week.day) {
-          row.children[2].textContent = week.capacity;
-          var isRSVPd = row.children[3].children[0].classList.contains('rsvp-cancel-button');
+        tableElemArr.forEach((row) => {
+          var rowDate = row.children[0].textContent.split('/')[0];
+          if (row.classList.contains('table-row') && rowDate === week.day) {
+            row.children[2].textContent = week.capacity;
+            var isRSVPd = row.children[3].children[0].classList.contains('rsvp-cancel-button');
 
-          if (week.capacity === 1) {
-            //Only user can rsvp, no friends
-            row.children[3].children[0].classList.remove('rsvp-disabled');
-            row.children[4].children[0].classList.remove('counter-disabled');
-            if (isRSVPd === false) {
-              row.children[4].children[0].classList.add('counter-disabled');
-            }
-          } else if (week.capacity === 0) {
-            //No one can rsvp
-            row.children[3].children[0].classList.remove('rsvp-disabled');
-            row.children[4].children[0].classList.remove('counter-disabled');
-            if (isRSVPd === false) {
-              row.children[3].children[0].classList.add('rsvp-disabled');
-              row.children[4].children[0].classList.add('counter-disabled');
-            }
-          } else {
-            if (isRSVPd === false) {
+            if (week.capacity === 1) {
+              //Only user can rsvp, no friends
               row.children[3].children[0].classList.remove('rsvp-disabled');
               row.children[4].children[0].classList.remove('counter-disabled');
-              if (parseInt(row.children[4].children[0].children[1].value, 10) >= week.capacity) {
-                row.children[4].children[0].children[1].value = week.capacity - 1;
+              if (isRSVPd === false) {
+                row.children[4].children[0].classList.add('counter-disabled');
+              }
+            } else if (week.capacity === 0) {
+              //No one can rsvp
+              row.children[3].children[0].classList.remove('rsvp-disabled');
+              row.children[4].children[0].classList.remove('counter-disabled');
+              if (isRSVPd === false) {
+                row.children[3].children[0].classList.add('rsvp-disabled');
+                row.children[4].children[0].classList.add('counter-disabled');
+              }
+            } else {
+              if (isRSVPd === false) {
+                row.children[3].children[0].classList.remove('rsvp-disabled');
+                row.children[4].children[0].classList.remove('counter-disabled');
+                if (parseInt(row.children[4].children[0].children[1].value, 10) >= week.capacity) {
+                  row.children[4].children[0].children[1].value = week.capacity - 1;
+                }
               }
             }
           }
-        }
-      });
+        });
+      }
     });
   }
 
