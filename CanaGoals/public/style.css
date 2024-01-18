@@ -379,8 +379,8 @@ p[contenteditable="plaintext-only"]:hover {
 /*#region LOGIN SCREEN*/
 .login-wrapper {
     overflow: auto;
-    max-width: 445px;
-    max-height: 400px;
+    max-width: 750px;
+    max-height: 600px;
     background: var(--white);
     padding: 30px;
     border-radius: var(--border-radius);
@@ -397,7 +397,7 @@ p[contenteditable="plaintext-only"]:hover {
 }
 
 #language-wrapper {
-    padding: 60px 10px 0 10px;
+    padding: 60px 10px 10px 10px;
 }
 
 .login-close-button {
@@ -492,7 +492,6 @@ p[contenteditable="plaintext-only"]:hover {
     overflow-x: hidden;
     height: auto;
     max-height: 110vh;
-    padding-top: 20px;
 }
 
 .login-form-container .login-form-inner {
@@ -806,7 +805,7 @@ button[data-tooltip]:active .tooltip {
     grid-template-columns: auto auto auto 40px;
 }
 
-#semester-input > .delete-td {
+#semester-input>.delete-td {
     justify-self: center;
 }
 
@@ -1351,12 +1350,13 @@ td[contenteditable="plaintext-only"]:empty:before {
     }
 }
 
-@media (max-width: 767px) {
-
+@media (max-width: 870px) {
     .login-wrapper {
         transform: scale(0.9);
     }
+}
 
+@media (max-width: 767px) {
     h2 {
         font-size: 22px;
         margin-left: 20px;
